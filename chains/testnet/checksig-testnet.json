@@ -6,6 +6,20 @@
   "coin_type": "118",
   "min_tx_fee": "0",
   "addr_prefix": "cks",
+  "features": [
+    "dashboard",
+    "blocks",
+    "staking",
+    "governance",
+    "parameters",
+    "uptime",
+    "supply",
+    "tx",
+    "consensus",
+    "cosmwasm",
+    "state-sync",
+    "widget"
+  ],
   "assets": [
     {
       "base": "ucst",

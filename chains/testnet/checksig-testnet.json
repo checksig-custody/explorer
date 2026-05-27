@@ -1,0 +1,19 @@
+{
+  "chain_name": "checksig-testnet",
+  "api": ["https://lcd.testnet.checksig.com"],
+  "rpc": ["https://rpc.testnet.checksig.com"],
+  "sdk_version": "0.50.0",
+  "coin_type": "118",
+  "min_tx_fee": "0",
+  "addr_prefix": "cks",
+  "assets": [
+    {
+      "base": "ucst",
+      "symbol": "CST",
+      "exponent": "6",
+      "logo": "/logos/cst.svg"
+    }
+  ],
+  "theme_color": "#3b82f6",
+  "logo": "/logos/cst.svg"
+}

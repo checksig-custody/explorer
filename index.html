@@ -2,12 +2,13 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" href="/favicon.ico" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Ping Dashboard - Cosmos Blockchain Explorer And Web Wallet</title>
+    <title>CheckSig Token Explorer</title>
     <meta
       name="description"
-      content="Ping Dashboard is a block explorer/web wallet for blockchains built on Cosmos SDK, Cosmoshub, Osmosis, Juno, Evmos, Injective, Canto and 70+ blockchains listed on ping.pub"
+      content="CheckSig Token Explorer — a light block explorer for CheckSig Cosmos SDK chains, fetching data live from LCD/RPC endpoints."
     />
     <link rel="stylesheet" type="text/css" href="/loader.css" />
   </head>
@@ -15,7 +16,7 @@
     <div id="app">
       <div id="loading-bg">
         <div class="loading-logo">
-          <img src="/logo.svg" alt="Logo" />
+          <img src="/logo.svg" alt="CheckSig" width="150" />
         </div>
         <div class="pre-loading">
           <div class="effect-1 effects"></div>
@@ -25,27 +26,6 @@
       </div>
     </div>
     <script type="module" src="/src/main.ts"></script>
-    <!-- Google tag (gtag.js) -->
-    <script
-      async
-      src="https://www.googletagmanager.com/gtag/js?id=G-SSBKVF3GMX"
-    ></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag() {
-        dataLayer.push(arguments);
-      }
-      gtag('js', new Date());
-      // Set default consent to 'denied' as a placeholder
-      // Determine actual values based on your own requirements
-      gtag('consent', 'default', {
-        ad_storage: 'denied',
-        ad_user_data: 'denied',
-        ad_personalization: 'denied',
-        analytics_storage: 'denied',
-      });
-      gtag('config', 'G-SSBKVF3GMX');
-    </script>
     <script type="module" src="https://cdn.jsdelivr.net/npm/@ping-pub/widget@latest/dist/widget.min.js"></script>
   </body>
 </html>

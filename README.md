@@ -1,56 +1,50 @@
 <div align="center">
 
-![Ping Wallet](./public/logo.svg)
+![CheckSig](./public/logo.svg)
 
-<h1>Ping Dashboard</h1>
+<h1>CheckSig Token Explorer</h1>
 
-**Ping Dashboard is not only an explorer but also a wallet and more ... 🛠**
-
-[![version](https://img.shields.io/github/tag/ping-pub/explorer.svg)](https://github.com/ping-pub/explorer/releases/latest)
-[![GitHub](https://img.shields.io/github/license/ping-pub/explorer.svg)](https://github.com/ping-pub/explorer/blob/master/LICENSE)
-[![Twitter URL](https://img.shields.io/twitter/url/https/twitter.com/bukotsunikki.svg?style=social&label=Follow%20%40ping_pub)](https://twitter.com/ping_pub)
-[![https://discord.gg/CmjYVSr6GW](https://img.shields.io/badge/discord-join-7289DA.svg?logo=discord&longCache=true&style=flat)](https://discord.gg/CmjYVSr6GW)
-
+**A light, real-time block explorer for CheckSig's Cosmos SDK chains.**
 
 </div>
 
-`Ping Dashboard` is a light explorer for Cosmos-based Blockchains.  https://ping.pub .
+## About
 
-## What sets Ping Dashboard apart from other explorers?
-**Ping Dashboard** stands out by providing a real-time exploration of blockchain data without relying on caching or pre-processing. It exclusively fetches data from the Cosmos full node via LCD/RPC endpoints, ensuring a truly authentic experience. This approach is referred to as the "Light Explorer."
+`CheckSig Token Explorer` is a light explorer for Cosmos-based blockchains. It fetches
+data **directly** from each chain's public LCD (REST) / RPC endpoints in the browser —
+there is no backend, database, or caching layer. Everything shown in the UI is a live
+request against the configured node.
 
-## Are you interested in listing your blockchain on https://ping.pub?
+This project is a fork of [ping.pub / explorer](https://github.com/ping-pub/explorer),
+maintained by CheckSig. It is distributed under the same GNU GPL-2.0 license as the
+upstream project (see [LICENSE](./LICENSE)).
 
-To make this repository clean, please submit your request to https://github.com/ping-pub/ping.pub.git
+## Development
 
+Package manager is **yarn**.
 
-## Why does Ping Dashboard rely on official/trusted third-party public LCD/RPC servers?
-There are two primary reasons for this choice:
-
- - Trust: In a decentralized system, it is crucial to avoid relying solely on a single entity. By utilizing official/trusted third-party public LCD/RPC servers, Ping Dashboard ensures that the data is sourced from a network of trusted participants.
- - Limited Resources: As Ping Dashboard plans to list hundreds of Cosmos-based blockchains in the future, it is impractical for the Ping team to operate validators or full nodes for all of them. Leveraging trusted third-party servers allows for more efficient resource allocation.
-
-## Donation
-
-Your donation will help us make better products. Thanks in advance.
-
- - Address for ERC20: USDC, USDT, ETH
-```
-0x88BFec573Dd3E4b7d2E6BfD4D0D6B11F843F8aa1
+```sh
+yarn --ignore-engines    # install
+yarn dev                 # vite dev server
+yarn build               # type-check + production build
+yarn preview             # preview the production build
+yarn format              # prettier --write .
 ```
 
-#### Donations from project
+## Chain configuration
 
-- Point Network: 1000USDC and $1000 worth of POINT
-- Bitsong: 50k BTSG
-- IRISnet: 100k IRIS
+Chain configs live in `chains/mainnet/*.json` and `chains/testnet/*.json`, loaded at
+build time. Which folder is loaded depends on the browser hostname: if it contains the
+substring `testnet`, only `chains/testnet/*` is loaded; otherwise `chains/mainnet/*`.
+See [`chains/README.md`](./chains/README.md) for the JSON schema.
 
-## Hire us
+## Credits
 
-You can hire us by submitting an issue and fund the issue on [IssueHunter](https://issuehunt.io/r/ping-pub/explorer)
+Built on the excellent [Ping Dashboard](https://ping.pub) by
+[@liangping](https://github.com/liangping) and [@dingyiming](https://github.com/dingyiming).
 
+## License
 
-## Contributors
-
-Developers: @liangping @dingyiming
-
+[GNU GPL-2.0](./LICENSE) — inherited from the upstream ping.pub/explorer project.
+</content>
+</invoke>

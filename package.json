@@ -52,7 +52,7 @@
     "tailwindcss": "^3.3.1",
     "theme-change": "^2.5.0",
     "vite-plugin-vue-layouts": "^0.7.0",
-    "vue": "^3.2.45",
+    "vue": "^3.5.42",
     "vue-i18n": "^9.2.2",
     "vue-prism-component": "^2.0.0",
     "vue-router": "^4.1.6",

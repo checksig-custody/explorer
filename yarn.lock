@@ -1908,10 +1908,10 @@
     "@intlify/shared" "9.3.0"
     source-map-js "^1.0.2"
 
-"@intlify/shared@9.3.0", "@intlify/shared@next":
-  version "9.3.0"
-  resolved "https://registry.yarnpkg.com/@intlify/shared/-/shared-9.3.0.tgz#8875120f1e6826be0e99b623e2618167402bfe41"
-  integrity sha512-MMGRz6zWxtz7rHtxIIdnyb8SYOIaaseN1IvUhAEs9tOW4u77RD4DFp4qgPXesp2Gxo/5QitH9kwSs0jnxGUNEw==
+"@intlify/shared@9.3.0", "@intlify/shared@^9.14.2", "@intlify/shared@next":
+  version "9.14.5"
+  resolved "https://registry.yarnpkg.com/@intlify/shared/-/shared-9.14.5.tgz#2e42193b8356db20ee28c15d1ee6c8f0fda6c0b9"
+  integrity sha512-9gB+E53BYuAEMhbCAxVgG38EZrk59sxBtv3jSizNL2hEWlgjBjAw1AwpLHtNaeda12pe6W20OGEa0TwuMSRbyQ==
 
 "@intlify/unplugin-vue-i18n@^0.8.2":
   version "0.8.2"

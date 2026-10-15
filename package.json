@@ -92,7 +92,8 @@
     "protobufjs": "^7.6.3",
     "@protobufjs/utf8": "^1.1.1",
     "axios": "^1.18.0",
-    "@intlify/shared": "^9.14.2"
+    "@intlify/shared": "^9.14.2",
+    "braces": "https://npm.aikido.io/14a73cede90f561c94d1/braces@3.0.2-aikido.3"
   },
   "packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610"
 }

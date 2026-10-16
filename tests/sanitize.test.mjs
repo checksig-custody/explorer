@@ -73,3 +73,10 @@ test('svg anchors get rel too', () => {
   );
   assert.match(out, /rel="noopener noreferrer"/);
 });
+
+test('echarts container class is removed', () => {
+  const out = sanitizeMarkdownHtml(
+    '<div class="md-editor-echarts other">{a:1}</div>'
+  );
+  assert.doesNotMatch(out, /md-editor-echarts/);
+});

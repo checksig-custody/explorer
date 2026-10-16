@@ -302,10 +302,12 @@ const amount = computed({
       </div>
       <div class="h-[1px] w-full bg-gray-100 dark:bg-[#384059]"></div>
       <div class="max-h-[250px] overflow-auto p-4 text-sm">
+        <!-- Chain text is untrusted: mermaid and echarts run code outside sanitize. -->
         <MdPreview
           :model-value="coinInfo.description?.en"
           :sanitize="sanitizeMarkdownHtml"
           :no-mermaid="true"
+          :no-echarts="true"
         ></MdPreview>
       </div>
       <div class="mx-4 flex flex-wrap items-center">

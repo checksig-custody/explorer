@@ -235,6 +235,7 @@ function metaItem(metadata: string | undefined): { title: string; summary: strin
         <ObjectElement :value="proposal.content" />
       </div>
       <div v-if="proposal.summary">
+        <!-- Chain text is untrusted: mermaid and echarts run code outside sanitize. -->
         <MdPreview
           :model-value="
             format.multiLine(
@@ -243,6 +244,7 @@ function metaItem(metadata: string | undefined): { title: string; summary: strin
           "
           :sanitize="sanitizeMarkdownHtml"
           :no-mermaid="true"
+          :no-echarts="true"
           class="md-editor-recover"
         ></MdPreview>
       </div>

@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { computed } from '@vue/reactivity';
 import { MdPreview } from 'md-editor-v3';
+import { sanitizeMarkdownHtml } from '@/libs/sanitize';
 import 'md-editor-v3/lib/preview.css';
 import ObjectElement from '@/components/dynamic/ObjectElement.vue';
 import { useBaseStore, useBlockchain, useFormatter, useGovStore, useStakingStore, useTxDialog } from '@/stores';
@@ -240,6 +241,7 @@ function metaItem(metadata: string | undefined): { title: string; summary: strin
               proposal.summary
             )
           "
+          :sanitize="sanitizeMarkdownHtml"
           class="md-editor-recover"
         ></MdPreview>
       </div>

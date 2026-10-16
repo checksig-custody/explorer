@@ -2,6 +2,7 @@
 import { isBech32Address } from '@/libs/utils';
 import { useBlockchain, useFormatter } from '@/stores';
 import { MdPreview } from 'md-editor-v3';
+import { sanitizeMarkdownHtml } from '@/libs/sanitize';
 import 'md-editor-v3/lib/preview.css';
 import { computed, onMounted, ref } from 'vue';
 
@@ -56,7 +57,7 @@ const isConvertable = computed(() => {
 });
 </script>
 <template>
-  <MdPreview v-if="isMD()" :model-value="format.multiLine(value)" class="md-editor-recover"></MdPreview>
+  <MdPreview v-if="isMD()" :model-value="format.multiLine(value)" :sanitize="sanitizeMarkdownHtml" class="md-editor-recover"></MdPreview>
   <span v-else-if="isAddress()" class="flex">
     <RouterLink :to="`/${chainStore.chainName}/account/${text}`">{{ text }}</RouterLink>
     <div v-for="{ name, provider } in names">

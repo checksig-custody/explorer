@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { MdPreview } from 'md-editor-v3';
+import { sanitizeMarkdownHtml } from '@/libs/sanitize';
 import 'md-editor-v3/lib/preview.css';
 import PriceMarketChart from '@/components/charts/PriceMarketChart.vue';
 
@@ -303,6 +304,7 @@ const amount = computed({
       <div class="max-h-[250px] overflow-auto p-4 text-sm">
         <MdPreview
           :model-value="coinInfo.description?.en"
+          :sanitize="sanitizeMarkdownHtml"
         ></MdPreview>
       </div>
       <div class="mx-4 flex flex-wrap items-center">

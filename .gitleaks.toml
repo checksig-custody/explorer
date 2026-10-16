@@ -1,0 +1,7 @@
+# Default gitleaks rules, plus one path allowlist.
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Vendored @ping-pub/widget bundle: minified libsodium names (crypto_*_keygen, getBech32FromPK) trip generic-api-key"
+paths = ['''^public/vendor/ping-widget/''']

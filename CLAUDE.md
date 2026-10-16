@@ -20,7 +20,7 @@ yarn format                  # prettier --write .
 yarn preview                 # preview the production build
 ```
 
-There are no tests in this repo.
+Tests: `yarn test` runs `node --test tests/` (jsdom, helper in `src/libs/sanitize.ts`). It needs Node >= 22.18 to strip the `.ts` types.
 
 ## High-level architecture
 

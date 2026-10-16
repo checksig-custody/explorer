@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { computed } from '@vue/reactivity';
 import { MdPreview } from 'md-editor-v3';
+import { sanitizeMarkdownHtml } from '@/libs/sanitize';
 import 'md-editor-v3/lib/preview.css';
 import ObjectElement from '@/components/dynamic/ObjectElement.vue';
 import { useBaseStore, useBlockchain, useFormatter, useGovStore, useStakingStore, useTxDialog } from '@/stores';
@@ -234,12 +235,16 @@ function metaItem(metadata: string | undefined): { title: string; summary: strin
         <ObjectElement :value="proposal.content" />
       </div>
       <div v-if="proposal.summary">
+        <!-- Chain text is untrusted: mermaid and echarts run code outside sanitize. -->
         <MdPreview
           :model-value="
             format.multiLine(
               proposal.summary
             )
           "
+          :sanitize="sanitizeMarkdownHtml"
+          :no-mermaid="true"
+          :no-echarts="true"
           class="md-editor-recover"
         ></MdPreview>
       </div>

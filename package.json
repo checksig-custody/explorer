@@ -32,10 +32,9 @@
     "@vueuse/math": "^9.12.0",
     "apexcharts": "^3.37.1",
     "autoprefixer": "^10.4.14",
-    "axios": "^1.18.0",
+    "axios": "^1.20.0",
     "bech32": "^1.1.4",
     "buffer": "^6.0.3",
-    "build": "^0.1.4",
     "cross-fetch": "^3.1.5",
     "daisyui": "^3.1.0",
     "dayjs": "^1.11.7",
@@ -53,7 +52,7 @@
     "theme-change": "^2.5.0",
     "vite-plugin-vue-layouts": "^0.7.0",
     "vue": "^3.5.42",
-    "vue-i18n": "^9.2.2",
+    "vue-i18n": "^9.14.2",
     "vue-prism-component": "^2.0.0",
     "vue-router": "^4.1.6",
     "vue3-apexcharts": "^1.4.1",
@@ -91,8 +90,9 @@
   "resolutions": {
     "protobufjs": "^7.6.3",
     "@protobufjs/utf8": "^1.1.1",
-    "axios": "^1.18.0",
-    "@intlify/shared": "^9.14.2"
+    "axios": "^1.20.0",
+    "@intlify/shared": "^9.14.2",
+    "braces": "https://npm.aikido.io/14a73cede90f561c94d1/braces@3.0.2-aikido.3"
   },
   "packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610"
 }

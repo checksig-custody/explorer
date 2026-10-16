@@ -10,6 +10,9 @@ on:
       - 'chains/mainnet/**'
       - 'chains/testnet/**'
 
+permissions:
+  contents: read
+
 jobs:
   deploy:
     name: Check Blockchain Config

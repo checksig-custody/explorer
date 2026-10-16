@@ -32,7 +32,7 @@
     "@vueuse/math": "^9.12.0",
     "apexcharts": "^3.37.1",
     "autoprefixer": "^10.4.14",
-    "axios": "^1.18.0",
+    "axios": "^1.20.0",
     "bech32": "^1.1.4",
     "buffer": "^6.0.3",
     "cross-fetch": "^3.1.5",
@@ -90,7 +90,7 @@
   "resolutions": {
     "protobufjs": "^7.6.3",
     "@protobufjs/utf8": "^1.1.1",
-    "axios": "^1.18.0",
+    "axios": "^1.20.0",
     "@intlify/shared": "^9.14.2",
     "braces": "https://npm.aikido.io/14a73cede90f561c94d1/braces@3.0.2-aikido.3"
   },

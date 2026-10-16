@@ -59,3 +59,17 @@ test('in-page anchors keep working', () => {
   const a = doc('<a href="#top">x</a>').querySelector('a');
   assert.equal(a.getAttribute('href'), '#top');
 });
+
+test('target on other elements is removed', () => {
+  const out = sanitizeMarkdownHtml(
+    '<form target="_blank"><input></form><a href="https://e.com" target="x">y</a>'
+  );
+  assert.doesNotMatch(out, /<form[^>]*target/i);
+});
+
+test('svg anchors get rel too', () => {
+  const out = sanitizeMarkdownHtml(
+    '<svg><a href="https://e.com"><text>x</text></a></svg>'
+  );
+  assert.match(out, /rel="noopener noreferrer"/);
+});

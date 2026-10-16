@@ -242,6 +242,7 @@ function metaItem(metadata: string | undefined): { title: string; summary: strin
             )
           "
           :sanitize="sanitizeMarkdownHtml"
+          :no-mermaid="true"
           class="md-editor-recover"
         ></MdPreview>
       </div>

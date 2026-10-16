@@ -305,6 +305,7 @@ const amount = computed({
         <MdPreview
           :model-value="coinInfo.description?.en"
           :sanitize="sanitizeMarkdownHtml"
+          :no-mermaid="true"
         ></MdPreview>
       </div>
       <div class="mx-4 flex flex-wrap items-center">

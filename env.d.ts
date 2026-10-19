@@ -15,6 +15,12 @@ declare module '*.vue' {
 }
 
 declare module '@personaxyz/ad-sdk';
+
+// Wallet extensions inject themselves into window.
+interface Window {
+  keplr?: { experimentalSuggestChain(chainInfo: unknown): Promise<void> };
+  unisat?: { experimentalSuggestChain(chainInfo: unknown): Promise<void> };
+}
 interface ImportMetaEnv {
     readonly VITE_REFRESH_INTERVAL?: number,
     readonly VITE_FETCH_ALL_BLOCKS?: boolean,

@@ -9,32 +9,34 @@ import AdBanner from '@/components/ad/AdBanner.vue';
 const error = ref('');
 const conf = ref('');
 const dashboard = useDashboard();
-const selected = ref({} as ChainConfig);
+const selected = ref<ChainConfig | undefined>();
 
 onMounted(() => {
   const chainStore = useBlockchain();
-  selected.value = chainStore.current || Object.values(dashboard.chains)[0];
+  selected.value = chainStore.current ?? Object.values(dashboard.chains)[0];
 });
 async function initParamsForKeplr() {
   const chain = selected.value;
-  if (!chain.endpoints?.rest?.at(0)) throw new Error('Endpoint does not set');
-  const client = CosmosRestClient.newDefault(chain.endpoints.rest?.at(0)?.address || '');
+  const restEndpoint = chain?.endpoints.rest?.at(0);
+  if (!chain || !restEndpoint) throw new Error('Endpoint does not set');
+  const client = CosmosRestClient.newDefault(restEndpoint.address || '');
   const b = await client.getBaseBlockLatest();
   const chainid = b.block.header.chain_id;
 
-  const gasPriceStep = chain.keplrPriceStep || {
+  const gasPriceStep = chain.keplrPriceStep ?? {
     low: 0.01,
     average: 0.025,
     high: 0.03,
   };
-  const coinDecimals =
-    chain.assets[0].denom_units.find((x) => x.denom === chain.assets[0].symbol.toLowerCase())?.exponent || 6;
+  const asset = chain.assets[0];
+  if (!asset) throw new Error('The chain has no assets');
+  const coinDecimals = asset.denom_units.find((x) => x.denom === asset.symbol.toLowerCase())?.exponent || 6;
   conf.value = JSON.stringify(
     {
       chainId: chainid,
       chainName: chain.chainName,
-      rpc: chain.endpoints?.rpc?.at(0)?.address,
-      rest: chain.endpoints?.rest?.at(0)?.address,
+      rpc: chain.endpoints.rpc?.at(0)?.address,
+      rest: restEndpoint.address,
       bip44: {
         coinType: Number(chain.coinType),
       },
@@ -49,29 +51,29 @@ async function initParamsForKeplr() {
       },
       currencies: [
         {
-          coinDenom: chain.assets[0].symbol,
-          coinMinimalDenom: chain.assets[0].base,
+          coinDenom: asset.symbol,
+          coinMinimalDenom: asset.base,
           coinDecimals,
-          coinGeckoId: chain.assets[0].coingecko_id || 'unknown',
+          coinGeckoId: asset.coingecko_id || 'unknown',
         },
       ],
       feeCurrencies: [
         {
-          coinDenom: chain.assets[0].symbol,
-          coinMinimalDenom: chain.assets[0].base,
+          coinDenom: asset.symbol,
+          coinMinimalDenom: asset.base,
           coinDecimals,
-          coinGeckoId: chain.assets[0].coingecko_id || 'unknown',
+          coinGeckoId: asset.coingecko_id || 'unknown',
           gasPriceStep,
         },
       ],
       gasPriceStep,
       stakeCurrency: {
-        coinDenom: chain.assets[0].symbol,
-        coinMinimalDenom: chain.assets[0].base,
+        coinDenom: asset.symbol,
+        coinMinimalDenom: asset.base,
         coinDecimals,
-        coinGeckoId: chain.assets[0].coingecko_id || 'unknown',
+        coinGeckoId: asset.coingecko_id || 'unknown',
       },
-      features: chain.keplrFeatures || [],
+      features: chain.keplrFeatures ?? [],
     },
     null,
     '\t'
@@ -79,11 +81,9 @@ async function initParamsForKeplr() {
 }
 
 function suggest() {
-  // @ts-ignore
   if (window.unisat) {
-    // @ts-ignore
-    window.unisat.experimentalSuggestChain(JSON.parse(conf.value)).catch((e) => {
-      error.value = e;
+    window.unisat.experimentalSuggestChain(JSON.parse(conf.value)).catch((e: unknown) => {
+      error.value = String(e);
     });
   }
 }
@@ -94,12 +94,12 @@ function suggest() {
     <AdBanner id="keplr-banner-ad" unit="banner" width="970px" height="90px" />
     <div class="flex">
       <select v-model="selected" class="select select-bordered mx-5" @change="initParamsForKeplr">
-        <option v-for="c in dashboard.chains" :value="c">
+        <option v-for="c in dashboard.chains" :key="c.chainName" :value="c">
           {{ c.chainName }}
         </option>
       </select>
       <button class="btn !bg-yes !border-yes text-white px-10" @click="suggest">
-        Add {{ selected.chainName }} TO Unisat Wallet
+        Add {{ selected?.chainName }} TO Unisat Wallet
       </button>
     </div>
     <div class="text-main mt-5">

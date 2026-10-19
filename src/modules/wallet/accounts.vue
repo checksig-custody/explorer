@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 import { CosmosRestClient } from '@/libs/client';
 import { useBlockchain, useDashboard, useFormatter } from '@/stores';
-import type { Coin, CoinWithPrice, Delegation } from '@/types';
-import { fromBech32, toBase64, toBech32, toHex } from '@cosmjs/encoding';
+import type { CoinWithPrice, Delegation } from '@/types';
+import { fromBech32, toBase64 } from '@cosmjs/encoding';
 import { Icon } from '@iconify/vue';
 import { computed } from 'vue';
 import { ref } from 'vue';
-import { scanLocalKeys, type AccountEntry, scanCompatibleAccounts, type LocalKey } from './utils';
+import { type AccountEntry, scanCompatibleAccounts } from './utils';
 import AdBanner from '@/components/ad/AdBanner.vue';
 
 const dashboard = useDashboard();
@@ -14,7 +14,6 @@ const chainStore = useBlockchain();
 const format = useFormatter();
 const sourceAddress = ref(''); //
 const sourceHdPath = ref("m/44/118/0'/0/0"); //
-const selectedSource = ref({} as LocalKey); //
 const importStep = ref('step1');
 
 const conf = ref(JSON.parse(localStorage.getItem('imported-addresses') || '{}') as Record<string, AccountEntry[]>);
@@ -25,14 +24,15 @@ const delegations = ref({} as Record<string, Delegation[]>);
 // load balances
 Object.values(conf.value).forEach((imported) => {
   let promise = Promise.resolve();
-  for (let i = 0; i < imported.length; i++) {
+  for (const entry of imported) {
     promise = promise.then(
       () =>
         new Promise((resolve) => {
           // continue only if the page is living
-          if (imported[i].endpoint) {
-            loadBalances(imported[i].chainName, imported[i].endpoint || '', imported[i].address).finally(() => { resolve(); }
-            );
+          if (entry.endpoint) {
+            void loadBalances(entry.chainName, entry.endpoint, entry.address).finally(() => {
+              resolve();
+            });
           } else {
             resolve();
           }
@@ -53,6 +53,7 @@ const accounts = computed(() => {
   Object.values(conf.value).forEach((x) => {
     const composition = x.map((entry) => {
       const d = delegations.value[entry.address];
+      const bal = balances.value[entry.address];
       let delegation = {} as CoinWithPrice;
       if (d && d.length > 0) {
         d.forEach((b) => {
@@ -65,8 +66,8 @@ const accounts = computed(() => {
       return {
         account: entry,
         delegation,
-        balances: balances.value[entry.address]
-          ? balances.value[entry.address].map((x) => {
+        balances: bal
+          ? bal.map((x) => {
               const value = format.tokenValueNumber(x);
               return {
                 amount: x.amount,
@@ -131,7 +132,7 @@ const availableAccount = computed(() => {
 function removeAddress(addr: string) {
   const newConf = {} as Record<string, AccountEntry[]>;
   Object.keys(conf.value).forEach((key) => {
-    const acc = conf.value[key].filter((x) => x.address !== addr);
+    const acc = (conf.value[key] ?? []).filter((x) => x.address !== addr);
     if (acc.length > 0) newConf[key] = acc;
   });
   conf.value = newConf;
@@ -139,7 +140,7 @@ function removeAddress(addr: string) {
 }
 
 // add address to the local list
-async function addAddress(acc: AccountEntry) {
+function addAddress(acc: AccountEntry) {
   const { data } = fromBech32(acc.address);
   const key = toBase64(data);
 
@@ -154,13 +155,13 @@ async function addAddress(acc: AccountEntry) {
   }
 
   // also add chain to favorite
-  if (!dashboard?.favoriteMap?.[acc.chainName]) {
+  if (!dashboard.favoriteMap[acc.chainName]) {
     dashboard.favoriteMap[acc.chainName] = true;
     window.localStorage.setItem('favoriteMap', JSON.stringify(dashboard.favoriteMap));
   }
 
   if (acc.endpoint) {
-    loadBalances(acc.chainName, acc.endpoint, acc.address);
+    void loadBalances(acc.chainName, acc.endpoint, acc.address);
   }
 
   localStorage.setItem('imported-addresses', JSON.stringify(conf.value));
@@ -225,6 +226,7 @@ async function loadBalances(chainName: string, endpoint: string, address: string
     <div class="overflow-x-auto">
       <div
         v-for="{ key, subaccounts } in accounts"
+        :key="key"
         class="bg-base-100 rounded-md my-5 py-5"
       >
         <div class="flex justify-self-center">
@@ -270,7 +272,7 @@ async function loadBalances(chainName: string, endpoint: string, address: string
             <div class="dropdown">
               <label tabindex="0" class="cursor-pointer">{{ subaccounts.length }} addresses</label>
               <ul tabindex="0" class="-left-14 dropdown-content menu p-2 shadow bg-base-200 rounded-box z-50">
-                <li v-for="x in subaccounts">
+                <li v-for="x in subaccounts" :key="x.account.address">
                   <a>
                     <img :src="x.account.logo" class="w-8 h-8 mr-2">
                     <span class="font-bold capitalize"
@@ -287,7 +289,7 @@ async function loadBalances(chainName: string, endpoint: string, address: string
         <div class="p-4 bg-base-200 mt-2">Delegations</div>
         <div>
           <ul class="!menu w-full">
-            <div v-for="x in subaccounts">
+            <div v-for="x in subaccounts" :key="x.account.address">
               <li v-if="x.delegation.amount">
                 <RouterLink
                   :to="`/${x.account.chainName}/account/${x.account.address}`"
@@ -320,8 +322,8 @@ async function loadBalances(chainName: string, endpoint: string, address: string
         <div class="p-4 bg-base-200">Balances</div>
         <div>
           <ul class="!menu w-full">
-            <div v-for="s in subaccounts">
-              <li v-for="x in s.balances">
+            <div v-for="s in subaccounts" :key="s.account.address">
+              <li v-for="x in s.balances" :key="x.denom">
                 <RouterLink
                   :to="`/${s.account.chainName}/account/${s.account.address}`"
                 >
@@ -389,7 +391,7 @@ async function loadBalances(chainName: string, endpoint: string, address: string
           class="py-4 max-h-72 overflow-y-auto"
         >
           <table class="table table-compact">
-            <tr v-for="acc in availableAccount">
+            <tr v-for="acc in availableAccount" :key="acc.address">
               <td>
                 <div class="flex items-center space-x-2">
                   <div class="avatar">

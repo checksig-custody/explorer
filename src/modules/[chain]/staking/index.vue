@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useBaseStore, useBlockchain, useFormatter, useMintStore, useStakingStore, useTxDialog } from '@/stores';
-import { computed } from '@vue/reactivity';
+import { computed } from 'vue';
 import { onMounted, ref } from 'vue';
 import { Icon } from '@iconify/vue';
 import type { Key, SlashingParam, Validator } from '@/types';
@@ -34,7 +34,7 @@ onMounted(() => {
   });
 });
 
-async function fetchChange(blockWindow: number = 14400) {
+async function fetchChange(blockWindow = 14400) {
   let page = 0;
 
   let height = Number(base.latest?.block?.header?.height || 0);
@@ -130,7 +130,7 @@ function isFeatured(endpoints: string[], who?: { website?: string; moniker: stri
   return (
     endpoints.findIndex(
       (x) =>
-        (who.website && who.website?.substring(0, who.website?.lastIndexOf('.')).endsWith(x)) ||
+        (who.website?.substring(0, who.website?.lastIndexOf('.')).endsWith(x)) ||
         who?.moniker?.toLowerCase().search(x.toLowerCase()) > -1
     ) > -1
   );
@@ -195,7 +195,7 @@ const loadAvatars = () => {
     }
   });
 
-  Promise.all(promises).then(() => localStorage.setItem('avatars', JSON.stringify(avatars.value)));
+  Promise.all(promises).then(() => { localStorage.setItem('avatars', JSON.stringify(avatars.value)); });
 };
 
 const logo = (identity?: string) => {
@@ -206,7 +206,7 @@ const logo = (identity?: string) => {
 
 const loaded = ref(false);
 base.$subscribe((_, s) => {
-  if (s.recents.length >= 2 && loaded.value === false) {
+  if (s.recents.length >= 2 && !loaded.value) {
     loaded.value = true;
     const diff_time = Date.parse(s.recents[1].block.header.time) - Date.parse(s.recents[0].block.header.time);
     const diff_height = Number(s.recents[1].block.header.height) - Number(s.recents[0].block.header.height);
@@ -224,7 +224,7 @@ loadAvatars();
         <span>
           <div class="relative w-9 h-9 rounded overflow-hidden flex items-center justify-center mr-2">
             <Icon class="text-success" icon="mdi:trending-up" size="32" />
-            <div class="absolute top-0 left-0 bottom-0 right-0 opacity-20 bg-success"></div>
+            <div class="absolute top-0 left-0 bottom-0 right-0 opacity-20 bg-success" />
           </div>
         </span>
         <span>
@@ -236,7 +236,7 @@ loadAvatars();
         <span>
           <div class="relative w-9 h-9 rounded overflow-hidden flex items-center justify-center mr-2">
             <Icon class="text-primary" icon="mdi:lock-open-outline" size="32" />
-            <div class="absolute top-0 left-0 bottom-0 right-0 opacity-20 bg-primary"></div>
+            <div class="absolute top-0 left-0 bottom-0 right-0 opacity-20 bg-primary" />
           </div>
         </span>
         <span>
@@ -248,7 +248,7 @@ loadAvatars();
         <span>
           <div class="relative w-9 h-9 rounded overflow-hidden flex items-center justify-center mr-2">
             <Icon class="text-error" icon="mdi:alert-octagon-outline" size="32" />
-            <div class="absolute top-0 left-0 bottom-0 right-0 opacity-20 bg-error"></div>
+            <div class="absolute top-0 left-0 bottom-0 right-0 opacity-20 bg-error" />
           </div>
         </span>
         <span>
@@ -260,7 +260,7 @@ loadAvatars();
         <span>
           <div class="relative w-9 h-9 rounded overflow-hidden flex items-center justify-center mr-2">
             <Icon class="text-error" icon="mdi:pause" size="32" />
-            <div class="absolute top-0 left-0 bottom-0 right-0 opacity-20 bg-error"></div>
+            <div class="absolute top-0 left-0 bottom-0 right-0 opacity-20 bg-error" />
           </div>
         </span>
         <span>
@@ -311,7 +311,7 @@ loadAvatars();
                 <!-- 👉 rank -->
                 <td>
                   <div class="text-xs truncate relative px-2 py-1 rounded-full w-fit" :class="`text-${rank}`">
-                    <span class="inset-x-0 inset-y-0 opacity-10 absolute" :class="`bg-${rank}`"></span>
+                    <span class="inset-x-0 inset-y-0 opacity-10 absolute" :class="`bg-${rank}`" />
                     {{ i + 1 }}
                   </div>
                 </td>
@@ -319,7 +319,7 @@ loadAvatars();
                 <td>
                   <div class="flex items-center overflow-hidden" style="max-width: 300px">
                     <div class="avatar mr-4 relative w-8 h-8 rounded-full">
-                      <div class="w-8 h-8 rounded-full bg-gray-400 absolute opacity-10"></div>
+                      <div class="w-8 h-8 rounded-full bg-gray-400 absolute opacity-10" />
                       <div class="w-8 h-8 rounded-full">
                         <img
                           v-if="logo"
@@ -331,7 +331,7 @@ loadAvatars();
                               if (identity) loadAvatar(identity);
                             }
                           "
-                        />
+                        >
                         <Icon v-else class="text-3xl" :icon="`mdi-help-circle-outline`" />
                       </div>
                     </div>
@@ -403,14 +403,14 @@ loadAvatars();
           </table>
         </div>
 
-        <div class="divider"></div>
+        <div class="divider" />
         <div class="flex flex-row items-center">
           <div class="text-xs truncate relative py-2 px-4 rounded-md w-fit text-error mr-2">
-            <span class="inset-x-0 inset-y-0 opacity-10 absolute bg-error"></span>
+            <span class="inset-x-0 inset-y-0 opacity-10 absolute bg-error" />
             {{ $t('staking.top') }} 33%
           </div>
           <div class="text-xs truncate relative py-2 px-4 rounded-md w-fit text-warning">
-            <span class="inset-x-0 inset-y-0 opacity-10 absolute bg-warning"></span>
+            <span class="inset-x-0 inset-y-0 opacity-10 absolute bg-warning" />
             {{ $t('staking.top') }} 67%
           </div>
           <div class="text-xs hidden md:!block pl-2">

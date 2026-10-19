@@ -86,11 +86,11 @@ function confirm() {
         <div class="mt-4">
           <div class="">
             <input
-              class="input flex-1 w-full !input-bordered"
               v-model="searchQuery"
+              class="input flex-1 w-full !input-bordered"
               placeholder="Height/Transaction/Account Address"
-            />
-            <div class="mt-2 text-right text-sm text-error" v-show="errorMessage">
+            >
+            <div v-show="errorMessage" class="mt-2 text-right text-sm text-error">
               {{ errorMessage }}
             </div>
           </div>

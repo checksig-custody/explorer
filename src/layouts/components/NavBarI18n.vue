@@ -3,7 +3,7 @@ import { ref, watch } from 'vue';
 import { Icon } from '@iconify/vue';
 import { useI18n } from 'vue-i18n';
 
-const i18nLangs: Array<{ label: string; i18nLang: string }> = [
+const i18nLangs: { label: string; i18nLang: string }[] = [
   {
     label: 'English',
     i18nLang: 'en',

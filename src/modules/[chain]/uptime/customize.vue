@@ -27,7 +27,7 @@ const keyword = ref('');
 
 function loadSigningInfo(chainName: string) {
   const chain = dashboard.chains[chainName];
-  if (chain && chain.endpoints.rest) {
+  if (chain?.endpoints.rest) {
     const client = CosmosRestClient.newDefault(chain.endpoints.rest[0].address);
     client.getSlashingSigningInfos().then((resp) => {
       signingInfo.value[chainName] = resp.info;
@@ -48,7 +48,7 @@ function initial() {
 
 const filterValidators = computed(() => {
   if (keyword.value) {
-    return validators.value.filter((x) => x.description.moniker.indexOf(keyword.value) > -1);
+    return validators.value.filter((x) => x.description.moniker.includes(keyword.value));
   }
   return validators.value;
 });
@@ -151,7 +151,7 @@ function color(v: string) {
             </div>
           </div>
         </div>
-        <div class="mt-5 flex lg:!ml-4 lg:!mt-0"></div>
+        <div class="mt-5 flex lg:!ml-4 lg:!mt-0" />
       </div>
       <table class="table table-compact w-full">
         <thead>
@@ -163,7 +163,7 @@ function color(v: string) {
             <th>{{ $t('uptime.last_jailed_time') }}</th>
             <th>{{ $t('uptime.tombstoned') }}</th>
             <th>{{ $t('uptime.missing_blocks') }}</th>
-            <th></th>
+            <th />
           </tr>
         </thead>
         <tbody>
@@ -221,11 +221,11 @@ function color(v: string) {
 
     <!-- Put this part before </body> tag -->
     <input
-      type="checkbox"
       id="add-validator"
+      type="checkbox"
       class="modal-toggle"
       @change="initial"
-    />
+    >
     <div class="modal">
       <div class="modal-box relative">
         <label
@@ -241,7 +241,7 @@ function color(v: string) {
                 {{ v.chainName }}
               </option>
             </select>
-            <input v-model="keyword" type="text" class="input w-full" placeholder="keywords to filter validator" />
+            <input v-model="keyword" type="text" class="input w-full" placeholder="keywords to filter validator">
           </div>
         </div>
         <div class="py-4 max-h-60 overflow-y-auto">
@@ -249,7 +249,7 @@ function color(v: string) {
             <thead>
               <tr>
                 <th>{{ $t('account.validator') }}</th>
-                <th></th>
+                <th />
               </tr>
             </thead>
             <tbody>
@@ -266,7 +266,7 @@ function color(v: string) {
                     class="checkbox"
                     type="checkbox"
                     :value="consensusPubkeyToHexAddress(v.consensus_pubkey)"
-                  />
+                  >
                 </td>
               </tr>
             </tbody>
@@ -279,6 +279,6 @@ function color(v: string) {
         </div>
       </div>
     </div>
-    <div class="h-6"></div>
+    <div class="h-6" />
   </div>
 </template>

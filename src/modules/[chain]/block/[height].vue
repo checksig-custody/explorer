@@ -3,7 +3,7 @@ import { onMounted, ref, watchEffect } from 'vue';
 import { Icon } from '@iconify/vue';
 import TxsElement from '@/components/dynamic/TxsElement.vue';
 import DynamicComponent from '@/components/dynamic/DynamicComponent.vue';
-import { computed } from '@vue/reactivity';
+import { computed } from 'vue';
 import { onBeforeRouteUpdate } from 'vue-router';
 import { useBaseStore, useFormatter } from '@/stores';
 import type { Block } from '@/types';
@@ -84,7 +84,7 @@ onBeforeRouteUpdate(async (to, from, next) => {
                   <h3 class="text-lg font-bold">{{ $t('block.countdown_for_block_input') }}</h3>
                   <div class="py-4">
                     <div class="join">
-                      <input class="input input-bordered join-item" v-model="newHeight" type="number" />
+                      <input v-model="newHeight" class="input input-bordered join-item" type="number">
                       <button class="btn btn-primary join-item" @click="updateTarget()">
                         {{ $t('block.btn_update') }}
                       </button>
@@ -117,7 +117,7 @@ onBeforeRouteUpdate(async (to, from, next) => {
       <div class="bg-base-100 px-4 pt-3 pb-4 rounded mb-4 shadow">
         <h2 class="card-title flex flex-row justify-between">
           <p class="">#{{ current.block?.header?.height }}</p>
-          <div class="flex" v-if="props.height">
+          <div v-if="props.height" class="flex">
             <RouterLink
               :to="`/${store.blockchain.chainName}/block/${height - 1}`"
               class="btn btn-primary btn-sm p-1 text-2xl mr-2"

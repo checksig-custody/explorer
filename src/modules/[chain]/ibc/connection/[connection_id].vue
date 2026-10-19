@@ -102,7 +102,7 @@ function fetchRecevingTxs(channel: string, port: string, pageNum = 0) {
 }
 
 function color(v: string) {
-  if (v && v.indexOf('_OPEN') > -1) {
+  if (v && v.includes('_OPEN')) {
     return 'success';
   }
   return 'warning';
@@ -259,24 +259,24 @@ function color(v: string) {
                 <div class="flex gap-1">
                   <button
                     class="btn btn-xs"
-                    @click="fetchSendingTxs(v.channel_id, v.port_id)"
                     :disabled="loading"
+                    @click="fetchSendingTxs(v.channel_id, v.port_id)"
                   >
                     <span
                       v-if="loading"
                       class="loading loading-spinner loading-sm"
-                    ></span>
+                    />
                     {{ $t('ibc.btn_out') }}
                   </button>
                   <button
                     class="btn btn-xs"
-                    @click="fetchRecevingTxs(v.channel_id, v.port_id)"
                     :disabled="loading"
+                    @click="fetchRecevingTxs(v.channel_id, v.port_id)"
                   >
                     <span
                       v-if="loading"
                       class="loading loading-spinner loading-sm"
-                    ></span>
+                    />
                     {{ $t('ibc.btn_in') }}
                   </button>
                 </div>
@@ -295,7 +295,7 @@ function color(v: string) {
                   <span
                     class="inset-x-0 inset-y-0 opacity-10 absolute"
                     :class="`bg-${color(v.state)}`"
-                  ></span>
+                  />
                   {{ v.state }}
                 </div>
               </td>

@@ -136,7 +136,7 @@ function selectTab(tabName: string) {
 
 const executions = computed(() => {
   return schemas.value
-    .filter((x) => x.path.indexOf('execute_msg') > -1 || x.path.indexOf('query_msg') > -1)
+    .filter((x) => x.path.includes('execute_msg') || x.path.includes('query_msg'))
     .map((x) => JSON.parse(x.sourceCode || '{}') as Schema);
   // if(raw && raw.sourceCode) {
   //   return JSON.parse(raw.sourceCode) as Schema
@@ -145,8 +145,8 @@ const executions = computed(() => {
 });
 
 const queries = computed(() => {
-  let raw = schemas.value.find((x) => x.path.indexOf('query_msg') > -1);
-  if (raw && raw.sourceCode) {
+  let raw = schemas.value.find((x) => x.path.includes('query_msg'));
+  if (raw?.sourceCode) {
     return JSON.parse(raw.sourceCode) as Schema;
   }
   return {} as Schema;
@@ -160,7 +160,7 @@ function callFunction(title: string, method: string, arg: Argument) {
   let args = {} as Record<string, any>;
   if (arg.properties)
     Object.keys(arg.properties).forEach((k) => {
-      const input = document.querySelector(`input[name="${method}-${k}"]`) as HTMLInputElement;
+      const input = document.querySelector<HTMLInputElement>(`input[name="${method}-${k}"]`);
       if (input) {
         args[k] = input.value;
       }
@@ -194,7 +194,7 @@ function callFunction(title: string, method: string, arg: Argument) {
     <div role="tablist" class="tabs tabs-boxed">
       <a role="tab" class="tab tooltip tooltip-right tooltip-success" data-tip="Powered By WELLDONE Studio">
         <div class="w-8 rounded">
-          <img src="../assets/images/welldone-logo.svg" alt="Powered By WELLDONE Studio" />
+          <img src="../assets/images/welldone-logo.svg" alt="Powered By WELLDONE Studio">
         </div>
       </a>
       <a role="tab" class="tab" :class="{ 'tab-active': tab === 'verification' }" @click="selectTab('verification')"
@@ -211,25 +211,25 @@ function callFunction(title: string, method: string, arg: Argument) {
       <div v-if="tab === 'verification'"><DynamicComponent :value="verification" /></div>
       <div v-if="tab === 'executions'" class="">
         <div v-for="{ title, oneOf } in executions" class="join join-vertical w-full mt-2">
-          <div v-if="oneOf" v-for="m in oneOf">
+          <div v-for="m in oneOf" v-if="oneOf">
             <div
               v-for="(props, method) in m.properties"
               class="collapse collapse-arrow join-item border border-base-300"
             >
-              <input type="radio" name="my-accordion-1" :checked="false" />
+              <input type="radio" name="my-accordion-1" :checked="false">
               <div class="collapse-title font-medium">{{ title }}::{{ method }}</div>
               <div class="collapse-content">
                 <div v-for="(p, name) in props.properties" class="form-control pb-2">
                   <label class="label">
                     <span class="label-text">{{ name }}</span>
-                    <span></span>
+                    <span />
                   </label>
                   <input
                     :name="`${method}-${name}`"
                     type="text"
                     :placeholder="p.format"
                     class="input input-sm border border-gray-300 dark:border-gray-600 w-full"
-                  />
+                  >
                 </div>
                 <div>
                   <label
@@ -262,19 +262,19 @@ function callFunction(title: string, method: string, arg: Argument) {
           v-for="sc in sourceCode.filter((x) => !x.isDirectory)"
           class="collapse collapse-arrow join-item border border-base-300"
         >
-          <input type="radio" name="sourceCodeAccordion" :checked="false" />
+          <input type="radio" name="sourceCodeAccordion" :checked="false">
           <div class="collapse-title font-medium">{{ sc.path }}</div>
-          <div class="collapse-content overflow-auto" v-html="sc.sourceCode"></div>
+          <div class="collapse-content overflow-auto" v-html="sc.sourceCode" />
         </div>
       </div>
     </div>
     <div v-show="tab === 'verification'" class="text-center">
       <div v-if="Object.keys(verification).length == 0">Haven't found verification</div>
       <button
-        class="btn btn-primary mt-5"
-        @click="verify"
         v-show="tab === 'verification'"
+        class="btn btn-primary mt-5"
         :disabled="verification.error !== undefined"
+        @click="verify"
       >
         verify
       </button>

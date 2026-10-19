@@ -4,14 +4,14 @@ import { useFormatter } from '@/stores';
 import { formatSeconds } from '@/libs/utils';
 const props = defineProps({
   cardItem: {
-    type: Object as PropType<{ title: string; items: Array<any> }>,
+    type: Object as PropType<{ title: string; items: any[] }>,
   },
 });
 
 const formatter = useFormatter();
 function calculateValue(value: any) {
   if (Array.isArray(value)) {
-    return (value[0] && value[0].amount) || '-';
+    return (value[0]?.amount) || '-';
   }
   if (String(value).search(/^\d+s$/g) > -1) {
     return formatSeconds(value);
@@ -34,8 +34,8 @@ function formatTitle(v: string) {
 </script>
 <template>
   <div
-    class="bg-base-100 px-4 pt-3 pb-4 rounded mt-5"
     v-if="props.cardItem?.items && props.cardItem?.items?.length > 0"
+    class="bg-base-100 px-4 pt-3 pb-4 rounded mt-5"
   >
     <div class="text-base mb-3 text-main">{{ props.cardItem?.title }}</div>
     <div class="grid grid-cols-2 md:!grid-cols-4 lg:!grid-cols-5 2xl:!grid-cols-6 gap-4">

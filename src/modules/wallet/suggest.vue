@@ -169,16 +169,16 @@ function suggest() {
         </option>
       </select>
       <label
-        ><input type="radio" v-model="wallet" value="keplr" class="radio radio-bordered" @change="onchange" />
+        ><input v-model="wallet" type="radio" value="keplr" class="radio radio-bordered" @change="onchange">
         Keplr</label
       >
       <label
-        ><input type="radio" v-model="wallet" value="metamask" class="radio radio-bordered ml-4" @change="onchange" />
+        ><input v-model="wallet" type="radio" value="metamask" class="radio radio-bordered ml-4" @change="onchange">
         Metamask</label
       >
     </div>
     <div class="text-main mt-5">
-      <textarea v-model="conf" class="textarea textarea-bordered w-full" rows="15"></textarea>
+      <textarea v-model="conf" class="textarea textarea-bordered w-full" rows="15" />
     </div>
     <div class="mt-4 mb-4">
       <button class="btn !bg-primary !border-primary text-white mr-2" @click="suggest">

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, ref } from '@vue/reactivity';
+import { computed, ref } from 'vue';
 import { useBaseStore, useBlockchain, useFormatter } from '@/stores';
 import type { PaginatedTxs } from '@/types';
 import { useRouter } from 'vue-router';
@@ -61,7 +61,7 @@ function search() {
       </table>
       <div class="p-4">
         <div class="alert relative bg-transparent">
-          <div class="alert absolute inset-x-0 inset-y-0 w-full h-full bg-info opacity-10"></div>
+          <div class="alert absolute inset-x-0 inset-y-0 w-full h-full bg-info opacity-10" />
           <div class="text-info flex gap-2">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -74,7 +74,7 @@ function search() {
                 stroke-linejoin="round"
                 stroke-width="2"
                 d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              ></path>
+              />
             </svg>
             <span>{{ $t('block.only_tx') }}</span>
           </div>
@@ -91,7 +91,7 @@ function search() {
             class="input input-bordered"
             placeholder="Search by Tx Hash"
             @blur="search"
-          />
+          >
         </div>
       </div>
     </div>

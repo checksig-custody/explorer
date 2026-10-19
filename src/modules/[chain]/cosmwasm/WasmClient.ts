@@ -113,8 +113,8 @@ export class WasmRestClient extends BaseRestClient<WasmRequestRegistry> {
       address,
       query_data,
     });
-    let re = /`(\w+)`/g;
-    let x = String(message).match(re);
+    const re = /`(\w+)`/g;
+    const x = String(message).match(re);
     return code === 2 && x ? x.map((e) => e.replaceAll('`', '')) : [];
   }
   getWasmContractStates(address: string, pr: PageRequest) {

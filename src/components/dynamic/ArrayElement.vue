@@ -6,7 +6,7 @@ import ArrayCoinElement from './ArrayCoinElement.vue';
 import ArrayStringElement from './ArrayStringElement.vue';
 
 const props = defineProps({
-  value: { type: Array<Object> },
+  value: { type: Array<object> },
 });
 
 function selectByElement() {
@@ -27,5 +27,5 @@ function selectByElement() {
 }
 </script>
 <template>
-  <Component :is="selectByElement()" :value="props.value"></Component>
+  <Component :is="selectByElement()" :value="props.value" />
 </template>

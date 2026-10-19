@@ -31,8 +31,7 @@ Object.values(conf.value).forEach((imported) => {
         new Promise((resolve) => {
           // continue only if the page is living
           if (imported[i].endpoint) {
-            loadBalances(imported[i].chainName, imported[i].endpoint || '', imported[i].address).finally(() =>
-              resolve()
+            loadBalances(imported[i].chainName, imported[i].endpoint || '', imported[i].address).finally(() => { resolve(); }
             );
           } else {
             resolve();
@@ -231,34 +230,34 @@ async function loadBalances(chainName: string, endpoint: string, address: string
         <div class="flex justify-self-center">
           <div class="mx-2 p-2">
             <svg
+              id="Capa_1"
               :fill="chainStore.current?.themeColor || '#666CFF'"
               height="28px"
               width="28px"
               version="1.1"
-              id="Capa_1"
               xmlns="http://www.w3.org/2000/svg"
               xmlns:xlink="http://www.w3.org/1999/xlink"
               viewBox="0 0 487.5 487.5"
               xml:space="preserve"
             >
-              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+              <g id="SVGRepo_bgCarrier" stroke-width="0" />
               <g
                 id="SVGRepo_tracerCarrier"
                 stroke-linecap="round"
                 stroke-linejoin="round"
-              ></g>
+              />
               <g id="SVGRepo_iconCarrier">
                 <g>
                   <g>
                     <path
                       d="M437,12.3C437,5.5,431.5,0,424.7,0H126.3C84.4,0,50.4,34.1,50.4,75.9v335.7c0,41.9,34.1,75.9,75.9,75.9h298.5 c6.8,0,12.3-5.5,12.3-12.3V139.6c0-6.8-5.5-12.3-12.3-12.3H126.3c-28.3,0-51.4-23.1-51.4-51.4S98,24.5,126.3,24.5h298.5 C431.5,24.5,437,19,437,12.3z M126.3,151.8h286.2V463H126.3c-28.3,0-51.4-23.1-51.4-51.4V131.7 C88.4,144.2,106.5,151.8,126.3,151.8z"
-                    ></path>
+                    />
                     <path
                       d="M130.5,64.8c-6.8,0-12.3,5.5-12.3,12.3s5.5,12.3,12.3,12.3h280.1c6.8,0,12.3-5.5,12.3-12.3s-5.5-12.3-12.3-12.3H130.5z"
-                    ></path>
+                    />
                     <path
                       d="M178,397.7c6.3,2.4,13.4-0.7,15.8-7.1l17.9-46.8h62.7c0.5,0,0.9-0.1,1.3-0.1l17.9,46.9c1.9,4.9,6.5,7.9,11.4,7.9 c1.5,0,2.9-0.3,4.4-0.8c6.3-2.4,9.5-9.5,7.1-15.8l-54-141.2c-3-7.9-10.4-13-18.8-13c-8.4,0-15.8,5.1-18.8,13l-54,141.2 C168.5,388.2,171.7,395.2,178,397.7z M243.7,260l22.7,59.3h-45.3L243.7,260z"
-                    ></path>
+                    />
                   </g>
                 </g>
               </g>
@@ -273,9 +272,9 @@ async function loadBalances(chainName: string, endpoint: string, address: string
               <ul tabindex="0" class="-left-14 dropdown-content menu p-2 shadow bg-base-200 rounded-box z-50">
                 <li v-for="x in subaccounts">
                   <a>
-                    <img :src="x.account.logo" class="w-8 h-8 mr-2" />
+                    <img :src="x.account.logo" class="w-8 h-8 mr-2">
                     <span class="font-bold capitalize"
-                      >{{ x.account.chainName }} <br />
+                      >{{ x.account.chainName }} <br>
                       <span class="text-xs font-normal sm:w-16 sm:overflow-hidden">{{ x.account.address }}</span>
                     </span>
                     <label class="btn btn-xs !btn-error" @click="removeAddress(x.account.address)">Remove</label>
@@ -293,16 +292,16 @@ async function loadBalances(chainName: string, endpoint: string, address: string
                 <RouterLink
                   :to="`/${x.account.chainName}/account/${x.account.address}`"
                 >
-                  <img :src="x.account.logo" class="w-6 h-6 mr-2" />
+                  <img :src="x.account.logo" class="w-6 h-6 mr-2">
                   <span class="font-bold"
-                    >{{ format.formatToken(x.delegation, true, '0,0.[00]', 'all') }} <br /><span
+                    >{{ format.formatToken(x.delegation, true, '0,0.[00]', 'all') }} <br><span
                       class="text-xs"
                       :class="format.color(x.delegation.change24h)"
                       >{{ format.formatNumber(x.delegation.change24h, '+0.[00]') }}%</span
                     ></span
                   >
                   <span class="float-right text-right"
-                    >${{ format.formatNumber(x.delegation.value, '0,0.[00]') }}<br /><span
+                    >${{ format.formatNumber(x.delegation.value, '0,0.[00]') }}<br><span
                       class="text-xs"
                       :class="format.color(x.delegation.change24h)"
                       >{{
@@ -326,16 +325,16 @@ async function loadBalances(chainName: string, endpoint: string, address: string
                 <RouterLink
                   :to="`/${s.account.chainName}/account/${s.account.address}`"
                 >
-                  <img :src="s.account.logo" class="w-6 h-6 mr-2" />
+                  <img :src="s.account.logo" class="w-6 h-6 mr-2">
                   <span class="font-bold"
-                    >{{ format.formatToken(x, true, '0,0.[00]', 'all') }} <br /><span
+                    >{{ format.formatToken(x, true, '0,0.[00]', 'all') }} <br><span
                       class="text-xs"
                       :class="format.color(x.change24h)"
                       >{{ format.formatNumber(x.change24h, '+0.[00]') }}%</span
                     ></span
                   >
                   <span class="float-right text-right"
-                    >${{ format.formatNumber(x.value, '0,0.[00]') }}<br /><span
+                    >${{ format.formatNumber(x.value, '0,0.[00]') }}<br><span
                       class="text-xs"
                       :class="format.color(x.change24h)"
                       >{{ format.formatNumber(((x.change24h || 0) * (x.value || 0)) / 100, '+0,0.[00]') }}</span
@@ -366,7 +365,7 @@ async function loadBalances(chainName: string, endpoint: string, address: string
       </div>
     </div>
     <!-- Put this part before </body> tag -->
-    <div class="modal" id="address-modal">
+    <div id="address-modal" class="modal">
       <div class="modal-box">
         <a
           href="#"
@@ -381,8 +380,8 @@ async function loadBalances(chainName: string, endpoint: string, address: string
               class="input input-bordered w-full input-sm"
               placeholder="Input an address"
               @change="importStep = 'step2'"
-            />
-            <input v-model="sourceHdPath" class="input input-bordered w-full input-sm" placeholder="m/44/118/0'/0/0" />
+            >
+            <input v-model="sourceHdPath" class="input input-bordered w-full input-sm" placeholder="m/44/118/0'/0/0">
           </label>
         </div>
         <div
@@ -395,7 +394,7 @@ async function loadBalances(chainName: string, endpoint: string, address: string
                 <div class="flex items-center space-x-2">
                   <div class="avatar">
                     <div class="mask mask-squircle w-8 h-8">
-                      <img :src="acc.logo" :alt="acc.address" />
+                      <img :src="acc.logo" :alt="acc.address">
                     </div>
                   </div>
                   <div>

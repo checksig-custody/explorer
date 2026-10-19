@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { useBaseStore, useBlockchain, useFormatter } from '@/stores';
 import DynamicComponent from '@/components/dynamic/DynamicComponent.vue';
-import { computed, ref } from '@vue/reactivity';
+import { computed, ref } from 'vue';
 import type { Tx, TxResponse } from '@/types';
 
 import { JsonViewer } from 'vue3-json-viewer';
@@ -71,7 +71,7 @@ const messages = computed(() => {
                   <span
                     class="inset-x-0 inset-y-0 opacity-10 absolute"
                     :class="`bg-${tx.tx_response.code === 0 ? 'success' : 'error'}`"
-                  ></span>
+                  />
                   {{ tx.tx_response.code === 0 ? 'Success' : 'Failed' }}
                 </span>
                 <span>

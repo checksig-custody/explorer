@@ -225,7 +225,7 @@ function mapEvents(events: { type: string; attributes: { key: string; value: str
     )
     .map((x) => {
       // check if attributes need to decode
-      const output = {} as { [key: string]: string };
+      const output = {} as Record<string, string>;
 
       if (x.attributes.findIndex((a) => a.key === `amount`) > -1) {
         x.attributes.forEach((attr) => {
@@ -258,7 +258,7 @@ function mapDelegators(messages: any[]) {
         <div class="flex-1">
           <div class="flex">
             <div class="avatar mr-4 relative w-24 rounded-lg overflow-hidden">
-              <div class="w-24 rounded-lg absolute opacity-10"></div>
+              <div class="w-24 rounded-lg absolute opacity-10" />
               <div class="w-24 rounded-lg">
                 <img
                   v-if="identity && avatars[identity] !== 'undefined'"
@@ -269,7 +269,7 @@ function mapDelegators(messages: any[]) {
                       loadAvatar(identity);
                     }
                   "
-                />
+                >
                 <Icon v-else class="text-8xl" :icon="`mdi-help-circle-outline`" />
               </div>
             </div>
@@ -439,7 +439,7 @@ function mapDelegators(messages: any[]) {
 
     <div class="mt-3 grid grid-cols-1 md:!grid-cols-3 gap-4">
       <div>
-        <CommissionRate :commission="v.commission"></CommissionRate>
+        <CommissionRate :commission="v.commission" />
       </div>
       <div class="bg-base-100 rounded shadow relative overflow-auto">
         <div class="text-lg font-semibold text-main px-4 pt-4">
@@ -486,9 +486,9 @@ function mapDelegators(messages: any[]) {
             <div class="text-sm flex">
               {{ $t('staking.account_addr') }}
               <Icon
+                v-show="addresses.account"
                 icon="mdi:content-copy"
                 class="ml-2 cursor-pointer"
-                v-show="addresses.account"
                 @click="copyWebsite(addresses.account || '')"
               />
             </div>
@@ -500,9 +500,9 @@ function mapDelegators(messages: any[]) {
             <div class="text-sm flex">
               {{ $t('staking.operator_addr') }}
               <Icon
+                v-show="v.operator_address"
                 icon="mdi:content-copy"
                 class="ml-2 cursor-pointer"
-                v-show="v.operator_address"
                 @click="copyWebsite(v.operator_address || '')"
               />
             </div>
@@ -514,9 +514,9 @@ function mapDelegators(messages: any[]) {
             <div class="text-sm flex">
               {{ $t('staking.hex_addr') }}
               <Icon
+                v-show="addresses.hex"
                 icon="mdi:content-copy"
                 class="ml-2 cursor-pointer"
-                v-show="addresses.hex"
                 @click="copyWebsite(addresses.hex || '')"
               />
             </div>
@@ -526,9 +526,9 @@ function mapDelegators(messages: any[]) {
             <div class="text-sm flex">
               {{ $t('staking.signer_addr') }}
               <Icon
+                v-show="addresses.valCons"
                 icon="mdi:content-copy"
                 class="ml-2 cursor-pointer"
-                v-show="addresses.valCons"
                 @click="copyWebsite(addresses.valCons || '')"
               />
             </div>
@@ -538,9 +538,9 @@ function mapDelegators(messages: any[]) {
             <div class="text-sm flex">
               {{ $t('staking.consensus_pub_key') }}
               <Icon
+                v-show="v.consensus_pubkey"
                 icon="mdi:content-copy"
                 class="ml-2 cursor-pointer"
-                v-show="v.consensus_pubkey"
                 @click="copyWebsite(JSON.stringify(v.consensus_pubkey) || '')"
               />
             </div>
@@ -678,7 +678,7 @@ function mapDelegators(messages: any[]) {
                 <RouterLink class="text-primary mb-0" :to="`/${props.chain}/block/${item.height}`">{{
                   item.height
                 }}</RouterLink
-                ><br />
+                ><br>
                 <span class="text-xs pt-0 mt-0">{{ format.toDay(item.timestamp, 'from') }}</span>
               </td>
             </tr>
@@ -688,14 +688,14 @@ function mapDelegators(messages: any[]) {
       </div>
     </div>
     <!-- end -->
-    <div class="toast" v-show="showCopyToast === 1">
+    <div v-show="showCopyToast === 1" class="toast">
       <div class="alert alert-success">
         <div class="text-xs md:!text-sm">
           <span>{{ tipMsg.msg }}</span>
         </div>
       </div>
     </div>
-    <div class="toast" v-show="showCopyToast === 2">
+    <div v-show="showCopyToast === 2" class="toast">
       <div class="alert alert-error">
         <div class="text-xs md:!text-sm">
           <span>{{ tipMsg.msg }}</span>

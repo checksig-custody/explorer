@@ -46,23 +46,23 @@ export const useParamStore = defineStore('paramstore', {
     },
     mint: {
       title: 'Mint Parameters',
-      items: [] as Array<any>,
+      items: [] as any[],
     },
     staking: {
       title: 'Staking Parameters',
-      items: [] as Array<any>,
+      items: [] as any[],
     },
     distribution: {
       title: 'Distribution Parameters',
-      items: [] as Array<any>,
+      items: [] as any[],
     },
     slashing: {
       title: 'Slashing Parameters',
-      items: [] as Array<any>,
+      items: [] as any[],
     },
     gov: {
       title: 'Governance Parameters',
-      items: [] as Array<any>,
+      items: [] as any[],
     },
     appVersion: {
       title: 'Application Version',
@@ -129,7 +129,7 @@ export const useParamStore = defineStore('paramstore', {
     },
     async handleMintParam() {
       const excludes = this.blockchain.current?.excludes;
-      if (excludes && excludes.indexOf('mint') > -1) {
+      if (excludes?.includes('mint')) {
         return;
       }
       // this.getMintingInflation().then(res => {
@@ -151,7 +151,7 @@ export const useParamStore = defineStore('paramstore', {
     },
     async handleGovernanceParams() {
       const excludes = this.blockchain.current?.excludes;
-      if (excludes && excludes.indexOf('governance') > -1) {
+      if (excludes?.includes('governance')) {
         return;
       }
       Promise.all([this.getGovParamsVoting(), this.getGovParamsDeposit(), this.getGovParamsTally()]).then((resArr) => {

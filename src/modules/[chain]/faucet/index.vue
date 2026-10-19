@@ -71,7 +71,7 @@ function balance() {
 }
 
 onMounted(() => {
-  if (chainStore.current && chainStore.current.faucet) {
+  if (chainStore.current?.faucet) {
     balance();
   }
 });
@@ -79,7 +79,7 @@ onMounted(() => {
 <template>
   <div>
     <div class="flex flex-col items-center justify-center mb-6 mt-14 gap-4">
-      <img v-if="chainStore.current?.logo" :src="`${chainStore.current?.logo}`" class="w-16 rounded-md" />
+      <img v-if="chainStore.current?.logo" :src="`${chainStore.current?.logo}`" class="w-16 rounded-md">
       <div v-else class="w-16 rounded-full">
         <svg
           version="1.0"
@@ -116,13 +116,13 @@ onMounted(() => {
     <div class="bg-base-100 my-5 px-4 pt-3 pb-4 rounded shadow">
       <h2 class="card-title">Get Tokens</h2>
       <input
-        type="text"
         v-model="address"
+        type="text"
         class="mt-4 mb-4 w-full border border-gray-300 rounded-md p-2"
         :class="{ 'input-error': !validAddress }"
         :disabled="notReady"
         placeholder="Enter your address"
-      />
+      >
       <button class="btn btn-primary w-full bg-primary text-white" :disabled="notReady" @click="claim()">
         Get Tokens
       </button>
@@ -140,7 +140,7 @@ onMounted(() => {
           </div>
 
           <pre class="text-xs text-red-500">{{ configChecker }}</pre>
-          <pre></pre>
+          <pre />
           <a
             class="btn-ghost text-white rounded-md p-2 ml-4"
             href="https://github.com/ping-pub/ping.pub/blob/main/faucet.md"
@@ -157,7 +157,7 @@ onMounted(() => {
         </div>
       </div>
     </div>
-    <input type="checkbox" v-model="faucetModal" id="my_modal_6" class="modal-toggle" />
+    <input id="my_modal_6" v-model="faucetModal" type="checkbox" class="modal-toggle">
     <div class="modal" role="dialog">
       <div class="modal-box">
         <div v-if="ret.status === 'error'">
@@ -170,7 +170,7 @@ onMounted(() => {
             <RouterLink :to="`/${chainStore.chainName}/tx/${ret.result.txhash}`">View Transaction</RouterLink>
           </div>
         </div>
-        <h3 v-else class="font-bold text-lg">Processing <span class="loading loading-bars loading-sm"></span></h3>
+        <h3 v-else class="font-bold text-lg">Processing <span class="loading loading-bars loading-sm" /></h3>
 
         <div class="modal-action">
           <label for="my_modal_6" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</label>

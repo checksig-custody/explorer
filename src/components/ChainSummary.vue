@@ -26,18 +26,18 @@ const addFavor = (e: Event) => {
     class="bg-base-100 hover:bg-gray-100 dark:hover:bg-[#373f59] rounded shadow flex items-center px-3 py-3 cursor-pointer"
   >
     <div class="w-8 h-8 rounded-full overflow-hidden">
-      <img :src="conf.logo" />
+      <img :src="conf.logo">
     </div>
     <div class="font-semibold ml-4 text-base flex-1 truncate capitalize">
       {{ conf?.prettyName || props.name }}
     </div>
     <div
-      @click="addFavor"
       class="pl-4 text-xl"
       :class="{
         'text-warning': dashboardStore?.favoriteMap?.[props.name],
         'text-gray-300 dark:text-gray-500': !dashboardStore?.favoriteMap?.[props.name],
       }"
+      @click="addFavor"
     >
       <Icon icon="mdi-star" />
     </div>

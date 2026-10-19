@@ -8,7 +8,7 @@ import { Icon } from '@iconify/vue';
 import { useBlockchain, useFormatter, useTxDialog, useWalletStore, useStakingStore, useParamStore } from '@/stores';
 import { onMounted, ref } from 'vue';
 import { useIndexModule, colorMap, tickerUrl } from './indexStore';
-import { computed } from '@vue/reactivity';
+import { computed } from 'vue';
 
 import CardStatisticsVertical from '@/components/CardStatisticsVertical.vue';
 import ProposalListItem from '@/components/ProposalListItem.vue';
@@ -221,24 +221,24 @@ const amount = computed({
                   stroke-linecap="round"
                   stroke-linejoin="round"
                 >
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_bgCarrier" stroke-width="0" />
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" />
                   <g id="SVGRepo_iconCarrier">
-                    <rect x="4" y="2" width="16" height="20" rx="2"></rect>
-                    <line x1="8" x2="16" y1="6" y2="6"></line>
-                    <line x1="16" x2="16" y1="14" y2="18"></line>
-                    <path d="M16 10h.01"></path>
-                    <path d="M12 10h.01"></path>
-                    <path d="M8 10h.01"></path>
-                    <path d="M12 14h.01"></path>
-                    <path d="M8 14h.01"></path>
-                    <path d="M12 18h.01"></path>
-                    <path d="M8 18h.01"></path>
+                    <rect x="4" y="2" width="16" height="20" rx="2" />
+                    <line x1="8" x2="16" y1="6" y2="6" />
+                    <line x1="16" x2="16" y1="14" y2="18" />
+                    <path d="M16 10h.01" />
+                    <path d="M12 10h.01" />
+                    <path d="M8 10h.01" />
+                    <path d="M12 14h.01" />
+                    <path d="M8 14h.01" />
+                    <path d="M12 18h.01" />
+                    <path d="M8 18h.01" />
                   </g>
                 </svg>
               </label>
               <!-- Put this part before </body> tag -->
-              <input type="checkbox" id="calculator" class="modal-toggle" />
+              <input id="calculator" type="checkbox" class="modal-toggle">
               <div class="modal">
                 <div class="modal-box">
                   <h3 class="text-lg font-bold">
@@ -253,12 +253,12 @@ const amount = computed({
                           <span class="uppercase">{{ coinInfo.symbol }}</span>
                         </label>
                         <input
-                          type="number"
                           v-model="qty"
+                          type="number"
                           min="0"
                           placeholder="Input a number"
                           class="input grow input-bordered join-item"
-                        />
+                        >
                       </div>
                     </div>
                     <div class="divider">=</div>
@@ -270,12 +270,12 @@ const amount = computed({
                           <span>USD</span>
                         </label>
                         <input
-                          type="number"
                           v-model="amount"
+                          type="number"
                           min="0"
                           placeholder="Input amount"
                           class="join-item grow input input-bordered"
-                        />
+                        >
                       </div>
                     </div>
                   </div>
@@ -300,7 +300,7 @@ const amount = computed({
           <PriceMarketChart />
         </div>
       </div>
-      <div class="h-[1px] w-full bg-gray-100 dark:bg-[#384059]"></div>
+      <div class="h-[1px] w-full bg-gray-100 dark:bg-[#384059]" />
       <div class="max-h-[250px] overflow-auto p-4 text-sm">
         <!-- Chain text is untrusted: mermaid and echarts run code outside sanitize. -->
         <MdPreview
@@ -308,7 +308,7 @@ const amount = computed({
           :sanitize="sanitizeMarkdownHtml"
           :no-mermaid="true"
           :no-echarts="true"
-        ></MdPreview>
+        />
       </div>
       <div class="mx-4 flex flex-wrap items-center">
         <div
@@ -337,8 +337,8 @@ const amount = computed({
         <ProposalListItem :proposals="store?.proposals" />
       </div>
       <div
-        class="pb-8 text-center"
         v-if="store.proposals?.proposals?.length === 0"
+        class="pb-8 text-center"
       >
         {{ $t('index.no_active_proposals') }}
       </div>
@@ -467,7 +467,7 @@ const amount = computed({
           :chain-name="blockchain?.current?.prettyName"
           :endpoint="blockchain?.endpoint?.address"
           :hd-path="walletStore?.connectedWallet?.hdPath"
-        ></ping-token-convert>
+        />
       </Teleport>
     </div>
 
@@ -480,7 +480,7 @@ const amount = computed({
         :value="paramStore.appVersion?.items"
         :thead="false"
       />
-      <div class="h-4"></div>
+      <div class="h-4" />
     </div>
 
     <div v-if="!store.coingeckoId" class="bg-base-100 rounded mt-4">
@@ -488,7 +488,7 @@ const amount = computed({
         {{ $t('index.node_info') }}
       </div>
       <ArrayObjectElement :value="paramStore.nodeVersion?.items" :thead="false" />
-      <div class="h-4"></div>
+      <div class="h-4" />
     </div>
   </div>
 </template>

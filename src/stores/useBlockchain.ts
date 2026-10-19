@@ -49,7 +49,7 @@ export const useBlockchain = defineStore('blockchain', {
     },
     isConsumerChain() {
       // @ts-ignore
-      return this.current && this.current.providerChain;
+      return this.current?.providerChain;
     },
     computedChainMenu() {
       let currNavItem: VerticalNavItems = [];
@@ -60,7 +60,7 @@ export const useBlockchain = defineStore('blockchain', {
           const { color } = hexToRgb(this.current?.themeColor);
           const { h, s, l } = rgbToHsl(color);
           const themeColor = h + ' ' + s + '% ' + l + '%';
-          document.body.style.setProperty('--p', `${themeColor}`);
+          document.body.style.setProperty('--p', themeColor);
           // document.body.style.setProperty('--p', `${this.current?.themeColor}`);
         } else {
           document.body.style.setProperty('--p', '237.65 100% 70%');

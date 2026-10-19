@@ -12,8 +12,8 @@ const changeTab = (val: string) => {
   <div>
     <div class="tabs">
       <a
-        class="tab tab-bordered text-gray-400 capitalize"
         v-for="(item, index) of value"
+        class="tab tab-bordered text-gray-400 capitalize"
         :value="index"
         :class="{ 'tab-active': tab === String(index) }"
         @click="changeTab(String(index))"
@@ -22,7 +22,7 @@ const changeTab = (val: string) => {
     </div>
     <div class="min-h-[25px] mt-4">
       <div v-for="(v, k) of value" :value="k">
-        <DynamicComponent :value="v" v-show="tab === String(k)" />
+        <DynamicComponent v-show="tab === String(k)" :value="v" />
       </div>
     </div>
   </div>

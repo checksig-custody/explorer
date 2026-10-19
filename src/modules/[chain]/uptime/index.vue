@@ -156,7 +156,7 @@ function preFill() {
     );
   }
 }
-function fillblock(b: Block, direction: string = 'end') {
+function fillblock(b: Block, direction = 'end') {
   validatorSet.value.forEach((v) => {
     const sig = b.block.last_commit?.signatures.find((s) => s.validator_address === v.base64);
     const block = blockColors.value[v.base64] || [];
@@ -215,11 +215,11 @@ function changeTab(v: string) {
     <div class="bg-base-100 px-5 pt-5">
       <div class="flex items-center gap-x-4">
         <input
-          type="text"
           v-model="keyword"
+          type="text"
           placeholder="Keywords to filter validators"
           class="input input-sm w-full flex-1 border border-gray-200 dark:border-gray-600"
-        />
+        >
       </div>
 
       <!-- grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-x-4 mt-4 -->
@@ -313,13 +313,13 @@ function changeTab(v: string) {
                   }}</span>
                 </span>
               </td>
-              <td colspan="8"></td>
+              <td colspan="8" />
             </tr>
           </tfoot>
         </table>
       </div>
 
-      <div class="h-6"></div>
+      <div class="h-6" />
     </div>
   </div>
 </template>

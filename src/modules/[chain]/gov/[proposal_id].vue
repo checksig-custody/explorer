@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed } from '@vue/reactivity';
+import { computed } from 'vue';
 import { MdPreview } from 'md-editor-v3';
 import { sanitizeMarkdownHtml } from '@/libs/sanitize';
 import 'md-editor-v3/lib/preview.css';
@@ -45,19 +45,19 @@ store.fetchProposal(props.proposal_id).then((res) => {
 
   const msgType = proposalDetail.content?.['@type'] || '';
   if (msgType.endsWith('MsgUpdateParams')) {
-    if (msgType.indexOf('staking') > -1) {
+    if (msgType.includes('staking')) {
       chainStore.rpc.getStakingParams().then((res) => {
         addCurrentParams(res);
       });
-    } else if (msgType.indexOf('gov') > -1) {
+    } else if (msgType.includes('gov')) {
       chainStore.rpc.getGovParamsVoting().then((res) => {
         addCurrentParams(res);
       });
-    } else if (msgType.indexOf('distribution') > -1) {
+    } else if (msgType.includes('distribution')) {
       chainStore.rpc.getDistributionParams().then((res) => {
         addCurrentParams(res);
       });
-    } else if (msgType.indexOf('slashing') > -1) {
+    } else if (msgType.includes('slashing')) {
       chainStore.rpc.getSlashingParams().then((res) => {
         addCurrentParams(res);
       });
@@ -246,7 +246,7 @@ function metaItem(metadata: string | undefined): { title: string; summary: strin
           :no-mermaid="true"
           :no-echarts="true"
           class="md-editor-recover"
-        ></MdPreview>
+        />
       </div>
     </div>
     <!-- grid lg:!!grid-cols-3 auto-rows-max-->
@@ -255,15 +255,15 @@ function metaItem(metadata: string | undefined): { title: string; summary: strin
       <!-- flex-1 -->
       <div class="bg-base-100 px-4 pt-3 pb-4 rounded shadow">
         <h2 class="card-title mb-1">{{ $t('gov.tally') }}</h2>
-        <div class="mb-1" v-for="(item, index) of processList" :key="index">
+        <div v-for="(item, index) of processList" :key="index" class="mb-1">
           <label class="block text-sm mb-1">{{ item.name }}</label>
           <div class="h-5 w-full relative">
-            <div class="absolute inset-x-0 inset-y-0 w-full opacity-10 rounded-sm" :class="`${item.class}`"></div>
+            <div class="absolute inset-x-0 inset-y-0 w-full opacity-10 rounded-sm" :class="`${item.class}`" />
             <div
               class="absolute inset-x-0 inset-y-0 rounded-sm"
               :class="`${item.class}`"
               :style="`width: ${item.value === '-' || item.value === 'NaN%' ? '0%' : item.value}`"
-            ></div>
+            />
             <p
               class="absolute inset-x-0 inset-y-0 text-center text-sm text-[#666] dark:text-[#eee] flex items-center justify-center"
             >
@@ -292,7 +292,7 @@ function metaItem(metadata: string | undefined): { title: string; summary: strin
 
         <div class="px-1">
           <div class="flex items-center mb-4 mt-2">
-            <div class="w-2 h-2 rounded-full bg-error mr-3"></div>
+            <div class="w-2 h-2 rounded-full bg-error mr-3" />
             <div class="text-base flex-1 text-main">
               {{ $t('gov.submit_at') }}:
               {{ format.toDay(proposal.submit_time) }}
@@ -300,7 +300,7 @@ function metaItem(metadata: string | undefined): { title: string; summary: strin
             <div class="text-sm">{{ shortTime(proposal.submit_time) }}</div>
           </div>
           <div class="flex items-center mb-4">
-            <div class="w-2 h-2 rounded-full bg-primary mr-3"></div>
+            <div class="w-2 h-2 rounded-full bg-primary mr-3" />
             <div class="text-base flex-1 text-main">
               {{ $t('gov.deposited_at') }}:
               {{
@@ -323,7 +323,7 @@ function metaItem(metadata: string | undefined): { title: string; summary: strin
           </div>
           <div class="mb-4">
             <div class="flex items-center">
-              <div class="w-2 h-2 rounded-full bg-yes mr-3"></div>
+              <div class="w-2 h-2 rounded-full bg-yes mr-3" />
               <div class="text-base flex-1 text-main">
                 {{ $t('gov.vote_start_from') }}
                 {{ format.toDay(proposal.voting_start_time) }}
@@ -338,7 +338,7 @@ function metaItem(metadata: string | undefined): { title: string; summary: strin
           </div>
           <div>
             <div class="flex items-center mb-1">
-              <div class="w-2 h-2 rounded-full bg-success mr-3"></div>
+              <div class="w-2 h-2 rounded-full bg-success mr-3" />
               <div class="text-base flex-1 text-main">
                 {{ $t('gov.vote_end') }}
                 {{ format.toDay(proposal.voting_end_time) }}
@@ -353,9 +353,9 @@ function metaItem(metadata: string | undefined): { title: string; summary: strin
             </div>
           </div>
 
-          <div class="mt-4" v-if="proposal?.content?.['@type']?.endsWith('SoftwareUpgradeProposal')">
+          <div v-if="proposal?.content?.['@type']?.endsWith('SoftwareUpgradeProposal')" class="mt-4">
             <div class="flex items-center">
-              <div class="w-2 h-2 rounded-full bg-warning mr-3"></div>
+              <div class="w-2 h-2 rounded-full bg-warning mr-3" />
               <div class="text-base flex-1 text-main">
                 {{ $t('gov.upgrade_plan') }}:
                 <span v-if="Number(proposal.content?.plan?.height || '0') > 0"> (EST)</span>

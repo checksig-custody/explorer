@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref } from '@vue/reactivity';
+import { ref } from 'vue';
 import { useBlockchain, useFormatter } from '@/stores';
 import {
   PageRequest,
@@ -87,7 +87,7 @@ function pageload(p: number) {
       </thead>
       <tr v-for="item in list" class="hover">
         <td>
-          <img v-if="item.logo" :src="item.logo" class="w-7 h-7" />
+          <img v-if="item.logo" :src="item.logo" class="w-7 h-7">
         </td>
         <td>{{ item.denom }}</td>
         <td>{{ item.amount }}</td>

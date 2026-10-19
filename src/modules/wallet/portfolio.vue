@@ -248,7 +248,7 @@ const currencySign = computed(() => {
         <div>
           <div class="flex items-center text-sm">
             Currency:
-            <select v-model="currency" @change="loadPrice" class="ml-1 uppercase">
+            <select v-model="currency" class="ml-1 uppercase" @change="loadPrice">
               <option>usd</option>
               <option>cny</option>
               <option>eur</option>
@@ -297,7 +297,7 @@ const currencySign = computed(() => {
         </div>
       </div>
       <div class="overflow-x-auto mt-4">
-        <AdBanner class="bg-base-200" id="portfolio-banner-ad" unit="banner" width="970px" height="90px" />
+        <AdBanner id="portfolio-banner-ad" class="bg-base-200" unit="banner" width="970px" height="90px" />
         <table class="table w-full">
           <thead class="bg-base-200">
             <tr>
@@ -312,7 +312,7 @@ const currencySign = computed(() => {
                 <div class="flex gap-1 text-xs items-center">
                   <div class="avatar">
                     <div class="mask mask-squircle w-6 h-6 mr-2">
-                      <img :src="x.logo" :alt="x.chainName" />
+                      <img :src="x.logo" :alt="x.chainName">
                     </div>
                   </div>
                   <span class="uppercase font-bold text-lg">{{ format.tokenDisplayDenom(x.denom) }}</span> @
@@ -327,7 +327,7 @@ const currencySign = computed(() => {
           </tbody>
         </table>
       </div>
-      <div class="p-4 text-center" v-if="tokenList.length === 0">No Data</div>
+      <div v-if="tokenList.length === 0" class="p-4 text-center">No Data</div>
     </div>
     <div class="text-center my-5 bg-base-200">
       <RouterLink to="./accounts" class="btn btn-link"

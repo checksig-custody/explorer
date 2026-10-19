@@ -21,7 +21,7 @@ export function operatorAddressToAccount(operAddress?: string) {
 
 export function consensusPubkeyToHexAddress(consensusPubkey?: { '@type': string; key: string }) {
   if (!consensusPubkey) return '';
-  let raw = '';
+  const raw = '';
   if (consensusPubkey['@type'] === '/cosmos.crypto.ed25519.PubKey') {
     const pubkey = fromBase64(consensusPubkey.key);
     if (pubkey) return toHex(sha256(pubkey)).slice(0, 40).toUpperCase();
@@ -37,7 +37,7 @@ export function consensusPubkeyToHexAddress(consensusPubkey?: { '@type': string;
 // not work as expected, will fix later or remove
 export function consumerKeyToBase64Address(consumerKey?: Record<string, string>) {
   if (!consumerKey) return '';
-  let raw = '';
+  const raw = '';
   if (consumerKey.ed25519) {
     const pubkey = fromBase64(consumerKey.ed25519);
     if (pubkey) return toBase64(sha256(pubkey)).slice(0, 40);

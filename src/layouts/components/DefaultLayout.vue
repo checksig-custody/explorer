@@ -46,7 +46,7 @@ blockchain.$subscribe((m, s) => {
 const sidebarShow = ref(false);
 const sidebarOpen = ref(true);
 
-const changeOpen = (index: Number) => {
+const changeOpen = (index: number) => {
   if (index === 0) {
     sidebarOpen.value = !sidebarOpen.value;
   }
@@ -54,17 +54,17 @@ const changeOpen = (index: Number) => {
 const showDiscord = window.location.host.search('ping.pub') > -1;
 
 function isNavGroup(nav: VerticalNavItems | any): nav is NavGroup {
-  return (<NavGroup>nav).children !== undefined;
+  return (nav as NavGroup).children !== undefined;
 }
 function isNavLink(nav: VerticalNavItems | any): nav is NavLink {
-  return (<NavLink>nav).to !== undefined;
+  return (nav as NavLink).to !== undefined;
 }
 function isNavTitle(nav: VerticalNavItems | any): nav is NavSectionTitle {
-  return (<NavSectionTitle>nav).heading !== undefined;
+  return (nav as NavSectionTitle).heading !== undefined;
 }
 function selected(route: any, nav: NavLink) {
   const b =
-    route.path === nav.to?.path || (route.path.startsWith(nav.to?.path) && nav.title.indexOf('dashboard') === -1);
+    route.path === nav.to?.path || (route.path.startsWith(nav.to?.path) && !nav.title.includes('dashboard'));
   return b;
 }
 const blocktime = computed(() => {
@@ -79,7 +79,7 @@ const behind = computed(() => {
 dayjs();
 
 const show_ad = computed(() => {
-  return location.hostname.indexOf('ping.pub') > -1;
+  return location.hostname.includes('ping.pub');
 });
 </script>
 
@@ -92,8 +92,8 @@ const show_ad = computed(() => {
     >
       <div class="flex justify-between mt-1 pl-4 py-4 mb-1">
         <RouterLink to="/" class="flex items-center">
-          <img class="h-8 block dark:hidden" src="../../assets/logo-black.svg" alt="CheckSig" />
-          <img class="h-8 hidden dark:block" src="../../assets/logo-white.svg" alt="CheckSig" />
+          <img class="h-8 block dark:hidden" src="../../assets/logo-black.svg" alt="CheckSig">
+          <img class="h-8 hidden dark:block" src="../../assets/logo-white.svg" alt="CheckSig">
         </RouterLink>
         <div
           class="pr-4 cursor-pointer xl:!hidden"
@@ -113,7 +113,7 @@ const show_ad = computed(() => {
             'collapse-close': index === 0 && !sidebarOpen,
           }"
         >
-          <input v-if="index > 0" type="checkbox" class="cursor-pointer !h-10 block" @click="changeOpen(index)" />
+          <input v-if="index > 0" type="checkbox" class="cursor-pointer !h-10 block" @click="changeOpen(index)">
           <div
             class="collapse-title !py-0 px-4 flex items-center cursor-pointer hover:bg-gray-100 dark:hover:bg-[#373f59]"
           >
@@ -126,7 +126,7 @@ const show_ad = computed(() => {
                 'text-blue-500': item?.title !== 'Favorite',
               }"
             />
-            <img v-if="item?.icon?.image" :src="item?.icon?.image" class="w-6 h-6 rounded-full mr-3" />
+            <img v-if="item?.icon?.image" :src="item?.icon?.image" class="w-6 h-6 rounded-full mr-3">
             <div class="text-base capitalize flex-1 text-gray-700 dark:text-gray-200 whitespace-nowrap">
               {{ item?.title }}
             </div>
@@ -142,12 +142,12 @@ const show_ad = computed(() => {
             <div v-for="(el, key) of item?.children" class="menu bg-base-100 w-full !p-0">
               <RouterLink
                 v-if="isNavLink(el)"
-                @click="sidebarShow = false"
                 class="hover:bg-gray-100 dark:hover:bg-[#373f59] rounded cursor-pointer px-3 py-2 flex items-center"
                 :class="{
                   '!bg-primary': selected($route, el),
                 }"
                 :to="el.to"
+                @click="sidebarShow = false"
               >
                 <Icon
                   v-if="!el?.icon?.image"
@@ -164,7 +164,7 @@ const show_ad = computed(() => {
                   :class="{
                     'border border-gray-300 bg-white': selected($route, el),
                   }"
-                />
+                >
                 <div
                   class="text-base capitalize text-gray-500 dark:text-gray-300"
                   :class="{
@@ -183,7 +183,7 @@ const show_ad = computed(() => {
                 class="hover:bg-gray-100 dark:hover:bg-[#373f59] rounded cursor-pointer px-3 py-2 flex items-center"
                 :to="`/${blockchain.chainName}/faucet`"
               >
-                <Icon icon="mdi:chevron-right" class="mr-2 ml-3"></Icon>
+                <Icon icon="mdi:chevron-right" class="mr-2 ml-3" />
                 <div class="text-base capitalize text-gray-500 dark:text-gray-300">Faucet</div>
                 <div class="badge badge-sm text-white border-none badge-error ml-auto">New</div>
               </RouterLink>
@@ -194,8 +194,8 @@ const show_ad = computed(() => {
         <RouterLink
           v-if="isNavLink(item)"
           :to="item?.to"
-          @click="sidebarShow = false"
           class="cursor-pointer rounded-lg px-4 flex items-center py-2 hover:bg-gray-100 dark:hover:bg-[#373f59]"
+          @click="sidebarShow = false"
         >
           <Icon
             v-if="item?.icon?.icon"
@@ -210,7 +210,7 @@ const show_ad = computed(() => {
             v-if="item?.icon?.image"
             :src="item?.icon?.image"
             class="w-6 h-6 rounded-full mr-3 border border-blue-100"
-          />
+          >
           <div class="text-base capitalize flex-1 text-gray-700 dark:text-gray-200 whitespace-nowrap">
             {{ item?.title }}
           </div>
@@ -287,7 +287,7 @@ const show_ad = computed(() => {
 
         <ChainProfile />
 
-        <div class="flex-1 w-0"></div>
+        <div class="flex-1 w-0" />
 
         <!-- <NavSearchBar />-->
         <NavBarI18n class="hidden md:!inline-block" />
@@ -311,7 +311,7 @@ const show_ad = computed(() => {
                 stroke-linejoin="round"
                 stroke-width="2"
                 d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              ></path>
+              />
             </svg>
             <span
               >{{ $t('pages.out_of_sync') }} {{ blocktime.format() }} ({{

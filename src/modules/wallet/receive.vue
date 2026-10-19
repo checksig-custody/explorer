@@ -13,7 +13,7 @@ const qrcode = useQRCode(walletStore.currentAddress);
       v-if="walletStore.currentAddress"
       class="flex items-center justify-center mt-8 mb-4"
     >
-      <img :src="qrcode" alt="QR Code" class="rounded-sm overflow-hidden" />
+      <img :src="qrcode" alt="QR Code" class="rounded-sm overflow-hidden">
     </div>
     <div class="text-main">
       {{ walletStore.currentAddress }}

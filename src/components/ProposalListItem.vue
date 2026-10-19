@@ -71,7 +71,7 @@ function metaItem(metadata: string | undefined): { title: string; summary: strin
             </div>
           </td>
           <td class="w-60">
-            <ProposalProcess :pool="staking.pool" :tally="item.final_tally_result"></ProposalProcess>
+            <ProposalProcess :pool="staking.pool" :tally="item.final_tally_result" />
           </td>
           <td class="w-36">
             <div class="pl-4">
@@ -94,7 +94,7 @@ function metaItem(metadata: string | undefined): { title: string; summary: strin
                       ? 'bg-no'
                       : 'bg-info'
                   "
-                ></div>
+                />
                 <div class="text-xs">
                   {{ statusMap?.[item?.status] || item?.status }}
                 </div>
@@ -161,10 +161,10 @@ function metaItem(metadata: string | undefined): { title: string; summary: strin
         </div>
 
         <div>
-          <ProposalProcess :pool="staking.pool" :tally="item.final_tally_result"></ProposalProcess>
+          <ProposalProcess :pool="staking.pool" :tally="item.final_tally_result" />
         </div>
 
-        <div class="mt-4" v-if="statusMap?.[item?.status] === 'VOTING'">
+        <div v-if="statusMap?.[item?.status] === 'VOTING'" class="mt-4">
           <div class="flex justify-between">
             <div
               class="flex items-center"
@@ -185,7 +185,7 @@ function metaItem(metadata: string | undefined): { title: string; summary: strin
                     ? 'bg-no'
                     : 'bg-info'
                 "
-              ></div>
+              />
               <div class="text-xs flex items-center">
                 {{ statusMap?.[item?.status] || item?.status }}
               </div>
@@ -210,16 +210,13 @@ function metaItem(metadata: string | undefined): { title: string; summary: strin
       </div>
     </div>
 
-    <input type="checkbox" id="proposal-detail-modal" class="modal-toggle" />
+    <input id="proposal-detail-modal" type="checkbox" class="modal-toggle">
     <label for="proposal-detail-modal" class="modal">
       <label class="modal-box !w-11/12 !max-w-5xl" for="">
         <label for="proposal-detail-modal" class="btn btn-sm btn-circle absolute right-2 top-2">✕</label>
         <h3 class="font-bold text-lg">Description</h3>
         <p class="py-4">
           <Component
-            v-if="
-              proposalInfo?.content?.description || proposalInfo?.summary || metaItem(proposalInfo?.metadata)?.summary
-            "
             :is="
               select(
                 proposalInfo?.content?.description ||
@@ -228,11 +225,13 @@ function metaItem(metadata: string | undefined): { title: string; summary: strin
                 'horizontal'
               )
             "
+            v-if="
+              proposalInfo?.content?.description || proposalInfo?.summary || metaItem(proposalInfo?.metadata)?.summary
+            "
             :value="
               proposalInfo?.content?.description || proposalInfo?.summary || metaItem(proposalInfo?.metadata)?.summary
             "
-          >
-          </Component>
+          />
         </p>
       </label>
     </label>

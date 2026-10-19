@@ -12,8 +12,8 @@ const s = ref(0);
 <template>
   <Countdown
     v-if="time"
-    :time="time > 0 ? time : 0"
     v-slot="{ days, hours, minutes, seconds }"
+    :time="time > 0 ? time : 0"
     class="countdown-container justify-items-center"
   >
     <span class="text-primary font-bold" :class="css">{{ days }}</span> days

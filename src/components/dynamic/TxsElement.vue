@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { fromBase64, toBase64 } from '@cosmjs/encoding';
 import { decodeTxRaw } from '@cosmjs/proto-signing';
-import { computed } from '@vue/reactivity';
+import { computed } from 'vue';
 import { hashTx } from '@/libs';
 import { useBlockchain, useFormatter } from '@/stores';
 const props = defineProps({
@@ -33,7 +33,7 @@ const chain = useBlockchain();
 </script>
 <template>
   <div class="overflow-x-auto mt-4">
-    <table class="table w-full" density="compact" v-if="txs.length > 0">
+    <table v-if="txs.length > 0" class="table w-full" density="compact">
       <thead>
         <tr>
           <th>Type</th>

@@ -114,15 +114,15 @@ const chartConfig = computed(() => {
     <div>
       <div class="flex items-center justify-center flex-wrap gap-x-3">
         <div class="flex items-center gap-x-2">
-          <div class="bg-success w-[6px] h-[6px] rounded-full"></div>
+          <div class="bg-success w-[6px] h-[6px] rounded-full" />
           <span class="text-caption">Rate:{{ rate.toFixed(0) }}%</span>
         </div>
         <div class="flex items-center gap-x-2">
-          <div class="bg-success w-[6px] h-[6px] rounded-full opacity-60"></div>
+          <div class="bg-success w-[6px] h-[6px] rounded-full opacity-60" />
           <span class="text-caption">24h: ±{{ change }}%</span>
         </div>
         <div class="flex items-center gap-x-2">
-          <div class="bg-secondary w-[6px] h-[6px] rounded-full"></div>
+          <div class="bg-secondary w-[6px] h-[6px] rounded-full" />
           <span class="text-caption">Max:{{ max }}%</span>
         </div>
       </div>

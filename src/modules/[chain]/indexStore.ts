@@ -238,7 +238,7 @@ export const useIndexModule = defineStore('module-index', {
     initCoingecko() {
       this.tickerIndex = 0;
       const [firstAsset] = this.blockchain?.assets || [];
-      if (firstAsset && firstAsset.coingecko_id) {
+      if (firstAsset?.coingecko_id) {
         this.coingecko.getCoinInfo(firstAsset.coingecko_id).then((x) => {
           this.coinInfo = x;
           // this.coinInfo.tickers.sort((a, b) => a.converted_last.usd - b.converted_last.usd)
@@ -274,7 +274,7 @@ export function addOrReplaceUrlParam(url: string, param: string, value: string):
 
 export function tickerUrl(url: string) {
   for (const domain of Object.keys(CODEMAP)) {
-    if (url.indexOf(domain) > -1) {
+    if (url.includes(domain)) {
       const v = CODEMAP[domain];
       return addOrReplaceUrlParam(url, v[0], v[1]);
     }

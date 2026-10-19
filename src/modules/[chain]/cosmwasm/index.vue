@@ -49,7 +49,7 @@ function gotoHistory() {
           <option value="contract">Contract</option>
           <option value="creator">Creator</option>
         </select>
-        <input v-model="creator" type="text" class="input input-bordered w-full join-item" placeholder="address" />
+        <input v-model="creator" type="text" class="input input-bordered w-full join-item" placeholder="address">
         <button class="join-item btn btn-primary" @click="myContracts()">{{ $t('cosmwasm.btn_query') }}</button>
       </div>
       <div>

@@ -45,9 +45,7 @@ export interface Request<T> {
   adapter: (source: any) => Promise<T>;
 }
 
-export interface AbstractRegistry {
-  [key: string]: Request<any>;
-}
+export type AbstractRegistry = Record<string, Request<any>>;
 
 // use snake style, since the all return object use snake style.
 export interface RequestRegistry extends AbstractRegistry {
@@ -166,9 +164,7 @@ export function adapter<T>(source: any): Promise<T> {
   return source;
 }
 
-export interface ApiProfileRegistry {
-  [key: string]: RequestRegistry;
-}
+export type ApiProfileRegistry = Record<string, RequestRegistry>;
 
 export function withCustomRequest<T extends RequestRegistry>(target: T, source?: Partial<T>): T {
   return source ? Object.assign({}, target, source) : target;

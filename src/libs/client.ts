@@ -300,7 +300,7 @@ export class CosmosRestClient extends BaseRestClient<RequestRegistry> {
   async getTxs(query: string, params: any, page?: PageRequest) {
     if (!page) page = new PageRequest();
     if (semver.gte(this.version.replaceAll('v', ''), '0.50.0')) {
-      let query_edit = query.replaceAll('events=', 'query=');
+      const query_edit = query.replaceAll('events=', 'query=');
       return this.request(this.registry.tx_txs, params, `${query_edit}&order_by=ORDER_BY_DESC&${page.toQueryString()}`);
     } else {
       return this.request(this.registry.tx_txs, params, `${query}&${page.toQueryString()}`);

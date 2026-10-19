@@ -7,7 +7,7 @@ const props = defineProps({
 </script>
 <template>
   <div class="flex gap-0.5">
-    <div class="cursor-default" v-for="(item, index) in blocks" :key="index">
+    <div v-for="(item, index) in blocks" :key="index" class="cursor-default">
       <div class="tooltip" :data-tip="item.height" :class="item.color" style="width: 3px">&nbsp;</div>
     </div>
   </div>

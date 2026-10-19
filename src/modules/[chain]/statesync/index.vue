@@ -59,12 +59,12 @@ onMounted(() => {
         1. {{ $t('statesync.text_1') }} ({{ appName }}
         {{ $t('statesync.version') }}:
         {{ nodeInfo.application_version?.version || '' }})
-        <br />
+        <br>
         {{ $t('statesync.text_1_1') }}.
-        <br />
-        <br />
-        2. {{ $t('statesync.text_2') }}<br />
-        {{ $t('statesync.text_2_1') }}. <br /><br />
+        <br>
+        <br>
+        2. {{ $t('statesync.text_2') }}<br>
+        {{ $t('statesync.text_2_1') }}. <br><br>
         <div class="mockup-code bg-base-200 my-2">
           <pre
             data-prefix=">"
@@ -72,7 +72,7 @@ onMounted(() => {
           <pre
             data-prefix=">"
           ><code class="text-gray-800 dark:invert">enable = true</code></pre>
-          <pre data-prefix=">"><code class="text-gray-800"></code></pre>
+          <pre data-prefix=">"><code class="text-gray-800" /></pre>
           <pre
             data-prefix=">"
           ><code class="text-gray-800 dark:invert">rpc_servers = "{{ rpcs }}"</code></pre>
@@ -84,7 +84,7 @@ onMounted(() => {
           ><code class="text-gray-800 dark:invert">trust_hash = "{{ hash }}"</code></pre>
           <pre
             data-prefix=">"
-          ><code class="text-gray-800 dark:invert"></code></pre>
+          ><code class="text-gray-800 dark:invert" /></pre>
           <pre
             data-prefix=">"
           ><code class="text-green-400"># 2/3 of unbonding time</code></pre>
@@ -92,10 +92,10 @@ onMounted(() => {
             data-prefix=">"
           ><code class="text-gray-800 dark:invert">trust_period = "168h"</code></pre>
         </div>
-        <br />
+        <br>
         3. {{ $t('statesync.text_3') }}:
         <code class="bg-base-200 text-gray-600 px-2 py-px mx-1 rounded shadow">{{ appName }} start</code>
-        <br />
+        <br>
         {{ $t('statesync.text_3_1') }}
         <code class="bg-base-200 text-gray-600 px-2 py-px mx-1 rounded shadow">{{ appName }} unsafe-reset-all</code> or
         <code class="bg-base-200 text-gray-600 px-2 py-px mx-1 rounded shadow"
@@ -109,7 +109,7 @@ onMounted(() => {
       <h2 class="card-title truncate mb-2">{{ $t('statesync.title_3') }}</h2>
       <div class="text-sm">
         {{ $t('statesync.text_title_3') }}
-        <br /><br />
+        <br><br>
         <div class="mockup-code bg-base-200 my-2">
           <pre
             data-prefix=">"
@@ -118,7 +118,7 @@ onMounted(() => {
             data-prefix=">"
           ><code class="text-green-400"># taken (0 to disable). Must be a multiple of pruning-keep-every.</code></pre>
           <pre data-prefix=">"><code class="text-gray-800 dark:invert">snapshot-interval = 1000</code></pre>
-          <pre data-prefix=">"><code class="text-gray-800 dark:invert"></code></pre>
+          <pre data-prefix=">"><code class="text-gray-800 dark:invert" /></pre>
           <pre
             data-prefix=">"
           ><code class="text-green-400"># snapshot-keep-recent specifies the number of recent snapshots to keep and serve (0 to keep all). Each snapshot is about 500MiB</code></pre>

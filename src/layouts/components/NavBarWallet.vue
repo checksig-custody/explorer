@@ -77,7 +77,7 @@ const params = computed(() => {
         >
           {{ walletStore.currentAddress }}
         </a>
-        <div class="divider mt-1 mb-1"></div>
+        <div class="divider mt-1 mb-1" />
         <RouterLink to="/wallet/accounts">
           <div
             class="block py-2 px-2 hover:!bg-gray-100 rounded cursor-pointer"
@@ -92,7 +92,7 @@ const params = computed(() => {
             Portfolio
           </div>
         </RouterLink>
-        <div v-if="walletStore.currentAddress" class="divider mt-1 mb-1"></div>
+        <div v-if="walletStore.currentAddress" class="divider mt-1 mb-1" />
         <a
           v-if="walletStore.currentAddress"
           class="block py-2 px-2 hover:bg-gray-100 dark:hover:bg-[#353f5a] rounded cursor-pointer"
@@ -101,14 +101,14 @@ const params = computed(() => {
         >
       </div>
     </div>
-    <div class="toast" v-show="showCopyToast === 1">
+    <div v-show="showCopyToast === 1" class="toast">
       <div class="alert alert-success">
         <div class="text-xs md:!text-sm">
           <span>{{ tipMsg.msg }}</span>
         </div>
       </div>
     </div>
-    <div class="toast" v-show="showCopyToast === 2">
+    <div v-show="showCopyToast === 2" class="toast">
       <div class="alert alert-error">
         <div class="text-xs md:!text-sm">
           <span>{{ tipMsg.msg }}</span>
@@ -121,9 +121,9 @@ const params = computed(() => {
       :chain-id="baseStore.currentChainId || 'cosmoshub-4'"
       :hd-path="chainStore.defaultHDPath"
       :addr-prefix="chainStore.current?.bech32Prefix || 'cosmos'"
+      :params="params"
       @connect="walletStateChange"
       @keplr-config="walletStore.suggestChain()"
-      :params="params"
     />
   </Teleport>
 </template>

@@ -36,7 +36,7 @@ export function formatNumber(count: number, withAbbr = false, decimals = 2) {
   const i = count === 0 ? count : Math.floor(Math.log(count) / Math.log(1000));
   let result: any = parseFloat((count / 1000 ** i).toFixed(decimals));
   if (withAbbr && COUNT_ABBRS[i]) {
-    result += `${COUNT_ABBRS[i]}`;
+    result += COUNT_ABBRS[i];
   }
   return result;
 }
@@ -49,7 +49,7 @@ export function formatTokenAmount(assets: any, tokenAmount: any, decimals = 2, t
         tokenDenom?.denom_trace?.base_denom;
   let amount = 0;
   const asset = assets.find((a: any) => a.base === denom);
-  let exp = asset ? asset.exponent : String(denom).startsWith('gravity') ? 18 : 6;
+  const exp = asset ? asset.exponent : String(denom).startsWith('gravity') ? 18 : 6;
   const config = Object.values(getLocalChains());
 
   amount = Number(Number(tokenAmount)) / 10 ** exp;
@@ -149,7 +149,7 @@ export function rgbToHsl(color: string) {
     h = 0;
     s = 0;
   } else {
-    var d = max - min;
+    const d = max - min;
     s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
     switch (max) {
       case r:

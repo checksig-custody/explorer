@@ -125,11 +125,8 @@ async function update() {
       .then((res) => {
         roundState.value = res.result.round_state;
         const raw = roundState?.value?.['height/round/step']?.split('/');
-        // eslint-disable-next-line prefer-destructuring
         height.value = raw[0];
-        // eslint-disable-next-line prefer-destructuring
         round.value = raw[1];
-        // eslint-disable-next-line prefer-destructuring
         step.value = raw[2];
 
         // find the highest onboard rate
@@ -171,7 +168,7 @@ async function update() {
       <div v-if="httpstatus !== 200" class="text-error mt-1">{{ httpstatus }}: {{ httpStatusText }}</div>
     </div>
     <!-- cards -->
-    <div class="mt-4" v-if="roundState['height/round/step']">
+    <div v-if="roundState['height/round/step']" class="mt-4">
       <div class="grid grid-cols-1 md:!grid-cols-4 auto-cols-auto gap-4 pb-4">
         <div class="bg-base-100 px-4 py-3 rounded shadow flex justify-between items-center">
           <div class="text-sm mb-1 flex flex-col truncate">
@@ -223,7 +220,7 @@ async function update() {
       </div>
     </div>
     <!-- update -->
-    <div class="bg-base-100 p-4 rounded shadow" v-if="roundState['height/round/step']">
+    <div v-if="roundState['height/round/step']" class="bg-base-100 p-4 rounded shadow">
       <div class="flex flex-1 flex-col truncate">
         <h2 class="text-sm card-title text-error mb-6">{{ $t('consensus.updated_at') }} {{ newTime || '' }}</h2>
         <div v-for="item in roundState.height_vote_set" :key="item.round">
@@ -234,9 +231,9 @@ async function update() {
 
           <div class="flex flex-rows flex-wrap py-6">
             <div
-              class="w-48 rounded-3xl h-5 text-sm px-2 leading-5"
               v-for="(pre, i) in item.prevotes"
               :key="i"
+              class="w-48 rounded-3xl h-5 text-sm px-2 leading-5"
               size="sm"
               style="margin: 2px"
             >
@@ -267,7 +264,7 @@ async function update() {
           </div>
         </div>
       </div>
-      <div class="divider"></div>
+      <div class="divider" />
     </div>
 
     <!-- alert-info -->

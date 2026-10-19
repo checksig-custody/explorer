@@ -81,7 +81,7 @@ function pageload(p: number) {
               min="0"
               :max="pageResponse.total || 0"
               :placeholder="`0~${pageResponse.total}`"
-            />
+            >
             <button
               class="join-item btn btn-primary"
               @click="ibcStore.showConnection()"
@@ -92,7 +92,7 @@ function pageload(p: number) {
         </div>
       </div>
       <div class="overflow-auto mt-5">
-        <router-view :key="$route.fullPath"></router-view>
+        <router-view :key="$route.fullPath" />
       </div>
     </div>
   </div>

@@ -45,8 +45,7 @@ export const useBaseStore = defineStore('baseStore', {
         hash: string;
         tx: DecodedTxRaw;
       }[];
-      this.recents.forEach((b) =>
-        b.block?.data?.txs.forEach((tx: string) => {
+      this.recents.forEach((b) => { b.block?.data?.txs.forEach((tx: string) => {
           if (tx) {
             const raw = fromBase64(tx);
             try {
@@ -59,7 +58,7 @@ export const useBaseStore = defineStore('baseStore', {
               console.error(e);
             }
           }
-        })
+        }); }
       );
       return txs.sort((a, b) => {
         return Number(b.height) - Number(a.height);
@@ -108,7 +107,7 @@ export const useBaseStore = defineStore('baseStore', {
       if (!FETCH_ALL_BLOCKS) return [this.latest];
       const oldHeight = Number(this.recents[this.recents.length - 1]?.block?.header?.height);
       const newHeight = Number(this.latest.block.header.height);
-      let newBlocks = [];
+      const newBlocks = [];
       // Fetch all blocks between oldHeight+1 and less than newHeight
       for (let h = oldHeight + 1; h < newHeight; h++) {
         const block = await this.fetchBlock(h);

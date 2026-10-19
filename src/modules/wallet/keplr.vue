@@ -104,7 +104,7 @@ function suggest() {
       </button>
     </div>
     <div class="text-main mt-5">
-      <textarea v-model="conf" class="textarea textarea-bordered w-full" rows="15"></textarea>
+      <textarea v-model="conf" class="textarea textarea-bordered w-full" rows="15" />
     </div>
     <div class="mt-4 mb-4">
       If the chain is not offically support on Keplr, you can submit these parameters to enable Keplr.

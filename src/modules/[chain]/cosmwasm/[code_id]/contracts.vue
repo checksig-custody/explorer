@@ -60,7 +60,7 @@ function showInfo(address: string) {
             <tr v-for="(v, index) in response.contracts" :key="index" class="hover">
               <td>{{ v }}</td>
               <td>
-                <label @click="showInfo(v)" for="modal-contract-detail" class="btn btn-primary btn-xs text-xs mr-2">{{
+                <label for="modal-contract-detail" class="btn btn-primary btn-xs text-xs mr-2" @click="showInfo(v)">{{
                   $t('cosmwasm.btn_contract')
                 }}</label>
                 <RouterLink :to="`transactions?contract=${v}`" class="btn btn-primary btn-xs text-xs">
@@ -86,13 +86,13 @@ function showInfo(address: string) {
       </div>
     </div>
 
-    <input type="checkbox" id="modal-contract-detail" class="modal-toggle" />
+    <input id="modal-contract-detail" type="checkbox" class="modal-toggle">
     <label for="modal-contract-detail" class="modal cursor-pointer">
       <label class="modal-box !w-11/12 !max-w-5xl relative p-2" for="">
         <div>
           <div class="flex items-center justify-between px-3 pt-2">
             <div class="text-lg">{{ $t('cosmwasm.contract_detail') }}</div>
-            <label @click="infoDialog = false" for="modal-contract-detail" class="btn btn-sm btn-circle">✕</label>
+            <label for="modal-contract-detail" class="btn btn-sm btn-circle" @click="infoDialog = false">✕</label>
           </div>
           <div>
             <DynamicComponent :value="info" />

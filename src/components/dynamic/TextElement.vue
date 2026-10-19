@@ -14,14 +14,14 @@ const chainStore = useBlockchain();
 const props = defineProps(['value']);
 const format = useFormatter();
 function isMD() {
-  if (props.value && (String(props.value).indexOf('\n') > -1 || String(props.value).indexOf('\\n') > -1)) {
+  if (props.value && (String(props.value).includes('\n') || String(props.value).includes('\\n'))) {
     return true;
   }
   return false;
 }
 
 function isAddress() {
-  return isBech32Address(props.value) && String(props.value).indexOf('valoper1') === -1;
+  return isBech32Address(props.value) && !String(props.value).includes('valoper1');
 }
 
 const text = computed(() => {
@@ -58,7 +58,7 @@ const isConvertable = computed(() => {
 </script>
 <template>
   <!-- Chain text is untrusted: mermaid and echarts run code outside sanitize. -->
-  <MdPreview v-if="isMD()" :model-value="format.multiLine(value)" :sanitize="sanitizeMarkdownHtml" :no-mermaid="true" :no-echarts="true" class="md-editor-recover"></MdPreview>
+  <MdPreview v-if="isMD()" :model-value="format.multiLine(value)" :sanitize="sanitizeMarkdownHtml" :no-mermaid="true" :no-echarts="true" class="md-editor-recover" />
   <span v-else-if="isAddress()" class="flex">
     <RouterLink :to="`/${chainStore.chainName}/account/${text}`">{{ text }}</RouterLink>
     <div v-for="{ name, provider } in names">
@@ -67,14 +67,14 @@ const isConvertable = computed(() => {
         :data-tip="provider"
         :title="provider"
       >
-        <span class="inset-x-0 inset-y-0 opacity-10 absolute bg-success"></span>
+        <span class="inset-x-0 inset-y-0 opacity-10 absolute bg-success" />
         <button>{{ name }}</button>
       </span>
     </div>
   </span>
   <span v-else class="flex"
     ><span class="break-words max-w-5xl">{{ text }}</span>
-    <span v-if="isConvertable" @click="toHexOutput = !toHexOutput" class="ml-2 cursor-pointer">
+    <span v-if="isConvertable" class="ml-2 cursor-pointer" @click="toHexOutput = !toHexOutput">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         fill="none"

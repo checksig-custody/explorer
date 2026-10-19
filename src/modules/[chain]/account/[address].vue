@@ -2,7 +2,7 @@
 import { useBlockchain, useFormatter, useStakingStore, useTxDialog } from '@/stores';
 import DynamicComponent from '@/components/dynamic/DynamicComponent.vue';
 import DonutChart from '@/components/charts/DonutChart.vue';
-import { computed, ref } from '@vue/reactivity';
+import { computed, ref } from 'vue';
 import { onMounted } from 'vue';
 import { Icon } from '@iconify/vue';
 
@@ -126,7 +126,7 @@ function mapAmount(events: { type: string; attributes: { key: string; value: str
       <div class="flex items-center">
         <!-- img -->
         <div class="inline-flex relative w-11 h-11 rounded-md">
-          <div class="w-11 h-11 absolute rounded-md opacity-10 bg-primary"></div>
+          <div class="w-11 h-11 absolute rounded-md opacity-10 bg-primary" />
           <div class="w-full inline-flex items-center align-middle flex-none justify-center">
             <Icon icon="mdi-qrcode" class="text-primary" style="width: 27px; height: 27px" />
           </div>
@@ -172,10 +172,10 @@ function mapAmount(events: { type: string; attributes: { key: string; value: str
           <!-- list-->
           <div class="">
             <!--balances  -->
-            <div class="flex items-center px-4 mb-2" v-for="(balanceItem, index) in balances" :key="index">
+            <div v-for="(balanceItem, index) in balances" :key="index" class="flex items-center px-4 mb-2">
               <div class="w-9 h-9 rounded overflow-hidden flex items-center justify-center relative mr-4">
                 <Icon icon="mdi-account-cash" class="text-info" size="20" />
-                <div class="absolute top-0 bottom-0 left-0 right-0 bg-info opacity-20"></div>
+                <div class="absolute top-0 bottom-0 left-0 right-0 bg-info opacity-20" />
               </div>
               <div class="flex-1">
                 <div class="text-sm font-semibold">
@@ -186,15 +186,15 @@ function mapAmount(events: { type: string; attributes: { key: string; value: str
                 </div>
               </div>
               <div class="text-xs truncate relative py-1 px-3 rounded-full w-fit text-primary dark:invert mr-2">
-                <span class="inset-x-0 inset-y-0 opacity-10 absolute bg-primary dark:invert text-sm"></span>
+                <span class="inset-x-0 inset-y-0 opacity-10 absolute bg-primary dark:invert text-sm" />
                 ${{ format.tokenValue(balanceItem) }}
               </div>
             </div>
             <!--delegations  -->
-            <div class="flex items-center px-4 mb-2" v-for="(delegationItem, index) in delegations" :key="index">
+            <div v-for="(delegationItem, index) in delegations" :key="index" class="flex items-center px-4 mb-2">
               <div class="w-9 h-9 rounded overflow-hidden flex items-center justify-center relative mr-4">
                 <Icon icon="mdi-user-clock" class="text-warning" size="20" />
-                <div class="absolute top-0 bottom-0 left-0 right-0 bg-warning opacity-20"></div>
+                <div class="absolute top-0 bottom-0 left-0 right-0 bg-warning opacity-20" />
               </div>
               <div class="flex-1">
                 <div class="text-sm font-semibold">
@@ -205,15 +205,15 @@ function mapAmount(events: { type: string; attributes: { key: string; value: str
                 </div>
               </div>
               <div class="text-xs truncate relative py-1 px-3 rounded-full w-fit text-primary dark:invert mr-2">
-                <span class="inset-x-0 inset-y-0 opacity-10 absolute bg-primary dark:invert text-sm"></span>
+                <span class="inset-x-0 inset-y-0 opacity-10 absolute bg-primary dark:invert text-sm" />
                 ${{ format.tokenValue(delegationItem?.balance) }}
               </div>
             </div>
             <!-- rewards.total -->
-            <div class="flex items-center px-4 mb-2" v-for="(rewardItem, index) in rewards.total" :key="index">
+            <div v-for="(rewardItem, index) in rewards.total" :key="index" class="flex items-center px-4 mb-2">
               <div class="w-9 h-9 rounded overflow-hidden flex items-center justify-center relative mr-4">
                 <Icon icon="mdi-account-arrow-up" class="text-success" size="20" />
-                <div class="absolute top-0 bottom-0 left-0 right-0 bg-success opacity-20"></div>
+                <div class="absolute top-0 bottom-0 left-0 right-0 bg-success opacity-20" />
               </div>
               <div class="flex-1">
                 <div class="text-sm font-semibold">
@@ -224,7 +224,7 @@ function mapAmount(events: { type: string; attributes: { key: string; value: str
                 </div>
               </div>
               <div class="text-xs truncate relative py-1 px-3 rounded-full w-fit text-primary dark:invert mr-2">
-                <span class="inset-x-0 inset-y-0 opacity-10 absolute bg-primary dark:invert text-sm"></span>${{
+                <span class="inset-x-0 inset-y-0 opacity-10 absolute bg-primary dark:invert text-sm" />${{
                   format.tokenValue(rewardItem)
                 }}
               </div>
@@ -233,7 +233,7 @@ function mapAmount(events: { type: string; attributes: { key: string; value: str
             <div class="flex items-center px-4">
               <div class="w-9 h-9 rounded overflow-hidden flex items-center justify-center relative mr-4">
                 <Icon icon="mdi-account-arrow-right" class="text-error" size="20" />
-                <div class="absolute top-0 bottom-0 left-0 right-0 bg-error opacity-20"></div>
+                <div class="absolute top-0 bottom-0 left-0 right-0 bg-error opacity-20" />
               </div>
               <div class="flex-1">
                 <div class="text-sm font-semibold">
@@ -249,7 +249,7 @@ function mapAmount(events: { type: string; attributes: { key: string; value: str
                 </div>
               </div>
               <div class="text-xs truncate relative py-1 px-3 rounded-full w-fit text-primary dark:invert mr-2">
-                <span class="inset-x-0 inset-y-0 opacity-10 absolute bg-primary dark:invert"></span>
+                <span class="inset-x-0 inset-y-0 opacity-10 absolute bg-primary dark:invert" />
                 ${{
                   format.tokenValue({
                     amount: String(unbondingTotal),
@@ -366,7 +366,7 @@ function mapAmount(events: { type: string; attributes: { key: string; value: str
     </div>
 
     <!-- Unbonding Delegations -->
-    <div class="bg-base-100 px-4 pt-3 pb-4 rounded mb-4 shadow" v-if="unbonding && unbonding.length > 0">
+    <div v-if="unbonding && unbonding.length > 0" class="bg-base-100 px-4 pt-3 pb-4 rounded mb-4 shadow">
       <h2 class="card-title mb-4">{{ $t('account.unbonding_delegations') }}</h2>
       <div class="overflow-x-auto">
         <table class="table text-sm w-full">
@@ -378,7 +378,7 @@ function mapAmount(events: { type: string; attributes: { key: string; value: str
               <th class="py-3">{{ $t('account.completion_time') }}</th>
             </tr>
           </thead>
-          <tbody class="text-sm" v-for="(v, index) in unbonding" :key="index">
+          <tbody v-for="(v, index) in unbonding" :key="index" class="text-sm">
             <tr>
               <td class="text-caption text-primary py-3 bg-slate-200" colspan="10">
                 <RouterLink :to="`/${chain}/staking/${v.validator_address}`">{{ v.validator_address }}</RouterLink>

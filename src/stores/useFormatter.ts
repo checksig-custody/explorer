@@ -123,7 +123,7 @@ export const useFormatter = defineStore('formatter', {
       return this.exponentForDenom(denom);
     },
     tokenAmountNumber(token?: Coin) {
-      if (!token || !token.denom) return 0;
+      if (!token?.denom) return 0;
 
       // find the symbol
       const symbol = this.dashboard.coingecko[token.denom]?.symbol || token.denom;
@@ -134,7 +134,7 @@ export const useFormatter = defineStore('formatter', {
       return amount;
     },
     tokenValueNumber(token?: Coin) {
-      if (!token || !token.denom) return 0;
+      if (!token?.denom) return 0;
 
       const amount = this.tokenAmountNumber(token);
       const value = amount * this.price(token.denom);
@@ -202,9 +202,9 @@ export const useFormatter = defineStore('formatter', {
       }
     },
     tokenDisplayNumber(token?: { denom: string; amount: string }, mode = 'all') {
-      if (token && token.amount && token?.denom) {
+      if (token?.amount && token?.denom) {
         let amount = Number(token.amount);
-        let denom = token.denom;
+        const denom = token.denom;
 
         let conf =
           mode === 'local'
@@ -238,7 +238,7 @@ export const useFormatter = defineStore('formatter', {
       return 0;
     },
     formatToken(token?: { denom: string; amount: string }, withDenom = true, fmt = '0,0.[0]', mode = 'local'): string {
-      if (token && token.amount && token?.denom) {
+      if (token?.amount && token?.denom) {
         let amount = Number(token.amount);
         let denom = token.denom;
 
@@ -285,7 +285,7 @@ export const useFormatter = defineStore('formatter', {
       return tokens.map((x) => this.formatToken(x, withDenom, fmt)).join(', ');
     },
     calculateBondedRatio(pool: { bonded_tokens: string; not_bonded_tokens: string } | undefined) {
-      if (pool && pool.bonded_tokens) {
+      if (pool?.bonded_tokens) {
         const b = Number(pool.bonded_tokens);
         const nb = Number(pool.not_bonded_tokens);
         const p = b / (b + nb);

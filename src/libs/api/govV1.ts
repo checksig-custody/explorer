@@ -27,7 +27,11 @@ export function proposalAdapter(
 ): GovProposal {
   if (p) {
     const [first] = p.messages ?? [];
-    if (first) p.content = first.content ?? first;
+    if (first) {
+      // `||`, not `??`: an empty content also falls back to the message.
+      if (first.content) p.content = first.content;
+      else p.content = first;
+    }
     if (setProposalId) p.proposal_id = p.id;
     p.final_tally_result = {
       yes: p.final_tally_result?.yes_count,

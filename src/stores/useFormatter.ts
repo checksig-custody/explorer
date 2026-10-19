@@ -16,7 +16,7 @@ import { fromBase64, fromHex, toHex } from '@cosmjs/encoding';
 import { consensusPubkeyToHexAddress, get } from '@/libs';
 import type { Coin, DenomTrace } from '@/types';
 import type { Asset } from '@/types/chaindata';
-import { orDefault } from '@/libs/utils';
+import { orDefault, orDefaultWith } from '@/libs/utils';
 
 dayjs.extend(localeData);
 dayjs.extend(duration);
@@ -146,9 +146,11 @@ export const useFormatter = defineStore('formatter', {
         token.denom
       );
       // convert denomination to symbol
-      const exponent = orDefault(
+      // specialDenom walks every chain's assets: call it only when needed, as
+      // `||` did.
+      const exponent = orDefaultWith(
         this.dashboard.coingecko[symbol.toLowerCase()]?.exponent,
-        this.specialDenom(token.denom)
+        () => this.specialDenom(token.denom)
       );
       // caculate amount of symbol
       const amount = Number(token.amount) / 10 ** exponent;

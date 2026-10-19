@@ -107,7 +107,10 @@ export const useIndexModule = defineStore('module-index', {
     },
     github(): string | undefined {
       if (!this.coinInfo.links?.repos_url) return '';
-      const [page1, page2, page3] = this.coinInfo.links.repos_url.github ?? [];
+      const [page1, page2, page3] = defined(
+        this.coinInfo.links.repos_url.github,
+        'github'
+      );
       return orDefault(orDefault(page1, page2), page3);
     },
     telegram(): string {

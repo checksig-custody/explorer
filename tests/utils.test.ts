@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { defined, maybe, orDefault } from '../src/libs/utils.ts';
+import { defined, maybe, orDefault, orDefaultWith } from '../src/libs/utils.ts';
 
 test('defined throws the TypeError that reading the property would raise', () => {
   assert.throws(() => {
@@ -30,4 +30,17 @@ test('orDefault takes the fallback for every falsy value, as || does', () => {
   assert.equal(orDefault(false, true), true);
   assert.equal(orDefault('a', 'x'), 'a');
   assert.equal(orDefault(3, 5), 3);
+});
+
+test('orDefaultWith computes the fallback only when the value is falsy', () => {
+  let calls = 0;
+  const fallback = () => {
+    calls += 1;
+    return 5;
+  };
+  assert.equal(orDefaultWith(3, fallback), 3);
+  assert.equal(calls, 0);
+  assert.equal(orDefaultWith(0, fallback), 5);
+  assert.equal(orDefaultWith(undefined, fallback), 5);
+  assert.equal(calls, 2);
 });

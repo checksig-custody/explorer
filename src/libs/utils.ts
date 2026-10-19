@@ -228,3 +228,13 @@ export function orDefault<T, F>(
   if (value) return value;
   return fallback;
 }
+
+// orDefault with a fallback that is computed only when it is used, as the right
+// side of `||` is.
+export function orDefaultWith<T, F>(
+  value: T | null | undefined,
+  fallback: () => F
+): T | F {
+  if (value) return value;
+  return fallback();
+}

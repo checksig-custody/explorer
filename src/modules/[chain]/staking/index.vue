@@ -5,7 +5,6 @@ import { onMounted, ref } from 'vue';
 import { Icon } from '@iconify/vue';
 import type { Key, SlashingParam, Validator } from '@/types';
 import { formatSeconds } from '@/libs/utils';
-import { diff } from 'semver';
 
 const staking = useStakingStore();
 const base = useBaseStore();
@@ -14,8 +13,8 @@ const dialog = useTxDialog();
 const chainStore = useBlockchain();
 const mintStore = useMintStore();
 
-const cache = JSON.parse(localStorage.getItem('avatars') || '{}');
-const avatars = ref(cache || {});
+const cache = JSON.parse(localStorage.getItem('avatars') || '{}') as Record<string, string> | null;
+const avatars = ref<Record<string, string>>(cache ?? {});
 const latest = ref({} as Record<string, number>);
 const yesterday = ref({} as Record<string, number>);
 const tab = ref('active');
@@ -23,13 +22,13 @@ const unbondList = ref([] as Validator[]);
 const slashing = ref({} as SlashingParam);
 
 onMounted(() => {
-  staking.fetchUnbondingValdiators().then((res) => {
-    unbondList.value = res.concat(unbondList.value);
+  void staking.fetchUnbondingValdiators().then((res) => {
+    if (res) unbondList.value = res.concat(unbondList.value);
   });
-  staking.fetchInacitveValdiators().then((res) => {
-    unbondList.value = unbondList.value.concat(res);
+  void staking.fetchInacitveValdiators().then((res) => {
+    if (res) unbondList.value = unbondList.value.concat(res);
   });
-  chainStore.rpc.getSlashingParams().then((res) => {
+  void chainStore.rpc.getSlashingParams().then((res) => {
     slashing.value = res.params;
   });
 });
@@ -37,7 +36,7 @@ onMounted(() => {
 async function fetchChange(blockWindow = 14400) {
   let page = 0;
 
-  let height = Number(base.latest?.block?.header?.height || 0);
+  let height = Number(base.latest.block?.header.height || 0);
   if (height > blockWindow) {
     height -= blockWindow;
   } else {
@@ -92,20 +91,19 @@ const change24 = (entry: { consensus_pubkey: Key; tokens: string }) => {
     denom: staking.params.bond_denom,
   });
   const coefficient = displayTokens / latestValue;
-  return changes.value[txt] * coefficient;
+  return (changes.value[txt] ?? 0) * coefficient;
 };
 
 const change24Text = (entry: { consensus_pubkey: Key; tokens: string }) => {
-  if (!entry) return '';
   const v = change24(entry);
   return v && v !== 0 ? format.showChanges(v) : '';
 };
 
 const change24Color = (entry: { consensus_pubkey: Key; tokens: string }) => {
-  if (!entry) return '';
   const v = change24(entry);
   if (v > 0) return 'text-success';
   if (v < 0) return 'text-error';
+  return undefined;
 };
 
 const calculateRank = function (position: number) {
@@ -126,30 +124,30 @@ const calculateRank = function (position: number) {
 };
 
 function isFeatured(endpoints: string[], who?: { website?: string; moniker: string }) {
-  if (!endpoints || !who) return false;
+  if (!who) return false;
   return (
     endpoints.findIndex(
       (x) =>
-        (who.website?.substring(0, who.website?.lastIndexOf('.')).endsWith(x)) ||
-        who?.moniker?.toLowerCase().search(x.toLowerCase()) > -1
+        who.website?.substring(0, who.website.lastIndexOf('.')).endsWith(x) ||
+        who.moniker.toLowerCase().search(x.toLowerCase()) > -1
     ) > -1
   );
 }
 
 const list = computed(() => {
   if (tab.value === 'active') {
-    return staking.validators.map((x, i) => ({ v: x, rank: calculateRank(i), logo: logo(x.description.identity) }));
+    return staking.validators.map((x, i) => ({ v: x, rank: calculateRank(i), logo: logoUrl(x.description.identity) }));
   } else if (tab.value === 'featured') {
-    const endpoint = chainStore.current?.endpoints?.rest?.map((x) => x.provider);
+    const endpoint = chainStore.current?.endpoints.rest?.map((x) => x.provider);
     if (endpoint) {
       endpoint.push('ping');
       return staking.validators
         .filter((x) => isFeatured(endpoint.filter(Boolean) as string[], x.description))
-        .map((x, i) => ({ v: x, rank: 'primary', logo: logo(x.description.identity) }));
+        .map((x) => ({ v: x, rank: 'primary', logo: logoUrl(x.description.identity) }));
     }
     return [];
   }
-  return unbondList.value.map((x, i) => ({ v: x, rank: 'primary', logo: logo(x.description.identity) }));
+  return unbondList.value.map((x) => ({ v: x, rank: 'primary', logo: logoUrl(x.description.identity) }));
 });
 
 const fetchAvatar = (identity: string) => {
@@ -168,7 +166,7 @@ const fetchAvatar = (identity: string) => {
           resolve();
         } else throw new Error(`failed to fetch avatar for ${identity}`);
       })
-      .catch((error) => {
+      .catch(() => {
         // console.error(error); // uncomment this if you want the user to see which avatars failed to load.
         resolve();
       });
@@ -177,7 +175,7 @@ const fetchAvatar = (identity: string) => {
 
 const loadAvatar = (identity: string) => {
   // fetches avatar from keybase and stores it in localStorage
-  fetchAvatar(identity).then(() => {
+  void fetchAvatar(identity).then(() => {
     localStorage.setItem('avatars', JSON.stringify(avatars.value));
   });
 };
@@ -185,7 +183,7 @@ const loadAvatar = (identity: string) => {
 const loadAvatars = () => {
   // fetches all avatars from keybase and stores it in localStorage
   const promises = staking.validators.map((validator) => {
-    const identity = validator.description?.identity;
+    const identity = validator.description.identity;
 
     // Here we also check whether we haven't already fetched the avatar
     if (identity && !avatars.value[identity]) {
@@ -195,10 +193,10 @@ const loadAvatars = () => {
     }
   });
 
-  Promise.all(promises).then(() => { localStorage.setItem('avatars', JSON.stringify(avatars.value)); });
+  void Promise.all(promises).then(() => { localStorage.setItem('avatars', JSON.stringify(avatars.value)); });
 };
 
-const logo = (identity?: string) => {
+const logoUrl = (identity?: string) => {
   if (!identity || !avatars.value[identity]) return '';
   const url = avatars.value[identity] || '';
   return url.startsWith('http') ? url : `https://s3.amazonaws.com/keybase_processed_uploads/${url}`;
@@ -206,12 +204,13 @@ const logo = (identity?: string) => {
 
 const loaded = ref(false);
 base.$subscribe((_, s) => {
-  if (s.recents.length >= 2 && !loaded.value) {
+  const [first, second] = s.recents;
+  if (first && second && !loaded.value) {
     loaded.value = true;
-    const diff_time = Date.parse(s.recents[1].block.header.time) - Date.parse(s.recents[0].block.header.time);
-    const diff_height = Number(s.recents[1].block.header.height) - Number(s.recents[0].block.header.height);
-    const block_window = Number(Number((86400 * 1000 * diff_height) / diff_time).toFixed(0));
-    fetchChange(block_window);
+    const diff_time = Date.parse(second.block.header.time) - Date.parse(first.block.header.time);
+    const diff_height = Number(second.block.header.height) - Number(first.block.header.height);
+    const block_window = Number(((86400 * 1000 * diff_height) / diff_time).toFixed(0));
+    void fetchChange(block_window);
   }
 });
 

@@ -25,7 +25,10 @@ import PaginationBar from '@/components/PaginationBar.vue';
 import { fromBase64, toBase64 } from '@cosmjs/encoding';
 import { stringToUint8Array, uint8ArrayToString } from '@/libs/utils';
 
-const props = defineProps(['validator', 'chain']);
+const props = defineProps({
+  validator: { type: String, required: true },
+  chain: { type: String, default: undefined },
+});
 
 const staking = useStakingStore();
 const blockchain = useBlockchain();
@@ -35,9 +38,9 @@ const page = new PageRequest();
 
 const validator: string = props.validator;
 
-const v = ref({} as Validator);
-const cache = JSON.parse(localStorage.getItem('avatars') || '{}');
-const avatars = ref(cache || {});
+const v = ref<Partial<Validator>>({});
+const cache = JSON.parse(localStorage.getItem('avatars') || '{}') as Record<string, string> | null;
+const avatars = ref<Record<string, string>>(cache ?? {});
 const identity = ref('');
 const rewards = ref([] as Coin[] | undefined);
 const commission = ref([] as Coin[] | undefined);
@@ -50,11 +53,11 @@ const addresses = ref(
     valCons: string;
   }
 );
-const selfBonded = ref({} as Delegation);
+const selfBonded = ref<Partial<Delegation>>({});
 
 addresses.value.account = operatorAddressToAccount(validator);
 // load self bond
-staking.fetchValidatorDelegation(validator, addresses.value.account).then((x) => {
+void staking.fetchValidatorDelegation(validator, addresses.value.account).then((x) => {
   if (x) {
     selfBonded.value = x.delegation_response;
   }
@@ -62,7 +65,7 @@ staking.fetchValidatorDelegation(validator, addresses.value.account).then((x) =>
 
 const txs = ref({} as PaginatedTxs);
 
-blockchain.rpc.getTxsBySender(addresses.value.account).then((x) => {
+void blockchain.rpc.getTxsBySender(addresses.value.account).then((x) => {
   txs.value = x;
 });
 
@@ -105,7 +108,7 @@ const fetchAvatar = (identity: string) => {
           resolve();
         } else throw new Error(`failed to fetch avatar for ${identity}.`);
       })
-      .catch((error) => {
+      .catch(() => {
         // console.error(error); // uncomment this if you want the user to see if the avatar failed to load.
         resolve();
       });
@@ -114,16 +117,16 @@ const fetchAvatar = (identity: string) => {
 
 const loadAvatar = (identity: string) => {
   // fetches avatar from keybase and stores it in localStorage
-  fetchAvatar(identity).then(() => {
+  void fetchAvatar(identity).then(() => {
     localStorage.setItem('avatars', JSON.stringify(avatars.value));
   });
 };
 
 onMounted(() => {
   if (validator) {
-    staking.fetchValidator(validator).then((res) => {
+    void staking.fetchValidator(validator).then((res) => {
       v.value = res.validator;
-      identity.value = res.validator?.description?.identity || '';
+      identity.value = res.validator.description.identity || '';
       if (identity.value && !avatars.value[identity.value])
         loadAvatar(identity.value);
 
@@ -133,19 +136,19 @@ onMounted(() => {
         blockchain.current?.bech32ConsensusPrefix || ''
       );
     });
-    blockchain.rpc.getDistributionValidatorOutstandingRewards(validator).then((res) => {
+    void blockchain.rpc.getDistributionValidatorOutstandingRewards(validator).then((res) => {
       rewards.value = res.rewards?.rewards?.sort((a, b) => Number(b.amount) - Number(a.amount));
       res.rewards?.rewards?.forEach((x) => {
         if (x.denom.startsWith('ibc/')) {
-          format.fetchDenomTrace(x.denom);
+          void format.fetchDenomTrace(x.denom);
         }
       });
     });
-    blockchain.rpc.getDistributionValidatorCommission(validator).then((res) => {
+    void blockchain.rpc.getDistributionValidatorCommission(validator).then((res) => {
       commission.value = res.commission?.commission?.sort((a, b) => Number(b.amount) - Number(a.amount));
       res.commission?.commission?.forEach((x) => {
         if (x.denom.startsWith('ibc/')) {
-          format.fetchDenomTrace(x.denom);
+          void format.fetchDenomTrace(x.denom);
         }
       });
     });
@@ -166,7 +169,7 @@ const copyWebsite = async (url: string) => {
     setTimeout(() => {
       showCopyToast.value = 0;
     }, 1000);
-  } catch (err) {
+  } catch {
     showCopyToast.value = 2;
     setTimeout(() => {
       showCopyToast.value = 0;
@@ -183,7 +186,7 @@ function pageload(p: number) {
   page.setPage(p);
   page.limit = 10;
 
-  blockchain.rpc.getStakingValidatorsDelegations(validator, page).then((res) => {
+  void blockchain.rpc.getStakingValidatorsDelegations(validator, page).then((res) => {
     delegations.value = res;
   });
 }
@@ -201,7 +204,7 @@ function loadPowerEvents(p: number, type: EventType) {
   selectedEventType.value = type;
   page.setPage(p);
   page.setPageSize(5);
-  blockchain.rpc
+  void blockchain.rpc
     .getTxs("?order_by=2&events={type}.validator='{validator}'", { type: selectedEventType.value, validator }, page)
     .then((res) => {
       events.value = res;
@@ -215,8 +218,9 @@ function pagePowerEvents(page: number) {
 pagePowerEvents(1);
 
 function mapEvents(events: { type: string; attributes: { key: string; value: string }[] }[]) {
+  const selectedType: string = selectedEventType.value;
   const attributes = events
-    .filter((x) => x.type === selectedEventType.value)
+    .filter((x) => x.type === selectedType)
     .filter(
       (x) =>
         x.attributes.findIndex(
@@ -240,13 +244,13 @@ function mapEvents(events: { type: string; attributes: { key: string; value: str
       return output;
     });
 
-  const coinsAsString = attributes.map((x: any) => x.amount).join(',');
+  const coinsAsString = attributes.map((x) => x['amount']).join(',');
   const coins = parseCoins(coinsAsString);
 
   return coins.map((coin) => format.formatToken(coin)).join(', ');
 }
 
-function mapDelegators(messages: any[]) {
+function mapDelegators(messages: { delegator_address?: string; grantee?: string }[] | undefined) {
   if (!messages) return [];
   return Array.from(new Set(messages.map((x) => x.delegator_address || x.grantee)));
 }
@@ -344,7 +348,7 @@ function mapDelegators(messages: any[]) {
                 <Icon icon="mdi-lock" class="text-xl mr-1" />
                 <span class="font-bold mr-2">{{ $t('staking.validator_bond_share') }}: </span>
                 <span>
-                  {{ format.formatToken({ amount: v.validator_bond_shares, denom: staking.params.bond_denom }, false) }}
+                  {{ format.formatToken({ amount: v.validator_bond_shares ?? '', denom: staking.params.bond_denom }, false) }}
                 </span>
               </div>
               <div class="flex items-center">
@@ -353,7 +357,7 @@ function mapDelegators(messages: any[]) {
                   >{{ $t('staking.liquid_staking_shares') }}:
                 </span>
                 <span>
-                  {{ format.formatToken({ amount: v.liquid_shares, denom: staking.params.bond_denom }, false) }}
+                  {{ format.formatToken({ amount: v.liquid_shares ?? '', denom: staking.params.bond_denom }, false) }}
                 </span>
               </div>
             </div>
@@ -369,7 +373,7 @@ function mapDelegators(messages: any[]) {
                 <h4>
                   {{
                     format.formatToken2({
-                      amount: v.tokens,
+                      amount: v.tokens ?? '',
                       denom: staking.params.bond_denom,
                     })
                   }}
@@ -566,7 +570,7 @@ function mapDelegators(messages: any[]) {
             <th class="text-left pl-4">{{ $t('account.delegation') }}</th>
           </thead>
           <tbody>
-            <tr v-for="{ balance, delegation } in delegations.delegation_responses">
+            <tr v-for="{ balance, delegation } in delegations.delegation_responses" :key="delegation.delegator_address">
               <td class="text-sm text-primary">
                 {{ delegation.delegator_address }}
               </td>
@@ -597,7 +601,7 @@ function mapDelegators(messages: any[]) {
             <th class="text-left pl-4">{{ $t('account.time') }}</th>
           </thead>
           <tbody>
-            <tr v-for="(item, i) in txs.tx_responses">
+            <tr v-for="item in txs.tx_responses" :key="item.txhash">
               <td class="text-sm text-primary">
                 <RouterLink :to="`/${props.chain}/block/${item.height}`">{{ item.height }}</RouterLink>
               </td>
@@ -648,10 +652,11 @@ function mapDelegators(messages: any[]) {
             </th>
           </thead>
           <tbody>
-            <tr v-for="(item, i) in events.tx_responses">
+            <tr v-for="item in events.tx_responses" :key="item.txhash">
               <td class="pr-2 truncate text-primary" style="max-width: 250px">
                 <RouterLink
                   v-for="d in mapDelegators(item.tx?.body?.messages)"
+                  :key="String(d)"
                   :to="`/${props.chain}/account/${d}`"
                 >
                   {{ d }}

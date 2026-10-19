@@ -11,27 +11,30 @@ import Countdown from '@/components/Countdown.vue';
 import PaginationBar from '@/components/PaginationBar.vue';
 import { fromBech32, toHex } from '@cosmjs/encoding';
 
-const props = defineProps(['proposal_id', 'chain']);
-const proposal = ref({} as GovProposal);
+const props = defineProps({
+  proposal_id: { type: String, required: true },
+  chain: { type: String, default: undefined },
+});
+const proposal = ref<Partial<GovProposal>>({});
 const format = useFormatter();
 const store = useGovStore();
 const dialog = useTxDialog();
 const stakingStore = useStakingStore();
 const chainStore = useBlockchain();
 
-store.fetchProposal(props.proposal_id).then((res) => {
-  let proposalDetail = reactive(res.proposal);
+void store.fetchProposal(props.proposal_id).then((res) => {
+  const proposalDetail = reactive(res.proposal);
   // when status under the voting, final_tally_result are no data, should request fetchTally
-  if (res.proposal?.status === 'PROPOSAL_STATUS_VOTING_PERIOD') {
-    store.fetchTally(props.proposal_id).then((tallRes) => {
-      proposalDetail.final_tally_result = tallRes?.tally;
+  if (res.proposal.status === 'PROPOSAL_STATUS_VOTING_PERIOD') {
+    void store.fetchTally(props.proposal_id).then((tallRes) => {
+      proposalDetail.final_tally_result = tallRes.tally;
     });
   }
   proposal.value = proposalDetail;
   // load origin params if the proposal is param change
   if (proposalDetail.content?.changes) {
-    proposalDetail.content?.changes.forEach((item) => {
-      chainStore.rpc.getParams(item.subspace, item.key).then((res) => {
+    proposalDetail.content.changes.forEach((item) => {
+      void chainStore.rpc.getParams(item.subspace, item.key).then((res) => {
         if (proposal.value.content && res.param) {
           if (proposal.value.content.current) {
             proposal.value.content.current.push(res.param);
@@ -46,29 +49,30 @@ store.fetchProposal(props.proposal_id).then((res) => {
   const msgType = proposalDetail.content?.['@type'] || '';
   if (msgType.endsWith('MsgUpdateParams')) {
     if (msgType.includes('staking')) {
-      chainStore.rpc.getStakingParams().then((res) => {
+      void chainStore.rpc.getStakingParams().then((res) => {
         addCurrentParams(res);
       });
     } else if (msgType.includes('gov')) {
-      chainStore.rpc.getGovParamsVoting().then((res) => {
+      void chainStore.rpc.getGovParamsVoting().then((res) => {
         addCurrentParams(res);
       });
     } else if (msgType.includes('distribution')) {
-      chainStore.rpc.getDistributionParams().then((res) => {
+      void chainStore.rpc.getDistributionParams().then((res) => {
         addCurrentParams(res);
       });
     } else if (msgType.includes('slashing')) {
-      chainStore.rpc.getSlashingParams().then((res) => {
+      void chainStore.rpc.getSlashingParams().then((res) => {
         addCurrentParams(res);
       });
     }
   }
 });
 
-function addCurrentParams(res: any) {
-  if (proposal.value.content && res.params) {
-    proposal.value.content.params = [proposal.value.content?.params];
-    proposal.value.content.current = [res.params];
+function addCurrentParams(res: object) {
+  const { params } = res as { params?: unknown };
+  if (proposal.value.content && params) {
+    proposal.value.content.params = [proposal.value.content.params];
+    proposal.value.content.current = [params];
   }
 }
 const color = computed(() => {
@@ -87,18 +91,18 @@ const status = computed(() => {
 });
 
 const deposit = ref({} as PaginatedProposalDeposit);
-store.fetchProposalDeposits(props.proposal_id).then((x) => (deposit.value = x));
+void store.fetchProposalDeposits(props.proposal_id).then((x) => (deposit.value = x));
 
 const votes = ref({} as GovVote[]);
 const pageRequest = ref(new PageRequest());
 const pageResponse = ref({} as Pagination);
 
-store.fetchProposalVotes(props.proposal_id).then((x) => {
+void store.fetchProposalVotes(props.proposal_id).then((x) => {
   votes.value = x.votes;
   pageResponse.value = x.pagination;
 });
 
-function shortTime(v: string) {
+function shortTime(v: string | undefined) {
   if (v) {
     return format.toDay(v, 'from');
   }
@@ -107,7 +111,7 @@ function shortTime(v: string) {
 
 const votingCountdown = computed((): number => {
   const now = new Date();
-  const end = new Date(proposal.value.voting_end_time);
+  const end = new Date(proposal.value.voting_end_time ?? '');
   return end.getTime() - now.getTime();
 });
 
@@ -115,7 +119,7 @@ const upgradeCountdown = computed((): number => {
   const height = Number(proposal.value.content?.plan?.height || 0);
   if (height > 0) {
     const base = useBaseStore();
-    const current = Number(base.latest?.block?.header?.height || 0);
+    const current = Number(base.latest.block?.header.height || 0);
     return (
       (height - current) * Number((base.blocktime / 1000).toFixed()) * 1000
     );
@@ -139,7 +143,7 @@ const total = computed(() => {
 
 const turnout = computed(() => {
   if (total.value > 0) {
-    const bonded = stakingStore.pool?.bonded_tokens || '1';
+    const bonded = stakingStore.pool.bonded_tokens || '1';
     return format.percent(total.value / Number(bonded));
   }
   return 0;
@@ -147,7 +151,7 @@ const turnout = computed(() => {
 
 const yes = computed(() => {
   if (total.value > 0) {
-    const yes = proposal.value?.final_tally_result?.yes || 0;
+    const yes = proposal.value.final_tally_result?.yes || 0;
     return format.percent(Number(yes) / total.value);
   }
   return 0;
@@ -155,7 +159,7 @@ const yes = computed(() => {
 
 const no = computed(() => {
   if (total.value > 0) {
-    const value = proposal.value?.final_tally_result?.no || 0;
+    const value = proposal.value.final_tally_result?.no || 0;
     return format.percent(Number(value) / total.value);
   }
   return 0;
@@ -163,7 +167,7 @@ const no = computed(() => {
 
 const veto = computed(() => {
   if (total.value > 0) {
-    const value = proposal.value?.final_tally_result?.no_with_veto || 0;
+    const value = proposal.value.final_tally_result?.no_with_veto || 0;
     return format.percent(Number(value) / total.value);
   }
   return 0;
@@ -171,7 +175,7 @@ const veto = computed(() => {
 
 const abstain = computed(() => {
   if (total.value > 0) {
-    const value = proposal.value?.final_tally_result?.abstain || 0;
+    const value = proposal.value.final_tally_result?.abstain || 0;
     return format.percent(Number(value) / total.value);
   }
   return 0;
@@ -192,26 +196,17 @@ function showValidatorName(voter: string) {
     const hex = toHex(data);
     const v = stakingStore.validators.find((x) => toHex(fromBech32(x.operator_address).data) === hex);
     return v ? v.description.moniker : voter;
-  } catch (e) {
+  } catch {
     return voter;
   }
 }
 
 function pageload(p: number) {
   pageRequest.value.setPage(p);
-  store.fetchProposalVotes(props.proposal_id, pageRequest.value).then((x) => {
+  void store.fetchProposalVotes(props.proposal_id, pageRequest.value).then((x) => {
     votes.value = x.votes;
     pageResponse.value = x.pagination;
   });
-}
-
-function metaItem(metadata: string | undefined): { title: string; summary: string } {
-  if (!metadata) {
-    return { title: '', summary: '' };
-  } else if (metadata.startsWith('{') && metadata.endsWith('}')) {
-    return JSON.parse(metadata);
-  }
-  return { title: metadata, summary: '' };
 }
 </script>
 

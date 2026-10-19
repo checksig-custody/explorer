@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { select } from './index';
 
-defineProps<{ value: Record<string, unknown> }>();
+defineProps<{ value: Record<string, unknown> | undefined }>();
 </script>
 <template>
   <div class="overflow-auto">

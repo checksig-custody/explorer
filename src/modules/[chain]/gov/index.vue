@@ -10,13 +10,13 @@ const store = useGovStore();
 const pageRequest = ref(new PageRequest());
 
 onMounted(() => {
-  store.fetchProposals('2').then((x) => {
-    if (x?.proposals?.length === 0) {
+  void store.fetchProposals('2').then((x) => {
+    if (x?.proposals.length === 0) {
       tab.value = '3';
-      store.fetchProposals('3');
+      void store.fetchProposals('3');
     }
-    store.fetchProposals('3');
-    store.fetchProposals('4');
+    void store.fetchProposals('3');
+    void store.fetchProposals('4');
   });
 });
 
@@ -26,7 +26,7 @@ const changeTab = (val: '2' | '3' | '4') => {
 
 function page(p: number) {
   pageRequest.value.setPage(p);
-  store.fetchProposals(tab.value, pageRequest.value);
+  void store.fetchProposals(tab.value, pageRequest.value);
 }
 </script>
 <template>

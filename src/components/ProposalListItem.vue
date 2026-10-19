@@ -7,7 +7,7 @@ import type { PropType } from 'vue';
 import { ref } from 'vue';
 const dialog = useTxDialog();
 defineProps({
-  proposals: { type: Object as PropType<PaginatedProposals>, default: undefined },
+  proposals: { type: Object as PropType<PaginatedProposals | undefined>, default: undefined },
 });
 
 const format = useFormatter();

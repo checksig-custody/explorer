@@ -25,12 +25,13 @@ export interface GovProposal {
   summary?: string;
   proposal_id: string;
   metadata?: string;
-  content: {
+  // Absent when the proposal carries no message.
+  content?: {
     '@type': string;
     title?: string;
     description?: string;
     current?: unknown[];
-    changes?: unknown[];
+    changes?: { subspace: string; key: string; value?: string }[];
     params?: unknown[];
     plan?: {
       height?: string | number;

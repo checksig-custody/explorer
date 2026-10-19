@@ -27,9 +27,10 @@ const isFutureBlock = computed({
   get: () => {
     const latest = store.latest.block?.header.height;
     const isFuture = latest ? target.value > Number(latest) : true;
-    // eslint-disable-next-line vue/no-async-in-computed-properties -- existing behaviour: a watcher would refetch after every failed fetch
-    if (!isFuture && !current.value.block_id)
+    if (!isFuture && !current.value.block_id) {
+      // eslint-disable-next-line vue/no-async-in-computed-properties -- existing behaviour: a watcher would refetch after every failed fetch
       void store.fetchBlock(target.value).then((x) => (current.value = x));
+    }
     return isFuture;
   },
   set: (val) => {

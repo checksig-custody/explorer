@@ -1,7 +1,10 @@
 <script lang="ts" setup>
 import { Icon } from '@iconify/vue';
 import { computed, ref } from 'vue';
-import type { RouteLocationNormalizedLoaded } from 'vue-router';
+import type {
+  RouteLocationNormalizedLoaded,
+  RouteLocationRaw,
+} from 'vue-router';
 
 // Components
 import newFooter from '@/layouts/components/NavFooter.vue';
@@ -58,16 +61,19 @@ type NavItem = VerticalNavItems[number];
 function isNavGroup(nav: NavItem): nav is NavGroup {
   return 'children' in nav;
 }
-function isNavLink(nav: NavItem): nav is NavLink {
+// A link that carries a route, as the menu builds them.
+type RoutedNavLink = NavLink & { to: RouteLocationRaw };
+function isNavLink(nav: NavItem): nav is RoutedNavLink {
   return 'to' in nav;
 }
 function isNavTitle(nav: NavItem): nav is NavSectionTitle {
   return 'heading' in nav;
 }
-function selected(route: RouteLocationNormalizedLoaded, nav: NavLink) {
-  const to = nav.to;
-  const path =
-    typeof to === 'object' && to !== null && 'path' in to ? to.path : undefined;
+function toPath(to: RouteLocationRaw): string | undefined {
+  return typeof to === 'object' && 'path' in to ? to.path : undefined;
+}
+function selected(route: RouteLocationNormalizedLoaded, nav: RoutedNavLink) {
+  const path = toPath(nav.to);
   return (
     route.path === path ||
     (path !== undefined &&
@@ -190,7 +196,7 @@ const show_ad = computed(() => {
                   class="mr-2 ml-3"
                   :class="{
                     'text-white':
-                      $route.path === el?.to?.path &&
+                      $route.path === toPath(el.to) &&
                       item?.title !== 'Favorite',
                   }"
                 />
@@ -240,7 +246,7 @@ const show_ad = computed(() => {
 
         <RouterLink
           v-if="isNavLink(item)"
-          :to="item?.to"
+          :to="item.to"
           class="cursor-pointer rounded-lg px-4 flex items-center py-2 hover:bg-gray-100 dark:hover:bg-[#373f59]"
           @click="sidebarShow = false"
         >

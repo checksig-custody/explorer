@@ -1,6 +1,11 @@
 import type { Config } from 'tailwindcss';
-import daisyui from 'daisyui';
 import themes from 'daisyui/src/theming/themes';
+
+// Tailwind loads this file as CommonJS, where `import daisyui from 'daisyui'`
+// gives an empty object and the plugin is dropped without a warning. Load it
+// with require, as the former tailwind.config.js did.
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- an import loads an empty object here
+const daisyui = require('daisyui') as NonNullable<Config['plugins']>[number];
 
 export default {
   darkMode: ['class'],

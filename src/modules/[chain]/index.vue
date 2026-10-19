@@ -5,7 +5,7 @@ import 'md-editor-v3/lib/preview.css';
 import PriceMarketChart from '@/components/charts/PriceMarketChart.vue';
 
 import { Icon } from '@iconify/vue';
-import { useBlockchain, useFormatter, useTxDialog, useWalletStore, useStakingStore, useParamStore } from '@/stores';
+import { useBlockchain, useFormatter, useTxDialog, useWalletStore, useParamStore } from '@/stores';
 import { onMounted, ref } from 'vue';
 import { useIndexModule, colorMap, tickerUrl } from './indexStore';
 import { computed } from 'vue';
@@ -14,14 +14,13 @@ import CardStatisticsVertical from '@/components/CardStatisticsVertical.vue';
 import ProposalListItem from '@/components/ProposalListItem.vue';
 import ArrayObjectElement from '@/components/dynamic/ArrayObjectElement.vue';
 
-const props = defineProps(['chain']);
+defineProps({ chain: { type: String, default: undefined } });
 
 const blockchain = useBlockchain();
 const store = useIndexModule();
 const walletStore = useWalletStore();
 const format = useFormatter();
 const dialog = useTxDialog();
-const stakingStore = useStakingStore();
 const paramStore = useParamStore();
 const coinInfo = computed(() => {
   return store.coinInfo;
@@ -30,11 +29,11 @@ const coinInfo = computed(() => {
 onMounted(() => {
   store.loadDashboard();
   walletStore.loadMyAsset();
-  paramStore.handleAbciInfo();
+  void paramStore.handleAbciInfo();
   // if(!(coinInfo.value && coinInfo.value.name)) {
   // }
 });
-const ticker = computed(() => store.coinInfo.tickers[store.tickerIndex]);
+const ticker = computed(() => store.coinInfo.tickers?.[store.tickerIndex]);
 
 const currName = ref('');
 blockchain.$subscribe((m, s) => {
@@ -42,7 +41,7 @@ blockchain.$subscribe((m, s) => {
     currName.value = s.chainName;
     store.loadDashboard();
     walletStore.loadMyAsset();
-    paramStore.handleAbciInfo();
+    void paramStore.handleAbciInfo();
   }
 });
 function shortName(name: string, id: string) {
@@ -77,7 +76,7 @@ const comLinks = computed(() => {
 // wallet box
 const change = computed(() => {
   const token = walletStore.balanceOfStakingToken;
-  return token ? format.priceChanges(token.denom) : 0;
+  return format.priceChanges(token.denom);
 });
 const color = computed(() => {
   switch (true) {
@@ -87,6 +86,8 @@ const color = computed(() => {
       return 'text-grey-500';
     case change.value < 0:
       return 'text-red-600';
+    default:
+      return undefined;
   }
 });
 
@@ -109,10 +110,12 @@ const qty = computed({
 });
 const amount = computed({
   get: () => {
-    return quantity.value * ticker.value.converted_last.usd || 0;
+    const usd = ticker.value?.converted_last.usd;
+    return usd === undefined ? 0 : quantity.value * usd || 0;
   },
   set: (val) => {
-    quantity.value = val / ticker.value.converted_last.usd || 0;
+    const usd = ticker.value?.converted_last.usd;
+    quantity.value = usd === undefined ? 0 : val / usd || 0;
   },
 });
 </script>
@@ -313,6 +316,7 @@ const amount = computed({
       <div class="mx-4 flex flex-wrap items-center">
         <div
           v-for="tag in coinInfo.categories"
+          :key="tag"
           class="mr-2 mb-4 text-xs bg-gray-100 dark:bg-[#384059] px-3 rounded-full py-1"
         >
           {{ tag }}

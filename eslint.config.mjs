@@ -43,7 +43,7 @@ export default defineConfig(
             'eslint.config.mjs',
             'postcss.config.js',
             'tailwind.config.ts',
-            'tests/sanitize.test.ts',
+            'tests/*.test.ts',
             'daisyui-themes.d.ts',
           ],
           defaultProject: 'tsconfig.config.json',

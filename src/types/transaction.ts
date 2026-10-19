@@ -9,6 +9,7 @@ export interface Tx {
       packet?: { data: string };
       delegator_address?: string;
       grantee?: string;
+      message?: string;
     }[];
     memo: string;
     timeout_height: string;

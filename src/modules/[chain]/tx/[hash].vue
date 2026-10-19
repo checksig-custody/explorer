@@ -8,29 +8,26 @@ import { JsonViewer } from 'vue3-json-viewer';
 // if you used v1.0.5 or latster ,you should add import "vue3-json-viewer/dist/index.css"
 import 'vue3-json-viewer/dist/index.css';
 
-const props = defineProps(['hash', 'chain']);
+const props = defineProps({
+  hash: { type: String, default: undefined },
+  chain: { type: String, default: undefined },
+});
 
 const blockchain = useBlockchain();
 const baseStore = useBaseStore();
 const format = useFormatter();
-const tx = ref(
-  {} as {
-    tx: Tx;
-    tx_response: TxResponse;
-  }
-);
+const tx = ref<Partial<{ tx: Tx; tx_response: TxResponse }>>({});
 if (props.hash) {
-  blockchain.rpc.getTx(props.hash).then((x) => (tx.value = x));
+  void blockchain.rpc.getTx(props.hash).then((x) => (tx.value = x));
 }
 const messages = computed(() => {
   return (
-    tx.value.tx?.body?.messages.map((x) => {
+    tx.value.tx?.body.messages.map((x) => {
       if (x.packet?.data) {
-        // @ts-ignore
         x.message = format.base64ToString(x.packet.data);
       }
       return x;
-    }) || []
+    }) ?? []
   );
 });
 </script>
@@ -99,7 +96,7 @@ const messages = computed(() => {
             </tr>
             <tr>
               <td>{{ $t('tx.memo') }}</td>
-              <td>{{ tx.tx.body.memo }}</td>
+              <td>{{ tx.tx?.body.memo }}</td>
             </tr>
           </tbody>
         </table>
@@ -108,7 +105,7 @@ const messages = computed(() => {
 
     <div v-if="tx.tx_response" class="bg-base-100 px-4 pt-3 pb-4 rounded shadow mb-4">
       <h2 class="card-title truncate mb-2">{{ $t('account.messages') }}: ({{ messages.length }})</h2>
-      <div v-for="(msg, i) in messages">
+      <div v-for="(msg, i) in messages" :key="i">
         <div class="border border-slate-400 rounded-md mt-4">
           <DynamicComponent :value="msg" />
         </div>

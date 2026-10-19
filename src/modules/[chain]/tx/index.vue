@@ -1,10 +1,9 @@
 <script lang="ts" setup>
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 import { useBaseStore, useBlockchain, useFormatter } from '@/stores';
-import type { PaginatedTxs } from '@/types';
 import { useRouter } from 'vue-router';
 import { onMounted } from 'vue';
-const props = defineProps(['chain']);
+const props = defineProps({ chain: { type: String, default: undefined } });
 const vueRouters = useRouter();
 const tab = ref('recent');
 
@@ -14,14 +13,14 @@ const chainStore = useBlockchain();
 const format = useFormatter();
 const hashReg = /^[A-Z\d]{64}$/;
 const hash = ref('');
-const current = chainStore?.current?.chainName || '';
+const current = chainStore.current?.chainName || '';
 onMounted(() => {
-  tab.value = String(vueRouters.currentRoute.value.query.tab || 'recent');
+  tab.value = String(vueRouters.currentRoute.value.query['tab'] || 'recent');
   console.log(tab.value);
 });
 function search() {
   if (hashReg.test(hash.value)) {
-    vueRouters.push({ path: `/${current}/tx/${hash.value}` });
+    void vueRouters.push({ path: `/${current}/tx/${hash.value}` });
   }
 }
 </script>
@@ -47,7 +46,7 @@ function search() {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(item, index) in base.txsInRecents" :index="index" class="hover">
+          <tr v-for="(item, index) in base.txsInRecents" :key="index" :index="index" class="hover">
             <td class="text-sm text-primary">
               <RouterLink :to="`/${props.chain}/block/${item.height}`">{{ item.height }}</RouterLink>
             </td>

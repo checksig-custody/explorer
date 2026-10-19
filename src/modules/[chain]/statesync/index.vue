@@ -1,31 +1,31 @@
 <script lang="ts" setup>
-import { useBaseStore, useBlockchain, useFormatter } from '@/stores';
+import { useBaseStore, useBlockchain } from '@/stores';
 import type { NodeInfo } from '@/types';
 import { fromBase64, toHex } from '@cosmjs/encoding';
 import { onMounted, ref } from 'vue';
 import { computed } from 'vue';
 
-const props = defineProps(['hash', 'chain']);
+defineProps({ chain: { type: String, default: undefined } });
 const blockchain = useBlockchain();
 const base = useBaseStore();
-const nodeInfo = ref({} as NodeInfo);
+const nodeInfo = ref<Partial<NodeInfo>>({});
 
 const height = ref(0);
 const hash = ref('');
 
 base.$subscribe((m, { latest }) => {
-  let h = Number(latest.block?.header?.height);
+  let h = Number(latest.block?.header.height);
   h = Math.round((h - 2000) / 1000) * 1000;
   if (h > height.value) {
     height.value = h;
-    base.fetchBlock(h).then((res) => {
-      hash.value = toHex(fromBase64(res.block_id.hash)).toUpperCase();
+    void base.fetchBlock(h).then((res) => {
+      if (res.block_id) hash.value = toHex(fromBase64(res.block_id.hash)).toUpperCase();
     });
   }
 });
 
 const rpcs = computed(() => {
-  return blockchain.current?.endpoints?.rpc?.map((x) => x.address).join(',');
+  return blockchain.current?.endpoints.rpc?.map((x) => x.address).join(',');
 });
 
 const appName = computed(() => {
@@ -33,7 +33,7 @@ const appName = computed(() => {
 });
 
 onMounted(() => {
-  blockchain.rpc.getBaseNodeInfo().then((x) => {
+  void blockchain.rpc.getBaseNodeInfo().then((x) => {
     nodeInfo.value = x;
   });
 });

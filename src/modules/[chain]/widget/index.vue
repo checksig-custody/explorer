@@ -1,19 +1,17 @@
 <script lang="ts" setup>
-import { useBaseStore, useBlockchain, useFormatter } from '@/stores';
-import type { Connection } from '@/types';
+import { useBaseStore, useBlockchain } from '@/stores';
 import { computed } from 'vue';
-import { onMounted } from 'vue';
 import { ref } from 'vue';
 
-const props = defineProps(['chain']);
+defineProps({ chain: { type: String, default: undefined } });
 const chainStore = useBlockchain();
 const baseStore = useBaseStore();
-const endpoint = ref(chainStore.current?.endpoints?.rest?.at(0)?.address);
+const endpoint = ref(chainStore.current?.endpoints.rest?.at(0)?.address);
 
-const chainId = computed(() => baseStore.latest?.block?.header?.chain_id || '');
-const chainName = computed(() => chainStore?.current?.prettyName || '');
+const chainId = computed(() => baseStore.latest.block?.header.chain_id || '');
+const chainName = computed(() => chainStore.current?.prettyName || '');
 const hdPath = computed(() => {
-  return `m/44'/${chainStore.current?.coinType}/0'/0/0`;
+  return `m/44'/${String(chainStore.current?.coinType)}/0'/0/0`;
 });
 </script>
 <template>
@@ -26,7 +24,7 @@ const hdPath = computed(() => {
             <span>{{ $t('widget.endpoint') }}</span>
             <select v-model="endpoint" class="select select-bordered w-fit">
               <option disabled selected>{{ $t('widget.select_endpoint') }}</option>
-              <option v-for="v in chainStore.current?.endpoints.rest" :value="v.address">{{ v.address }}</option>
+              <option v-for="v in chainStore.current?.endpoints.rest" :key="v.address" :value="v.address">{{ v.address }}</option>
             </select>
           </div>
         </div>

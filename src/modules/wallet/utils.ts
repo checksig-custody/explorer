@@ -20,7 +20,9 @@ export function scanLocalKeys() {
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
     if (key?.startsWith('m/44')) {
-      const wallet = JSON.parse(localStorage.getItem(key) || '') as LocalKey | null;
+      const wallet = JSON.parse(
+        localStorage.getItem(key) || ''
+      ) as LocalKey | null;
       if (wallet) {
         connected.push(wallet);
       }

@@ -47,5 +47,10 @@ function changeChart(type: string) {
       Volume
     </a>
   </div>
-  <ApexCharts type="area" height="230" :options="chartConfig" :series="series" />
+  <ApexCharts
+    type="area"
+    height="230"
+    :options="chartConfig"
+    :series="series"
+  />
 </template>

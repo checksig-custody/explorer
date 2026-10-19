@@ -41,7 +41,9 @@ export const useGovStore = defineStore('govStore', {
     async fetchProposals(status: string, pagination?: PageRequest) {
       //if (!this.loading[status]) {
       this.loading[status] = LoadingStatus.Loading;
-      const response = await this.blockchain.rpcIfSet()?.getGovProposals(status, pagination);
+      const response = await this.blockchain
+        .rpcIfSet()
+        ?.getGovProposals(status, pagination);
       const proposals = response && reactive(response);
 
       //filter spam proposals
@@ -59,9 +61,13 @@ export const useGovStore = defineStore('govStore', {
           });
           if (this.walletstore.currentAddress) {
             try {
-              this.fetchProposalVotesVoter(item.proposal_id, this.walletstore.currentAddress)
+              this.fetchProposalVotesVoter(
+                item.proposal_id,
+                this.walletstore.currentAddress
+              )
                 .then((res) => {
-                  item.voterStatus = res.vote.option || 'VOTE_OPTION_NO_WITH_VETO';
+                  item.voterStatus =
+                    res.vote.option || 'VOTE_OPTION_NO_WITH_VETO';
                   // 'No With Veto';
                 })
                 .catch(() => {

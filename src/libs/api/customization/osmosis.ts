@@ -12,11 +12,15 @@ export const name = 'osmosis';
 export const requests: Partial<RequestRegistry> = {
   mint_inflation: {
     url: `https://public-osmosis-api.numia.xyz/apr?start_date=${
-      new Date(new Date().getTime() - 186400 * 1000).toISOString().split('T')[0] ?? ''
+      new Date(new Date().getTime() - 186400 * 1000)
+        .toISOString()
+        .split('T')[0] ?? ''
     }&end_date=${new Date().toISOString().split('T')[0] ?? ''}`,
     adapter: (data: unknown) => {
       const [first] = data as ({ apr?: string } | undefined)[];
-      return Promise.resolve({ inflation: String(Number(first?.apr || '0') / 100.0) });
+      return Promise.resolve({
+        inflation: String(Number(first?.apr || '0') / 100.0),
+      });
     },
   },
   gov_params_voting: { url: '/cosmos/gov/v1/params/voting', adapter },

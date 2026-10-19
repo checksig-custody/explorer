@@ -81,7 +81,11 @@ export const useBlockchain = defineStore('blockchain', {
             badgeClass: 'bg-error',
             children: routes
               .filter((x) => x.meta['i18n']) // defined menu name
-              .filter((x) => !this.current?.features || this.current.features.includes(String(x.meta['i18n']))) // filter none-custom module
+              .filter(
+                (x) =>
+                  !this.current?.features ||
+                  this.current.features.includes(String(x.meta['i18n']))
+              ) // filter none-custom module
               .map((x) => ({
                 title: `module.${String(x.meta['i18n'])}`,
                 to: { path: x.path.replace(':chain', this.chainName) },
@@ -177,7 +181,10 @@ export const useBlockchain = defineStore('blockchain', {
       this.connErr = '';
       this.endpoint = endpoint;
       this.rpc = CosmosRestClient.newStrategy(endpoint.address, this.current);
-      localStorage.setItem(`endpoint-${this.chainName}`, JSON.stringify(endpoint));
+      localStorage.setItem(
+        `endpoint-${this.chainName}`,
+        JSON.stringify(endpoint)
+      );
       return Promise.resolve();
     },
     async setCurrent(name: string) {
@@ -188,7 +195,9 @@ export const useBlockchain = defineStore('blockchain', {
 
       // Find the case-sensitive name for the chainName, else simply use the parameter-value.
       const caseSensitiveName =
-        Object.keys(this.dashboard.chains).find((x) => x.toLowerCase() === name.toLowerCase()) || name;
+        Object.keys(this.dashboard.chains).find(
+          (x) => x.toLowerCase() === name.toLowerCase()
+        ) || name;
 
       // Update chainName if needed
       if (caseSensitiveName !== this.chainName) {

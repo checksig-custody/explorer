@@ -35,7 +35,10 @@ function findGlobalAssetConfig(denom: string) {
   return undefined;
 }
 
-function mergeDenomMetadata(denom: string, denomsMetadatas: DenomMetadata[]): SupplyAssetInfo | undefined {
+function mergeDenomMetadata(
+  denom: string,
+  denomsMetadatas: DenomMetadata[]
+): SupplyAssetInfo | undefined {
   const denomMetadata = denomsMetadatas.find((d) => d.base.endsWith(denom));
   const asset = findGlobalAssetConfig(denom);
   if (asset && denomMetadata) {
@@ -46,14 +49,23 @@ function mergeDenomMetadata(denom: string, denomsMetadatas: DenomMetadata[]): Su
 
 function pageload(p: number) {
   pageRequest.value.setPage(p);
-  void chainStore.rpc.getBankDenomMetadata().then(async (denomsMetaResponse) => {
-    const bankSupplyResponse = await chainStore.rpc.getBankSupply(pageRequest.value);
-    list.value = bankSupplyResponse.supply.map((coin: Coin) => {
-      const asset = mergeDenomMetadata(coin.denom, denomsMetaResponse.metadatas);
-      return supplyRow(coin, asset, (denom) => format.tokenAmountNumber({ amount: coin.amount, denom }).toString());
+  void chainStore.rpc
+    .getBankDenomMetadata()
+    .then(async (denomsMetaResponse) => {
+      const bankSupplyResponse = await chainStore.rpc.getBankSupply(
+        pageRequest.value
+      );
+      list.value = bankSupplyResponse.supply.map((coin: Coin) => {
+        const asset = mergeDenomMetadata(
+          coin.denom,
+          denomsMetaResponse.metadatas
+        );
+        return supplyRow(coin, asset, (denom) =>
+          format.tokenAmountNumber({ amount: coin.amount, denom }).toString()
+        );
+      });
+      pageResponse.value = bankSupplyResponse.pagination;
     });
-    pageResponse.value = bankSupplyResponse.pagination;
-  });
 }
 </script>
 <template>
@@ -70,7 +82,7 @@ function pageload(p: number) {
       </thead>
       <tr v-for="item in list" :key="item.base" class="hover">
         <td>
-          <img v-if="item.logo" :src="item.logo" class="w-7 h-7">
+          <img v-if="item.logo" :src="item.logo" class="w-7 h-7" />
         </td>
         <td>{{ item.denom }}</td>
         <td>{{ item.amount }}</td>

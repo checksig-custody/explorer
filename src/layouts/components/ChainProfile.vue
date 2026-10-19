@@ -16,7 +16,7 @@ function changeEndpoint(item: Endpoint) {
   <div class="dropdown">
     <label tabindex="0" class="flex items-center">
       <div class="p-1 relative mr-3 cursor-pointer">
-        <img v-lazy="chainStore.logo" class="w-9 h-9 rounded-full">
+        <img v-lazy="chainStore.logo" class="w-9 h-9 rounded-full" />
         <div
           class="w-2 h-2 rounded-full absolute right-0 bottom-0 shadow"
           :class="{
@@ -27,7 +27,11 @@ function changeEndpoint(item: Endpoint) {
       </div>
       <div class="flex-1 w-0">
         <div
-          :key="baseStore.latest?.block?.header?.height || chainStore.chainName || ''"
+          :key="
+            baseStore.latest?.block?.header?.height ||
+            chainStore.chainName ||
+            ''
+          "
           class="capitalize whitespace-nowrap text-base font-semibold text-gray-600 dark:text-gray-200 hidden md:!block"
         >
           {{
@@ -35,16 +39,28 @@ function changeEndpoint(item: Endpoint) {
               ? `#${baseStore.latest.block.header.height}`
               : chainStore.chainName || ''
           }}
-          <span class="text-error">{{ baseStore.connected ? '' : 'disconnected' }}</span>
+          <span class="text-error">{{
+            baseStore.connected ? '' : 'disconnected'
+          }}</span>
         </div>
-        <div class="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap hidden md:!block">
+        <div
+          class="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap hidden md:!block"
+        >
           {{ chainStore.connErr || chainStore.endpoint.address }}
         </div>
       </div>
     </label>
-    <div tabindex="0" class="dropdown-content -left-6 w-80 menu shadow bg-base-200 rounded-box overflow-auto">
+    <div
+      tabindex="0"
+      class="dropdown-content -left-6 w-80 menu shadow bg-base-200 rounded-box overflow-auto"
+    >
       <!-- rest -->
-      <div v-if="chainStore.current?.endpoints?.rest" class="px-4 py-2 text-sm text-gray-400">Rest Endpoint</div>
+      <div
+        v-if="chainStore.current?.endpoints?.rest"
+        class="px-4 py-2 text-sm text-gray-400"
+      >
+        Rest Endpoint
+      </div>
       <div
         v-for="(item, index) in chainStore.current?.endpoints?.rest"
         :key="index"
@@ -81,7 +97,9 @@ function changeEndpoint(item: Endpoint) {
         <div class="py-2 px-4">
           Height:
           {{
-            baseStore.latest.block?.header.height && baseStore.connected ? baseStore.latest.block.header.height : '0'
+            baseStore.latest.block?.header.height && baseStore.connected
+              ? baseStore.latest.block.header.height
+              : '0'
           }}
         </div>
       </div>

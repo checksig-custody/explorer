@@ -27,12 +27,14 @@ function loadContract() {
     });
   } else {
     // query by creator
-    void wasmStore.wasmClient.getWasmContractsByCreator(props.code_id).then((x) => {
-      response.value = {
-        contracts: x.contract_addresses,
-        pagination: x.pagination,
-      };
-    });
+    void wasmStore.wasmClient
+      .getWasmContractsByCreator(props.code_id)
+      .then((x) => {
+        response.value = {
+          contracts: x.contract_addresses,
+          pagination: x.pagination,
+        };
+      });
   }
 }
 loadContract();
@@ -46,7 +48,9 @@ function showInfo(address: string) {
 <template>
   <div>
     <div class="bg-base-100 px-4 pt-3 pb-4 rounded mb-4 shadow">
-      <h2 class="card-title truncate w-full">{{ $t('cosmwasm.contract_list_code') }}: {{ props.code_id }}</h2>
+      <h2 class="card-title truncate w-full">
+        {{ $t('cosmwasm.contract_list_code') }}: {{ props.code_id }}
+      </h2>
       <div class="overflow-x-auto">
         <table class="table table-compact w-full mt-4">
           <thead class="bg-base-200">
@@ -58,13 +62,23 @@ function showInfo(address: string) {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(v, index) in response.contracts" :key="index" class="hover">
+            <tr
+              v-for="(v, index) in response.contracts"
+              :key="index"
+              class="hover"
+            >
               <td>{{ v }}</td>
               <td>
-                <label for="modal-contract-detail" class="btn btn-primary btn-xs text-xs mr-2" @click="showInfo(v)">{{
-                  $t('cosmwasm.btn_contract')
-                }}</label>
-                <RouterLink :to="`transactions?contract=${v}`" class="btn btn-primary btn-xs text-xs">
+                <label
+                  for="modal-contract-detail"
+                  class="btn btn-primary btn-xs text-xs mr-2"
+                  @click="showInfo(v)"
+                  >{{ $t('cosmwasm.btn_contract') }}</label
+                >
+                <RouterLink
+                  :to="`transactions?contract=${v}`"
+                  class="btn btn-primary btn-xs text-xs"
+                >
                   {{ $t('cosmwasm.btn_details') }}
                 </RouterLink>
               </td>
@@ -72,7 +86,11 @@ function showInfo(address: string) {
           </tbody>
         </table>
         <div class="flex justify-between">
-          <PaginationBar :limit="pageRequest.limit" :total="response.pagination?.total" :callback="loadContract" />
+          <PaginationBar
+            :limit="pageRequest.limit"
+            :total="response.pagination?.total"
+            :callback="loadContract"
+          />
           <label
             for="wasm_instantiate_contract"
             class="btn btn-primary my-5"
@@ -87,13 +105,18 @@ function showInfo(address: string) {
       </div>
     </div>
 
-    <input id="modal-contract-detail" type="checkbox" class="modal-toggle">
+    <input id="modal-contract-detail" type="checkbox" class="modal-toggle" />
     <label for="modal-contract-detail" class="modal cursor-pointer">
       <label class="modal-box !w-11/12 !max-w-5xl relative p-2" for="">
         <div>
           <div class="flex items-center justify-between px-3 pt-2">
             <div class="text-lg">{{ $t('cosmwasm.contract_detail') }}</div>
-            <label for="modal-contract-detail" class="btn btn-sm btn-circle" @click="infoDialog = false">✕</label>
+            <label
+              for="modal-contract-detail"
+              class="btn btn-sm btn-circle"
+              @click="infoDialog = false"
+              >✕</label
+            >
           </div>
           <div>
             <DynamicComponent :value="info" />

@@ -1,7 +1,13 @@
 import { defineStore } from 'pinia';
 import { useBlockchain } from './useBlockchain';
 import { fromBech32, toBech32 } from '@cosmjs/encoding';
-import type { Delegation, Coin, UnbondingResponses, DelegatorRewards, WalletConnected } from '@/types';
+import type {
+  Delegation,
+  Coin,
+  UnbondingResponses,
+  DelegatorRewards,
+  WalletConnected,
+} from '@/types';
 import { useStakingStore } from './useStakingStore';
 import router from '@/router';
 
@@ -32,13 +38,17 @@ export const useWalletStore = defineStore('walletStore', {
       if (this.wallet.cosmosAddress) return this.wallet;
       const chainStore = useBlockchain();
       const key = chainStore.defaultHDPath;
-      const connected = JSON.parse(localStorage.getItem(key) || '{}') as Partial<WalletConnected>;
+      const connected = JSON.parse(
+        localStorage.getItem(key) || '{}'
+      ) as Partial<WalletConnected>;
       return connected;
     },
     balanceOfStakingToken(): Coin {
       const stakingStore = useStakingStore();
       return (
-        this.balances.find((x) => x.denom === stakingStore.params.bond_denom) ?? {
+        this.balances.find(
+          (x) => x.denom === stakingStore.params.bond_denom
+        ) ?? {
           amount: '0',
           denom: stakingStore.params.bond_denom,
         }
@@ -56,7 +66,9 @@ export const useWalletStore = defineStore('walletStore', {
     },
     rewardAmount(): Coin {
       const stakingStore = useStakingStore();
-      const reward = this.rewards.total.find((x) => x.denom === stakingStore.params.bond_denom);
+      const reward = this.rewards.total.find(
+        (x) => x.denom === stakingStore.params.bond_denom
+      );
       return reward ?? { amount: '0', denom: stakingStore.params.bond_denom };
     },
     unbondingAmount(): Coin {
@@ -87,18 +99,26 @@ export const useWalletStore = defineStore('walletStore', {
   actions: {
     loadMyAsset() {
       if (!this.currentAddress) return;
-      void this.blockchain.rpc.getBankBalances(this.currentAddress).then((x) => {
-        this.balances = x.balances;
-      });
-      void this.blockchain.rpc.getStakingDelegations(this.currentAddress).then((x) => {
-        this.delegations = x.delegation_responses;
-      });
-      void this.blockchain.rpc.getStakingDelegatorUnbonding(this.currentAddress).then((x) => {
-        this.unbonding = x.unbonding_responses;
-      });
-      void this.blockchain.rpc.getDistributionDelegatorRewards(this.currentAddress).then((x) => {
-        this.rewards = x;
-      });
+      void this.blockchain.rpc
+        .getBankBalances(this.currentAddress)
+        .then((x) => {
+          this.balances = x.balances;
+        });
+      void this.blockchain.rpc
+        .getStakingDelegations(this.currentAddress)
+        .then((x) => {
+          this.delegations = x.delegation_responses;
+        });
+      void this.blockchain.rpc
+        .getStakingDelegatorUnbonding(this.currentAddress)
+        .then((x) => {
+          this.unbonding = x.unbonding_responses;
+        });
+      void this.blockchain.rpc
+        .getDistributionDelegatorRewards(this.currentAddress)
+        .then((x) => {
+          this.rewards = x;
+        });
     },
     myBalance() {
       return this.blockchain.rpc.getBankBalances(this.currentAddress);
@@ -107,7 +127,9 @@ export const useWalletStore = defineStore('walletStore', {
       return this.blockchain.rpc.getStakingDelegations(this.currentAddress);
     },
     myUnbonding() {
-      return this.blockchain.rpc.getStakingDelegatorUnbonding(this.currentAddress);
+      return this.blockchain.rpc.getStakingDelegatorUnbonding(
+        this.currentAddress
+      );
     },
     disconnect() {
       const chainStore = useBlockchain();

@@ -13,5 +13,7 @@ function change() {
 }
 </script>
 <template>
-  <span>{{ text }} <VIcon size="12" icon="mdi-cached" @click="change()" /></span>
+  <span
+    >{{ text }} <VIcon size="12" icon="mdi-cached" @click="change()"
+  /></span>
 </template>

@@ -1,5 +1,10 @@
 import { defineStore } from 'pinia';
-import { useBlockchain, useBankStore, useStakingStore, useDashboard } from '@/stores';
+import {
+  useBlockchain,
+  useBankStore,
+  useStakingStore,
+  useDashboard,
+} from '@/stores';
 import numeral from 'numeral';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
@@ -68,7 +73,8 @@ export const useFormatter = defineStore('formatter', {
       const hash = denom.replace('ibc/', '');
       let trace = this.ibcDenoms[hash];
       if (!trace) {
-        trace = (await this.blockchain.rpc.getIBCAppTransferDenom(hash)).denom_trace;
+        trace = (await this.blockchain.rpc.getIBCAppTransferDenom(hash))
+          .denom_trace;
         this.ibcDenoms[hash] = trace;
       }
       return trace;
@@ -76,7 +82,9 @@ export const useFormatter = defineStore('formatter', {
     async fetchDenomMetadata(denom: string) {
       if (this.loading.includes(denom)) return;
       this.loading.push(denom);
-      const asset = (await get(`https://metadata.ping.pub/metadata/${denom}`)) as Asset;
+      const asset = (await get(
+        `https://metadata.ping.pub/metadata/${denom}`
+      )) as Asset;
       this.ibcMetadata[denom] = asset;
     },
     priceInfo(denom: string) {
@@ -132,9 +140,12 @@ export const useFormatter = defineStore('formatter', {
       if (!token?.denom) return 0;
 
       // find the symbol
-      const symbol = this.dashboard.coingecko[token.denom]?.symbol || token.denom;
+      const symbol =
+        this.dashboard.coingecko[token.denom]?.symbol || token.denom;
       // convert denomination to symbol
-      const exponent = this.dashboard.coingecko[symbol.toLowerCase()]?.exponent || this.specialDenom(token.denom);
+      const exponent =
+        this.dashboard.coingecko[symbol.toLowerCase()]?.exponent ||
+        this.specialDenom(token.denom);
       // caculate amount of symbol
       const amount = Number(token.amount) / 10 ** exponent;
       return amount;
@@ -208,14 +219,19 @@ export const useFormatter = defineStore('formatter', {
       }
       return undefined;
     },
-    tokenDisplayNumber(token?: { denom: string; amount: string }, mode = 'all') {
+    tokenDisplayNumber(
+      token?: { denom: string; amount: string },
+      mode = 'all'
+    ) {
       if (token?.amount && token.denom) {
         let amount = Number(token.amount);
         const denom = token.denom;
 
         let conf =
           mode === 'local'
-            ? this.blockchain.current?.assets.find((x) => x.base === token.denom)
+            ? this.blockchain.current?.assets.find(
+                (x) => x.base === token.denom
+              )
             : this.findGlobalAssetConfig(token.denom);
 
         if (denom.startsWith('ibc/')) {
@@ -241,14 +257,21 @@ export const useFormatter = defineStore('formatter', {
       }
       return 0;
     },
-    formatToken(token?: { denom: string; amount: string }, withDenom = true, fmt = '0,0.[0]', mode = 'local'): string {
+    formatToken(
+      token?: { denom: string; amount: string },
+      withDenom = true,
+      fmt = '0,0.[0]',
+      mode = 'local'
+    ): string {
       if (token?.amount && token.denom) {
         let amount = Number(token.amount);
         let denom = token.denom;
 
         let conf =
           mode === 'local'
-            ? this.blockchain.current?.assets.find((x) => x.base === token.denom)
+            ? this.blockchain.current?.assets.find(
+                (x) => x.base === token.denom
+              )
             : this.findGlobalAssetConfig(token.denom);
 
         if (denom.startsWith('ibc/')) {
@@ -281,11 +304,17 @@ export const useFormatter = defineStore('formatter', {
       }
       return '-';
     },
-    formatTokens(tokens?: { denom: string; amount: string }[], withDenom = true, fmt = '0.0a'): string {
+    formatTokens(
+      tokens?: { denom: string; amount: string }[],
+      withDenom = true,
+      fmt = '0.0a'
+    ): string {
       if (!tokens) return '';
       return tokens.map((x) => this.formatToken(x, withDenom, fmt)).join(', ');
     },
-    calculateBondedRatio(pool: { bonded_tokens: string; not_bonded_tokens: string } | undefined) {
+    calculateBondedRatio(
+      pool: { bonded_tokens: string; not_bonded_tokens: string } | undefined
+    ) {
       if (pool?.bonded_tokens) {
         const b = Number(pool.bonded_tokens);
         const nb = Number(pool.not_bonded_tokens);
@@ -298,13 +327,17 @@ export const useFormatter = defineStore('formatter', {
       if (!address) return address;
 
       const txt = toHex(fromBase64(address)).toUpperCase();
-      const validator = this.staking.validators.find((x) => consensusPubkeyToHexAddress(x.consensus_pubkey) === txt);
+      const validator = this.staking.validators.find(
+        (x) => consensusPubkeyToHexAddress(x.consensus_pubkey) === txt
+      );
       return validator?.description.moniker;
     },
     // find validator by operator address
     validatorFromBech32(address: string) {
       if (!address) return address;
-      const validator = this.staking.validators.find((x) => x.operator_address === address);
+      const validator = this.staking.validators.find(
+        (x) => x.operator_address === address
+      );
       return validator?.description.moniker;
     },
     calculatePercent(input?: string | number, total?: string | number) {
@@ -357,7 +390,9 @@ export const useFormatter = defineStore('formatter', {
         const sum: Record<string, number> = msgs
           .map((msg) => {
             const msgType = msg['@type'] || msg.typeUrl || 'unknown';
-            return msgType.substring(msgType.lastIndexOf('.') + 1).replace('Msg', '');
+            return msgType
+              .substring(msgType.lastIndexOf('.') + 1)
+              .replace('Msg', '');
           })
           .reduce((s, c) => {
             const sh: Record<string, number> = s;

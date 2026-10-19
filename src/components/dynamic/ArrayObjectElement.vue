@@ -2,9 +2,15 @@
 import { computed } from 'vue';
 import DynamicComponent from './DynamicComponent.vue';
 
-const props = withDefaults(defineProps<{ value: Record<string, unknown>[] | undefined; thead?: boolean }>(), {
-  thead: true,
-});
+const props = withDefaults(
+  defineProps<{
+    value: Record<string, unknown>[] | undefined;
+    thead?: boolean;
+  }>(),
+  {
+    thead: true,
+  }
+);
 
 const header = computed(() => {
   const [first] = props.value ?? [];
@@ -19,7 +25,11 @@ const header = computed(() => {
     <table class="table table-xs table-compact table-pin-rows w-full">
       <thead v-if="thead">
         <tr>
-          <th v-for="(item, index) in header" :key="index" class="text-left capitalize">
+          <th
+            v-for="(item, index) in header"
+            :key="index"
+            class="text-left capitalize"
+          >
             {{ item.replace(/_/g, ' ') }}
           </th>
         </tr>

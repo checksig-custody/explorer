@@ -7,9 +7,11 @@ import router from '@/router';
 import fetch from 'cross-fetch';
 
 const IBC_USE_GITHUB_API = import.meta.env.VITE_IBC_USE_GITHUB_API === 'true';
-const PINGPUB_API_URL = import.meta.env.VITE_PINGPUB_API_URL || 'https://registry.ping.pub';
+const PINGPUB_API_URL =
+  import.meta.env.VITE_PINGPUB_API_URL || 'https://registry.ping.pub';
 const GITHUB_API_URL =
-  import.meta.env.VITE_GITHUB_API_URL || 'https://api.github.com/repos/cosmos/chain-registry/contents';
+  import.meta.env.VITE_GITHUB_API_URL ||
+  'https://api.github.com/repos/cosmos/chain-registry/contents';
 const IBC_API_URL = IBC_USE_GITHUB_API ? GITHUB_API_URL : PINGPUB_API_URL;
 
 // An entry of the registry's _IBC directory listing.
@@ -35,7 +37,8 @@ export const useIBCModule = defineStore('module-ibc', {
     },
     isFirstChain(): boolean {
       return (
-        this.registryConf.chain_1.chain_name === this.chain.current?.prettyName ||
+        this.registryConf.chain_1.chain_name ===
+          this.chain.current?.prettyName ||
         this.registryConf.chain_1.chain_name === this.chain.chainName
       );
     },
@@ -51,10 +54,14 @@ export const useIBCModule = defineStore('module-ibc', {
   },
   actions: {
     load() {
-      const prefix = this.chain.current?.networkType?.includes('testnet') ? 'testnets/' : '';
+      const prefix = this.chain.current?.networkType?.includes('testnet')
+        ? 'testnets/'
+        : '';
       const client = new ChainRegistryClient({
         chainNames: [this.chainName],
-        ...(IBC_USE_GITHUB_API ? {} : { baseUrl: new URL(prefix, PINGPUB_API_URL + '/').toString() }),
+        ...(IBC_USE_GITHUB_API
+          ? {}
+          : { baseUrl: new URL(prefix, PINGPUB_API_URL + '/').toString() }),
       });
       void this.fetchIBCUrls().then((res) => {
         res.forEach((element) => {
@@ -77,19 +84,31 @@ export const useIBCModule = defineStore('module-ibc', {
       });
     },
     async fetchIBCUrls(): Promise<IbcUrlEntry[]> {
-      const prefix = this.chain.current?.networkType?.includes('testnet') ? 'testnets/' : '';
-      const ibcEndpoint = new URL(`${prefix}_IBC`, IBC_API_URL + '/').toString();
+      const prefix = this.chain.current?.networkType?.includes('testnet')
+        ? 'testnets/'
+        : '';
+      const ibcEndpoint = new URL(
+        `${prefix}_IBC`,
+        IBC_API_URL + '/'
+      ).toString();
       console.log('Fetching IBC URLs from:', IBC_API_URL);
       const entries = await fetch(ibcEndpoint)
         .then((res) => res.json() as Promise<unknown>)
         .then((data) =>
-          Array.isArray(data) ? (data as IbcUrlEntry[]).filter((x) => RegExp(this.chainName).exec(x.name)) : []
+          Array.isArray(data)
+            ? (data as IbcUrlEntry[]).filter((x) =>
+                RegExp(this.chainName).exec(x.name)
+              )
+            : []
         );
 
       // If using PINGPUB_API_URL, add thedownload URLs
       if (IBC_API_URL == PINGPUB_API_URL) {
         return entries.map((entry) => {
-          entry.download_url = new URL(`${prefix}_IBC/${entry.name}`, PINGPUB_API_URL + '/').toString();
+          entry.download_url = new URL(
+            `${prefix}_IBC/${entry.name}`,
+            PINGPUB_API_URL + '/'
+          ).toString();
           return entry;
         });
       }

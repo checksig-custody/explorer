@@ -8,7 +8,10 @@ export const store = 'version'; // name or version
 export const name = 'v0.50.0';
 
 export const requests: Partial<RequestRegistry> = {
-  bank_supply_by_denom: { url: '/cosmos/bank/v1beta1/supply/by_denom?denom={denom}', adapter },
+  bank_supply_by_denom: {
+    url: '/cosmos/bank/v1beta1/supply/by_denom?denom={denom}',
+    adapter,
+  },
   gov_params_voting: { url: '/cosmos/gov/v1/params/voting', adapter },
   gov_params_tally: { url: '/cosmos/gov/v1/params/tallying', adapter },
   gov_params_deposit: { url: '/cosmos/gov/v1/params/deposit', adapter },

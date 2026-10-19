@@ -30,7 +30,9 @@ async function initParamsForKeplr() {
   };
   const asset = chain.assets[0];
   if (!asset) throw new Error('The chain has no assets');
-  const coinDecimals = asset.denom_units.find((x) => x.denom === asset.symbol.toLowerCase())?.exponent || 6;
+  const coinDecimals =
+    asset.denom_units.find((x) => x.denom === asset.symbol.toLowerCase())
+      ?.exponent || 6;
   conf.value = JSON.stringify(
     {
       chainId: chainid,
@@ -82,9 +84,11 @@ async function initParamsForKeplr() {
 
 function suggest() {
   if (window.unisat) {
-    window.unisat.experimentalSuggestChain(JSON.parse(conf.value)).catch((e: unknown) => {
-      error.value = String(e);
-    });
+    window.unisat
+      .experimentalSuggestChain(JSON.parse(conf.value))
+      .catch((e: unknown) => {
+        error.value = String(e);
+      });
   }
 }
 </script>
@@ -93,7 +97,11 @@ function suggest() {
   <div class="bg-base-100 p-4 rounded text-center">
     <AdBanner id="keplr-banner-ad" unit="banner" width="970px" height="90px" />
     <div class="flex">
-      <select v-model="selected" class="select select-bordered mx-5" @change="initParamsForKeplr">
+      <select
+        v-model="selected"
+        class="select select-bordered mx-5"
+        @change="initParamsForKeplr"
+      >
         <option v-for="c in dashboard.chains" :key="c.chainName" :value="c">
           {{ c.chainName }}
         </option>
@@ -103,10 +111,15 @@ function suggest() {
       </button>
     </div>
     <div class="text-main mt-5">
-      <textarea v-model="conf" class="textarea textarea-bordered w-full" rows="15" />
+      <textarea
+        v-model="conf"
+        class="textarea textarea-bordered w-full"
+        rows="15"
+      />
     </div>
     <div class="mt-4 mb-4">
-      If the chain is not offically support on Keplr, you can submit these parameters to enable Keplr.
+      If the chain is not offically support on Keplr, you can submit these
+      parameters to enable Keplr.
     </div>
   </div>
 </template>

@@ -16,7 +16,12 @@ const sourceAddress = ref(''); //
 const sourceHdPath = ref("m/44/118/0'/0/0"); //
 const importStep = ref('step1');
 
-const conf = ref(JSON.parse(localStorage.getItem('imported-addresses') || '{}') as Record<string, AccountEntry[]>);
+const conf = ref(
+  JSON.parse(localStorage.getItem('imported-addresses') || '{}') as Record<
+    string,
+    AccountEntry[]
+  >
+);
 const balances = ref({} as Record<string, CoinWithPrice[]>);
 const delegations = ref({} as Record<string, Delegation[]>);
 
@@ -30,7 +35,11 @@ Object.values(conf.value).forEach((imported) => {
         new Promise((resolve) => {
           // continue only if the page is living
           if (entry.endpoint) {
-            void loadBalances(entry.chainName, entry.endpoint, entry.address).finally(() => {
+            void loadBalances(
+              entry.chainName,
+              entry.endpoint,
+              entry.address
+            ).finally(() => {
               resolve();
             });
           } else {
@@ -57,7 +66,9 @@ const accounts = computed(() => {
       let delegation = {} as CoinWithPrice;
       if (d && d.length > 0) {
         d.forEach((b) => {
-          delegation.amount = (Number(b.balance.amount) + Number(delegation.amount || 0)).toFixed();
+          delegation.amount = (
+            Number(b.balance.amount) + Number(delegation.amount || 0)
+          ).toFixed();
           delegation.denom = b.balance.denom;
         });
         delegation.value = format.tokenValueNumber(delegation);
@@ -79,13 +90,16 @@ const accounts = computed(() => {
           : [],
       };
     });
-    if (x.at(0)) a.push({ key: x.at(0)?.address || ' ', subaccounts: composition });
+    if (x.at(0))
+      a.push({ key: x.at(0)?.address || ' ', subaccounts: composition });
   });
   return a;
 });
 
 const addresses = computed(() => {
-  return accounts.value.flatMap((x) => x.subaccounts.map((a) => a.account.address));
+  return accounts.value.flatMap((x) =>
+    x.subaccounts.map((a) => a.account.address)
+  );
   // const temp = [] as string[]
   // accounts.value.forEach((x) => x.accounts.forEach(a => {
   //   temp.push(a.account.address)
@@ -120,9 +134,9 @@ const totalChange = computed(() => {
 // Adding Model Boxes
 const availableAccount = computed(() => {
   if (sourceAddress.value) {
-    return scanCompatibleAccounts([{ cosmosAddress: sourceAddress.value, hdPath: sourceHdPath.value }]).filter(
-      (x) => !addresses.value.includes(x.address)
-    );
+    return scanCompatibleAccounts([
+      { cosmosAddress: sourceAddress.value, hdPath: sourceHdPath.value },
+    ]).filter((x) => !addresses.value.includes(x.address));
   }
   return [];
 });
@@ -157,7 +171,10 @@ function addAddress(acc: AccountEntry) {
   // also add chain to favorite
   if (!dashboard.favoriteMap[acc.chainName]) {
     dashboard.favoriteMap[acc.chainName] = true;
-    window.localStorage.setItem('favoriteMap', JSON.stringify(dashboard.favoriteMap));
+    window.localStorage.setItem(
+      'favoriteMap',
+      JSON.stringify(dashboard.favoriteMap)
+    );
   }
 
   if (acc.endpoint) {
@@ -168,7 +185,11 @@ function addAddress(acc: AccountEntry) {
 }
 
 // load balances for an address
-async function loadBalances(chainName: string, endpoint: string, address: string) {
+async function loadBalances(
+  chainName: string,
+  endpoint: string,
+  address: string
+) {
   const endpointObj = chainStore.randomEndpoint(chainName);
   const client = CosmosRestClient.newDefault(endpointObj?.address || endpoint);
   await client.getBankBalances(address).then((res) => {
@@ -184,9 +205,17 @@ async function loadBalances(chainName: string, endpoint: string, address: string
     <div class="overflow-x-auto w-full rounded-md">
       <div class="flex flex-wrap justify-between bg-base-100 p-5">
         <div class="min-w-0">
-          <h2 class="text-2xl font-bold leading-7 sm:!truncate sm:!text-3xl sm:!tracking-tight">Accounts</h2>
-          <div class="mt-1 flex flex-col sm:!mt-0 sm:!flex-row sm:!flex-wrap sm:!space-x-6">
-            <div class="mt-2 items-center text-sm text-gray-500 hidden md:!flex">
+          <h2
+            class="text-2xl font-bold leading-7 sm:!truncate sm:!text-3xl sm:!tracking-tight"
+          >
+            Accounts
+          </h2>
+          <div
+            class="mt-1 flex flex-col sm:!mt-0 sm:!flex-row sm:!flex-wrap sm:!space-x-6"
+          >
+            <div
+              class="mt-2 items-center text-sm text-gray-500 hidden md:!flex"
+            >
               <svg
                 class="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400"
                 viewBox="0 0 20 20"
@@ -208,7 +237,9 @@ async function loadBalances(chainName: string, endpoint: string, address: string
         </div>
         <div class="flex flex-col text-right">
           <span>Total Value</span>
-          <span class="text-xl text-success font-bold">${{ format.formatNumber(totalValue, '0,0.[00]') }}</span>
+          <span class="text-xl text-success font-bold"
+            >${{ format.formatNumber(totalValue, '0,0.[00]') }}</span
+          >
           <span class="text-sm" :class="format.color(totalChange)">{{
             format.formatNumber(totalChange, '+0,0.[00]')
           }}</span>
@@ -270,16 +301,28 @@ async function loadBalances(chainName: string, endpoint: string, address: string
               <div class="font-bold">{{ key }}</div>
             </div>
             <div class="dropdown">
-              <label tabindex="0" class="cursor-pointer">{{ subaccounts.length }} addresses</label>
-              <ul tabindex="0" class="-left-14 dropdown-content menu p-2 shadow bg-base-200 rounded-box z-50">
+              <label tabindex="0" class="cursor-pointer"
+                >{{ subaccounts.length }} addresses</label
+              >
+              <ul
+                tabindex="0"
+                class="-left-14 dropdown-content menu p-2 shadow bg-base-200 rounded-box z-50"
+              >
                 <li v-for="x in subaccounts" :key="x.account.address">
                   <a>
-                    <img :src="x.account.logo" class="w-8 h-8 mr-2">
+                    <img :src="x.account.logo" class="w-8 h-8 mr-2" />
                     <span class="font-bold capitalize"
-                      >{{ x.account.chainName }} <br>
-                      <span class="text-xs font-normal sm:w-16 sm:overflow-hidden">{{ x.account.address }}</span>
+                      >{{ x.account.chainName }} <br />
+                      <span
+                        class="text-xs font-normal sm:w-16 sm:overflow-hidden"
+                        >{{ x.account.address }}</span
+                      >
                     </span>
-                    <label class="btn btn-xs !btn-error" @click="removeAddress(x.account.address)">Remove</label>
+                    <label
+                      class="btn btn-xs !btn-error"
+                      @click="removeAddress(x.account.address)"
+                      >Remove</label
+                    >
                   </a>
                 </li>
               </ul>
@@ -294,21 +337,29 @@ async function loadBalances(chainName: string, endpoint: string, address: string
                 <RouterLink
                   :to="`/${x.account.chainName}/account/${x.account.address}`"
                 >
-                  <img :src="x.account.logo" class="w-6 h-6 mr-2">
+                  <img :src="x.account.logo" class="w-6 h-6 mr-2" />
                   <span class="font-bold"
-                    >{{ format.formatToken(x.delegation, true, '0,0.[00]', 'all') }} <br><span
+                    >{{
+                      format.formatToken(x.delegation, true, '0,0.[00]', 'all')
+                    }}
+                    <br /><span
                       class="text-xs"
                       :class="format.color(x.delegation.change24h)"
-                      >{{ format.formatNumber(x.delegation.change24h, '+0.[00]') }}%</span
+                      >{{
+                        format.formatNumber(x.delegation.change24h, '+0.[00]')
+                      }}%</span
                     ></span
                   >
                   <span class="float-right text-right"
-                    >${{ format.formatNumber(x.delegation.value, '0,0.[00]') }}<br><span
+                    >${{ format.formatNumber(x.delegation.value, '0,0.[00]')
+                    }}<br /><span
                       class="text-xs"
                       :class="format.color(x.delegation.change24h)"
                       >{{
                         format.formatNumber(
-                          ((x.delegation.change24h || 0) * (x.delegation.value || 0)) / 100,
+                          ((x.delegation.change24h || 0) *
+                            (x.delegation.value || 0)) /
+                            100,
                           '+0,0.[00]'
                         )
                       }}</span
@@ -327,19 +378,25 @@ async function loadBalances(chainName: string, endpoint: string, address: string
                 <RouterLink
                   :to="`/${s.account.chainName}/account/${s.account.address}`"
                 >
-                  <img :src="s.account.logo" class="w-6 h-6 mr-2">
+                  <img :src="s.account.logo" class="w-6 h-6 mr-2" />
                   <span class="font-bold"
-                    >{{ format.formatToken(x, true, '0,0.[00]', 'all') }} <br><span
+                    >{{ format.formatToken(x, true, '0,0.[00]', 'all') }}
+                    <br /><span
                       class="text-xs"
                       :class="format.color(x.change24h)"
                       >{{ format.formatNumber(x.change24h, '+0.[00]') }}%</span
                     ></span
                   >
                   <span class="float-right text-right"
-                    >${{ format.formatNumber(x.value, '0,0.[00]') }}<br><span
+                    >${{ format.formatNumber(x.value, '0,0.[00]') }}<br /><span
                       class="text-xs"
                       :class="format.color(x.change24h)"
-                      >{{ format.formatNumber(((x.change24h || 0) * (x.value || 0)) / 100, '+0,0.[00]') }}</span
+                      >{{
+                        format.formatNumber(
+                          ((x.change24h || 0) * (x.value || 0)) / 100,
+                          '+0,0.[00]'
+                        )
+                      }}</span
                     ></span
                   >
                 </RouterLink>
@@ -354,7 +411,12 @@ async function loadBalances(chainName: string, endpoint: string, address: string
           href="#address-modal"
           class="inline-flex items-center ml-3 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
         >
-          <svg class="-ml-0.5 mr-1.5 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <svg
+            class="-ml-0.5 mr-1.5 h-5 w-5 text-gray-400"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            aria-hidden="true"
+          >
             <path
               d="M12.232 4.232a2.5 2.5 0 013.536 3.536l-1.225 1.224a.75.75 0 001.061 1.06l1.224-1.224a4 4 0 00-5.656-5.656l-3 3a4 4 0 00.225 5.865.75.75 0 00.977-1.138 2.5 2.5 0 01-.142-3.667l3-3z"
             />
@@ -382,8 +444,12 @@ async function loadBalances(chainName: string, endpoint: string, address: string
               class="input input-bordered w-full input-sm"
               placeholder="Input an address"
               @change="importStep = 'step2'"
-            >
-            <input v-model="sourceHdPath" class="input input-bordered w-full input-sm" placeholder="m/44/118/0'/0/0">
+            />
+            <input
+              v-model="sourceHdPath"
+              class="input input-bordered w-full input-sm"
+              placeholder="m/44/118/0'/0/0"
+            />
           </label>
         </div>
         <div
@@ -396,16 +462,23 @@ async function loadBalances(chainName: string, endpoint: string, address: string
                 <div class="flex items-center space-x-2">
                   <div class="avatar">
                     <div class="mask mask-squircle w-8 h-8">
-                      <img :src="acc.logo" :alt="acc.address">
+                      <img :src="acc.logo" :alt="acc.address" />
                     </div>
                   </div>
                   <div>
                     <div
                       class="tooltip"
-                      :class="acc.compatiable ? 'tooltip-success' : 'tooltip-error'"
+                      :class="
+                        acc.compatiable ? 'tooltip-success' : 'tooltip-error'
+                      "
                       :data-tip="`Coin Type: ${acc.coinType}`"
                     >
-                      <div class="font-bold capitalize" :class="acc.compatiable ? 'text-green-500' : 'text-red-500'">
+                      <div
+                        class="font-bold capitalize"
+                        :class="
+                          acc.compatiable ? 'text-green-500' : 'text-red-500'
+                        "
+                      >
                         {{ acc.chainName }}
                       </div>
                     </div>

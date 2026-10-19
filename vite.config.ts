@@ -18,7 +18,12 @@ export default defineConfig({
     vue({
       template: {
         compilerOptions: {
-          isCustomElement: (tag) => ['ping-connect-wallet', 'ping-token-convert', 'ping-tx-dialog'].includes(tag),
+          isCustomElement: (tag) =>
+            [
+              'ping-connect-wallet',
+              'ping-token-convert',
+              'ping-tx-dialog',
+            ].includes(tag),
         },
       },
     }),
@@ -32,13 +37,24 @@ export default defineConfig({
     }),
     // unplugin-auto-import 0.13 types its Vite plugin as `any`.
     AutoImport({
-      imports: ['vue', 'vue-router', '@vueuse/core', '@vueuse/math', 'vue-i18n', 'pinia'],
+      imports: [
+        'vue',
+        'vue-router',
+        '@vueuse/core',
+        '@vueuse/math',
+        'vue-i18n',
+        'pinia',
+      ],
       vueTemplate: true,
     }) as PluginOption,
     VueI18nPlugin({
       runtimeOnly: true,
       compositionOnly: true,
-      include: [fileURLToPath(new URL('./src/plugins/i18n/locales/**', import.meta.url))],
+      include: [
+        fileURLToPath(
+          new URL('./src/plugins/i18n/locales/**', import.meta.url)
+        ),
+      ],
     }),
     DefineOptions(),
   ],

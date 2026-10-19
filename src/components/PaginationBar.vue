@@ -4,7 +4,10 @@ import { computed, ref, type PropType } from 'vue';
 const props = defineProps({
   total: { type: String as PropType<string | undefined>, default: undefined },
   limit: { type: Number as PropType<number | undefined>, default: undefined },
-  callback: { type: Function as PropType<(page: number) => void>, required: true },
+  callback: {
+    type: Function as PropType<(page: number) => void>,
+    required: true,
+  },
 });
 const current = ref(1);
 const showSize = 3;
@@ -16,7 +19,11 @@ const pages = computed(() => {
     for (;;) {
       if (page * props.limit >= total) break;
       page += 1;
-      if (total / props.limit > 10 && page > showSize && page < total / props.limit - showSize + 1) {
+      if (
+        total / props.limit > 10 &&
+        page > showSize &&
+        page < total / props.limit - showSize + 1
+      ) {
         if (!(page >= current.value - 1 && page <= current.value + 1)) {
           continue;
         }

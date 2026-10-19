@@ -1,5 +1,12 @@
 <script lang="ts" setup>
-import { useBaseStore, useBlockchain, useFormatter, useMintStore, useStakingStore, useTxDialog } from '@/stores';
+import {
+  useBaseStore,
+  useBlockchain,
+  useFormatter,
+  useMintStore,
+  useStakingStore,
+  useTxDialog,
+} from '@/stores';
 import { computed } from 'vue';
 import { onMounted, ref } from 'vue';
 import { Icon } from '@iconify/vue';
@@ -13,7 +20,10 @@ const dialog = useTxDialog();
 const chainStore = useBlockchain();
 const mintStore = useMintStore();
 
-const cache = JSON.parse(localStorage.getItem('avatars') || '{}') as Record<string, string> | null;
+const cache = JSON.parse(localStorage.getItem('avatars') || '{}') as Record<
+  string,
+  string
+> | null;
 const avatars = ref<Record<string, string>>(cache ?? {});
 const latest = ref({} as Record<string, number>);
 const yesterday = ref({} as Record<string, number>);
@@ -123,7 +133,10 @@ const calculateRank = function (position: number) {
   }
 };
 
-function isFeatured(endpoints: string[], who?: { website?: string; moniker: string }) {
+function isFeatured(
+  endpoints: string[],
+  who?: { website?: string; moniker: string }
+) {
   if (!who) return false;
   return (
     endpoints.findIndex(
@@ -136,18 +149,32 @@ function isFeatured(endpoints: string[], who?: { website?: string; moniker: stri
 
 const list = computed(() => {
   if (tab.value === 'active') {
-    return staking.validators.map((x, i) => ({ v: x, rank: calculateRank(i), logo: logoUrl(x.description.identity) }));
+    return staking.validators.map((x, i) => ({
+      v: x,
+      rank: calculateRank(i),
+      logo: logoUrl(x.description.identity),
+    }));
   } else if (tab.value === 'featured') {
     const endpoint = chainStore.current?.endpoints.rest?.map((x) => x.provider);
     if (endpoint) {
       endpoint.push('ping');
       return staking.validators
-        .filter((x) => isFeatured(endpoint.filter(Boolean) as string[], x.description))
-        .map((x) => ({ v: x, rank: 'primary', logo: logoUrl(x.description.identity) }));
+        .filter((x) =>
+          isFeatured(endpoint.filter(Boolean) as string[], x.description)
+        )
+        .map((x) => ({
+          v: x,
+          rank: 'primary',
+          logo: logoUrl(x.description.identity),
+        }));
     }
     return [];
   }
-  return unbondList.value.map((x) => ({ v: x, rank: 'primary', logo: logoUrl(x.description.identity) }));
+  return unbondList.value.map((x) => ({
+    v: x,
+    rank: 'primary',
+    logo: logoUrl(x.description.identity),
+  }));
 });
 
 const fetchAvatar = (identity: string) => {
@@ -193,13 +220,17 @@ const loadAvatars = () => {
     }
   });
 
-  void Promise.all(promises).then(() => { localStorage.setItem('avatars', JSON.stringify(avatars.value)); });
+  void Promise.all(promises).then(() => {
+    localStorage.setItem('avatars', JSON.stringify(avatars.value));
+  });
 };
 
 const logoUrl = (identity?: string) => {
   if (!identity || !avatars.value[identity]) return '';
   const url = avatars.value[identity] || '';
-  return url.startsWith('http') ? url : `https://s3.amazonaws.com/keybase_processed_uploads/${url}`;
+  return url.startsWith('http')
+    ? url
+    : `https://s3.amazonaws.com/keybase_processed_uploads/${url}`;
 };
 
 const loaded = ref(false);
@@ -207,9 +238,14 @@ base.$subscribe((_, s) => {
   const [first, second] = s.recents;
   if (first && second && !loaded.value) {
     loaded.value = true;
-    const diff_time = Date.parse(second.block.header.time) - Date.parse(first.block.header.time);
-    const diff_height = Number(second.block.header.height) - Number(first.block.header.height);
-    const block_window = Number(((86400 * 1000 * diff_height) / diff_time).toFixed(0));
+    const diff_time =
+      Date.parse(second.block.header.time) -
+      Date.parse(first.block.header.time);
+    const diff_height =
+      Number(second.block.header.height) - Number(first.block.header.height);
+    const block_window = Number(
+      ((86400 * 1000 * diff_height) / diff_time).toFixed(0)
+    );
     void fetchChange(block_window);
   }
 });
@@ -221,9 +257,13 @@ loadAvatars();
     <div class="bg-base-100 rounded-lg grid sm:grid-cols-1 md:grid-cols-4 p-4">
       <div class="flex">
         <span>
-          <div class="relative w-9 h-9 rounded overflow-hidden flex items-center justify-center mr-2">
+          <div
+            class="relative w-9 h-9 rounded overflow-hidden flex items-center justify-center mr-2"
+          >
             <Icon class="text-success" icon="mdi:trending-up" size="32" />
-            <div class="absolute top-0 left-0 bottom-0 right-0 opacity-20 bg-success" />
+            <div
+              class="absolute top-0 left-0 bottom-0 right-0 opacity-20 bg-success"
+            />
           </div>
         </span>
         <span>
@@ -233,37 +273,59 @@ loadAvatars();
       </div>
       <div class="flex">
         <span>
-          <div class="relative w-9 h-9 rounded overflow-hidden flex items-center justify-center mr-2">
+          <div
+            class="relative w-9 h-9 rounded overflow-hidden flex items-center justify-center mr-2"
+          >
             <Icon class="text-primary" icon="mdi:lock-open-outline" size="32" />
-            <div class="absolute top-0 left-0 bottom-0 right-0 opacity-20 bg-primary" />
+            <div
+              class="absolute top-0 left-0 bottom-0 right-0 opacity-20 bg-primary"
+            />
           </div>
         </span>
         <span>
-          <div class="font-bold">{{ formatSeconds(staking.params?.unbonding_time) }}</div>
+          <div class="font-bold">
+            {{ formatSeconds(staking.params?.unbonding_time) }}
+          </div>
           <div class="text-xs">{{ $t('staking.unbonding_time') }}</div>
         </span>
       </div>
       <div class="flex">
         <span>
-          <div class="relative w-9 h-9 rounded overflow-hidden flex items-center justify-center mr-2">
-            <Icon class="text-error" icon="mdi:alert-octagon-outline" size="32" />
-            <div class="absolute top-0 left-0 bottom-0 right-0 opacity-20 bg-error" />
+          <div
+            class="relative w-9 h-9 rounded overflow-hidden flex items-center justify-center mr-2"
+          >
+            <Icon
+              class="text-error"
+              icon="mdi:alert-octagon-outline"
+              size="32"
+            />
+            <div
+              class="absolute top-0 left-0 bottom-0 right-0 opacity-20 bg-error"
+            />
           </div>
         </span>
         <span>
-          <div class="font-bold">{{ format.percent(slashing.slash_fraction_double_sign) }}</div>
+          <div class="font-bold">
+            {{ format.percent(slashing.slash_fraction_double_sign) }}
+          </div>
           <div class="text-xs">{{ $t('staking.double_sign_slashing') }}</div>
         </span>
       </div>
       <div class="flex">
         <span>
-          <div class="relative w-9 h-9 rounded overflow-hidden flex items-center justify-center mr-2">
+          <div
+            class="relative w-9 h-9 rounded overflow-hidden flex items-center justify-center mr-2"
+          >
             <Icon class="text-error" icon="mdi:pause" size="32" />
-            <div class="absolute top-0 left-0 bottom-0 right-0 opacity-20 bg-error" />
+            <div
+              class="absolute top-0 left-0 bottom-0 right-0 opacity-20 bg-error"
+            />
           </div>
         </span>
         <span>
-          <div class="font-bold">{{ format.percent(slashing.slash_fraction_downtime) }}</div>
+          <div class="font-bold">
+            {{ format.percent(slashing.slash_fraction_downtime) }}
+          </div>
           <div class="text-xs">{{ $t('staking.downtime_slashing') }}</div>
         </span>
       </div>
@@ -272,18 +334,29 @@ loadAvatars();
     <div>
       <div class="flex items-center justify-between py-1">
         <div class="tabs tabs-boxed bg-transparent">
-          <a class="tab text-gray-400" :class="{ 'tab-active': tab === 'featured' }" @click="tab = 'featured'">{{
-            $t('staking.popular')
-          }}</a>
-          <a class="tab text-gray-400" :class="{ 'tab-active': tab === 'active' }" @click="tab = 'active'">{{
-            $t('staking.active')
-          }}</a>
-          <a class="tab text-gray-400" :class="{ 'tab-active': tab === 'inactive' }" @click="tab = 'inactive'">{{
-            $t('staking.inactive')
-          }}</a>
+          <a
+            class="tab text-gray-400"
+            :class="{ 'tab-active': tab === 'featured' }"
+            @click="tab = 'featured'"
+            >{{ $t('staking.popular') }}</a
+          >
+          <a
+            class="tab text-gray-400"
+            :class="{ 'tab-active': tab === 'active' }"
+            @click="tab = 'active'"
+            >{{ $t('staking.active') }}</a
+          >
+          <a
+            class="tab text-gray-400"
+            :class="{ 'tab-active': tab === 'inactive' }"
+            @click="tab = 'inactive'"
+            >{{ $t('staking.inactive') }}</a
+          >
         </div>
 
-        <div class="text-lg font-semibold">{{ list.length }}/{{ staking.params.max_validators }}</div>
+        <div class="text-lg font-semibold">
+          {{ list.length }}/{{ staking.params.max_validators }}
+        </div>
       </div>
 
       <div class="bg-base-100 px-4 pt-3 pb-4 rounded shadow">
@@ -291,14 +364,28 @@ loadAvatars();
           <table class="table staking-table w-full">
             <thead class="bg-base-200">
               <tr>
-                <th scope="col" class="uppercase" style="width: 3rem; position: relative">
+                <th
+                  scope="col"
+                  class="uppercase"
+                  style="width: 3rem; position: relative"
+                >
                   {{ $t('staking.rank') }}
                 </th>
-                <th scope="col" class="uppercase">{{ $t('staking.validator') }}</th>
-                <th scope="col" class="text-right uppercase">{{ $t('staking.voting_power') }}</th>
-                <th scope="col" class="text-right uppercase">{{ $t('staking.24h_changes') }}</th>
-                <th scope="col" class="text-right uppercase">{{ $t('staking.commission') }}</th>
-                <th scope="col" class="text-center uppercase">{{ $t('staking.actions') }}</th>
+                <th scope="col" class="uppercase">
+                  {{ $t('staking.validator') }}
+                </th>
+                <th scope="col" class="text-right uppercase">
+                  {{ $t('staking.voting_power') }}
+                </th>
+                <th scope="col" class="text-right uppercase">
+                  {{ $t('staking.24h_changes') }}
+                </th>
+                <th scope="col" class="text-right uppercase">
+                  {{ $t('staking.commission') }}
+                </th>
+                <th scope="col" class="text-center uppercase">
+                  {{ $t('staking.actions') }}
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -309,16 +396,27 @@ loadAvatars();
               >
                 <!-- 👉 rank -->
                 <td>
-                  <div class="text-xs truncate relative px-2 py-1 rounded-full w-fit" :class="`text-${rank}`">
-                    <span class="inset-x-0 inset-y-0 opacity-10 absolute" :class="`bg-${rank}`" />
+                  <div
+                    class="text-xs truncate relative px-2 py-1 rounded-full w-fit"
+                    :class="`text-${rank}`"
+                  >
+                    <span
+                      class="inset-x-0 inset-y-0 opacity-10 absolute"
+                      :class="`bg-${rank}`"
+                    />
                     {{ i + 1 }}
                   </div>
                 </td>
                 <!-- 👉 Validator -->
                 <td>
-                  <div class="flex items-center overflow-hidden" style="max-width: 300px">
+                  <div
+                    class="flex items-center overflow-hidden"
+                    style="max-width: 300px"
+                  >
                     <div class="avatar mr-4 relative w-8 h-8 rounded-full">
-                      <div class="w-8 h-8 rounded-full bg-gray-400 absolute opacity-10" />
+                      <div
+                        class="w-8 h-8 rounded-full bg-gray-400 absolute opacity-10"
+                      />
                       <div class="w-8 h-8 rounded-full">
                         <img
                           v-if="logo"
@@ -330,13 +428,19 @@ loadAvatars();
                               if (identity) loadAvatar(identity);
                             }
                           "
-                        >
-                        <Icon v-else class="text-3xl" :icon="`mdi-help-circle-outline`" />
+                        />
+                        <Icon
+                          v-else
+                          class="text-3xl"
+                          :icon="`mdi-help-circle-outline`"
+                        />
                       </div>
                     </div>
 
                     <div class="flex flex-col">
-                      <span class="text-sm text-primary dark:invert whitespace-nowrap overflow-hidden">
+                      <span
+                        class="text-sm text-primary dark:invert whitespace-nowrap overflow-hidden"
+                      >
                         <RouterLink
                           :to="{
                             name: 'chain-staking-validator',
@@ -349,7 +453,9 @@ loadAvatars();
                           {{ v.description?.moniker }}
                         </RouterLink>
                       </span>
-                      <span class="text-xs">{{ v.description?.website || v.description?.identity || '-' }}</span>
+                      <span class="text-xs">{{
+                        v.description?.website || v.description?.identity || '-'
+                      }}</span>
                     </div>
                   </div>
                 </td>
@@ -369,7 +475,12 @@ loadAvatars();
                         )
                       }}
                     </h6>
-                    <span class="text-xs">{{ format.calculatePercent(v.delegator_shares, staking.totalPower) }}</span>
+                    <span class="text-xs">{{
+                      format.calculatePercent(
+                        v.delegator_shares,
+                        staking.totalPower
+                      )
+                    }}</span>
                   </div>
                 </td>
                 <!-- 👉 24h Changes -->
@@ -378,11 +489,18 @@ loadAvatars();
                 </td>
                 <!-- 👉 commission -->
                 <td class="text-right text-xs">
-                  {{ format.formatCommissionRate(v.commission?.commission_rates?.rate) }}
+                  {{
+                    format.formatCommissionRate(
+                      v.commission?.commission_rates?.rate
+                    )
+                  }}
                 </td>
                 <!-- 👉 Action -->
                 <td class="text-center">
-                  <div v-if="v.jailed" class="badge badge-error gap-2 text-white">
+                  <div
+                    v-if="v.jailed"
+                    class="badge badge-error gap-2 text-white"
+                  >
                     {{ $t('staking.jailed') }}
                   </div>
                   <label
@@ -404,11 +522,15 @@ loadAvatars();
 
         <div class="divider" />
         <div class="flex flex-row items-center">
-          <div class="text-xs truncate relative py-2 px-4 rounded-md w-fit text-error mr-2">
+          <div
+            class="text-xs truncate relative py-2 px-4 rounded-md w-fit text-error mr-2"
+          >
             <span class="inset-x-0 inset-y-0 opacity-10 absolute bg-error" />
             {{ $t('staking.top') }} 33%
           </div>
-          <div class="text-xs truncate relative py-2 px-4 rounded-md w-fit text-warning">
+          <div
+            class="text-xs truncate relative py-2 px-4 rounded-md w-fit text-warning"
+          >
             <span class="inset-x-0 inset-y-0 opacity-10 absolute bg-warning" />
             {{ $t('staking.top') }} 67%
           </div>

@@ -23,8 +23,16 @@ const hdPath = computed(() => {
           <div class="input-group">
             <span>{{ $t('widget.endpoint') }}</span>
             <select v-model="endpoint" class="select select-bordered w-fit">
-              <option disabled selected>{{ $t('widget.select_endpoint') }}</option>
-              <option v-for="v in chainStore.current?.endpoints.rest" :key="v.address" :value="v.address">{{ v.address }}</option>
+              <option disabled selected>
+                {{ $t('widget.select_endpoint') }}
+              </option>
+              <option
+                v-for="v in chainStore.current?.endpoints.rest"
+                :key="v.address"
+                :value="v.address"
+              >
+                {{ v.address }}
+              </option>
             </select>
           </div>
         </div>
@@ -41,7 +49,9 @@ const hdPath = computed(() => {
       <div class="mt-4">
         <span class="text-base"> 1. {{ $t('widget.text_2') }}</span>
         <div class="mockup-code bg-base-200 my-2">
-          <pre data-prefix=">"><code class="text-green-400">&lt;!-- This widget is optional. --&gt; </code></pre>
+          <pre
+            data-prefix=">"
+          ><code class="text-green-400">&lt;!-- This widget is optional. --&gt; </code></pre>
           <pre
             data-prefix=">"
           ><code  class="text-gray-800 dark:invert">&lt;ping-connect-wallet chain-id="{{ chainId }}" hd-path="{{ hdPath }}"/&gt;</code></pre>

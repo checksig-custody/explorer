@@ -1,12 +1,19 @@
 import { defineStore } from 'pinia';
 import { get } from '@/libs/http';
-import type { ChainConfig, DirectoryChainConfig, Endpoint, LocalChainConfig } from '@/types/chaindata';
+import type {
+  ChainConfig,
+  DirectoryChainConfig,
+  Endpoint,
+  LocalChainConfig,
+} from '@/types/chaindata';
 import { ConfigSource, NetworkType } from '@/types/chaindata';
 import { useBlockchain } from './useBlockchain';
 import { coingeckoUrl, type PriceMeta } from '@/stores';
 
 // The chain files give each endpoint list as strings or as endpoint objects.
-function apiConverter(api: string | (string | Endpoint)[] | undefined): Endpoint[] {
+function apiConverter(
+  api: string | (string | Endpoint)[] | undefined
+): Endpoint[] {
   if (!api) return [];
   const array = typeof api === 'string' ? [api] : api;
   return array.map((x) => {
@@ -42,7 +49,8 @@ export function convertFromLocal(lc: LocalChainConfig): ChainConfig {
     cosmosSdk: lc.sdk_version,
   };
   conf.bech32Prefix = lc.addr_prefix;
-  conf.bech32ConsensusPrefix = lc.consensus_prefix ?? `${lc.addr_prefix}valcons`;
+  conf.bech32ConsensusPrefix =
+    lc.consensus_prefix ?? `${lc.addr_prefix}valcons`;
   conf.chainName = lc.chain_name;
   conf.networkType = lc.network_type;
   conf.coinType = lc.coin_type;
@@ -58,7 +66,10 @@ export function convertFromLocal(lc: LocalChainConfig): ChainConfig {
     };
   }
   conf.features = lc.features;
-  conf.logo = lc.logo.startsWith('http') || lc.logo.startsWith('/') ? lc.logo : `https://ping.pub${lc.logo}`;
+  conf.logo =
+    lc.logo.startsWith('http') || lc.logo.startsWith('/')
+      ? lc.logo
+      : `https://ping.pub${lc.logo}`;
   conf.keplrFeatures = lc.keplr_features;
   conf.keplrPriceStep = lc.keplr_price_step;
   conf.themeColor = lc.theme_color;
@@ -66,7 +77,9 @@ export function convertFromLocal(lc: LocalChainConfig): ChainConfig {
   return conf;
 }
 
-export function convertFromDirectory(source: DirectoryChainConfig): ChainConfig {
+export function convertFromDirectory(
+  source: DirectoryChainConfig
+): ChainConfig {
   const conf = {} as ChainConfig;
   conf.assets = source.assets;
   conf.bech32Prefix = source.bech32_prefix;
@@ -87,7 +100,10 @@ export function convertFromDirectory(source: DirectoryChainConfig): ChainConfig 
 
 function pathConvert(path: string | undefined) {
   if (path) {
-    path = path.replace('https://raw.githubusercontent.com/cosmos/chain-registry/master', 'https://registry.ping.pub');
+    path = path.replace(
+      'https://raw.githubusercontent.com/cosmos/chain-registry/master',
+      'https://registry.ping.pub'
+    );
   }
   return path || '';
 }
@@ -144,15 +160,17 @@ interface DashboardState {
   favoriteMap: Record<string, boolean>;
   chains: Record<string, ChainConfig>;
   prices: Record<string, PriceMeta>;
-  coingecko: Record<string, { coinId: string; exponent: number; symbol: string }>;
+  coingecko: Record<
+    string,
+    { coinId: string; exponent: number; symbol: string }
+  >;
 }
 
 export const useDashboard = defineStore('dashboard', {
   state: (): DashboardState => {
-    const favMap = JSON.parse(localStorage.getItem('favoriteMap') || '{"cosmos":true, "osmosis":true}') as Record<
-      string,
-      boolean
-    >;
+    const favMap = JSON.parse(
+      localStorage.getItem('favoriteMap') || '{"cosmos":true, "osmosis":true}'
+    ) as Record<string, boolean>;
     return {
       status: LoadingStatus.Empty,
       source: ConfigSource.MainnetCosmosDirectory,
@@ -206,9 +224,11 @@ export const useDashboard = defineStore('dashboard', {
       if (this.status === LoadingStatus.Empty) {
         this.status = LoadingStatus.Loading;
         void get(this.source).then((res) => {
-          (res as { chains: DirectoryChainConfig[] }).chains.forEach((x: DirectoryChainConfig) => {
-            this.chains[x.chain_name] = convertFromDirectory(x);
-          });
+          (res as { chains: DirectoryChainConfig[] }).chains.forEach(
+            (x: DirectoryChainConfig) => {
+              this.chains[x.chain_name] = convertFromDirectory(x);
+            }
+          );
           this.status = LoadingStatus.Loaded;
         });
       }
@@ -220,8 +240,12 @@ export const useDashboard = defineStore('dashboard', {
       }
       const source =
         this.networkType === NetworkType.Mainnet
-          ? import.meta.glob<LocalChainConfig>('../../chains/mainnet/*.json', { eager: true })
-          : import.meta.glob<LocalChainConfig>('../../chains/testnet/*.json', { eager: true });
+          ? import.meta.glob<LocalChainConfig>('../../chains/mainnet/*.json', {
+              eager: true,
+            })
+          : import.meta.glob<LocalChainConfig>('../../chains/testnet/*.json', {
+              eager: true,
+            });
       Object.values(source).forEach((x) => {
         const chain = convertFromLocal(x);
         if (!chain.networkType) {
@@ -237,8 +261,12 @@ export const useDashboard = defineStore('dashboard', {
       const config: Record<string, ChainConfig> = {};
       const source =
         network === NetworkType.Mainnet
-          ? import.meta.glob<LocalChainConfig>('../../chains/mainnet/*.json', { eager: true })
-          : import.meta.glob<LocalChainConfig>('../../chains/testnet/*.json', { eager: true });
+          ? import.meta.glob<LocalChainConfig>('../../chains/mainnet/*.json', {
+              eager: true,
+            })
+          : import.meta.glob<LocalChainConfig>('../../chains/testnet/*.json', {
+              eager: true,
+            });
       Object.values(source).forEach((x) => {
         const chain = convertFromLocal(x);
         if (!chain.networkType) {
@@ -253,7 +281,11 @@ export const useDashboard = defineStore('dashboard', {
         const blockchain = useBlockchain();
         const keys = Object.keys(this.favoriteMap);
         for (const key of keys) {
-          if (!blockchain.chainName && this.chains[key] && this.favoriteMap[key]) {
+          if (
+            !blockchain.chainName &&
+            this.chains[key] &&
+            this.favoriteMap[key]
+          ) {
             void blockchain.setCurrent(key);
             break;
           }

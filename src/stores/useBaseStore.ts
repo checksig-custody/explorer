@@ -24,7 +24,8 @@ export const useBaseStore = defineStore('baseStore', {
       earliest: {},
       latest: {},
       recents: [],
-      theme: (window.localStorage.getItem('theme') || 'dark') as 'light' | 'dark',
+      theme: (window.localStorage.getItem('theme') || 'dark') as
+        'light' | 'dark',
       connected: false,
     };
   },
@@ -32,9 +33,14 @@ export const useBaseStore = defineStore('baseStore', {
     blocktime(): number {
       const latest = this.latest.block;
       const earliest = this.earliest.block;
-      if (latest && earliest && latest.header.height !== earliest.header.height) {
+      if (
+        latest &&
+        earliest &&
+        latest.header.height !== earliest.header.height
+      ) {
         const diff = dayjs(latest.header.time).diff(earliest.header.time);
-        const blocks = Number(latest.header.height) - Number(earliest.header.height);
+        const blocks =
+          Number(latest.header.height) - Number(earliest.header.height);
         return Math.round(diff / blocks);
       }
       return 1000; // better to start low and increase
@@ -95,13 +101,20 @@ export const useBaseStore = defineStore('baseStore', {
         console.error('Error fetching latest block:', error);
         this.connected = false;
       }
-      if (this.earliest.block?.header.chain_id != this.latest.block?.header.chain_id) {
+      if (
+        this.earliest.block?.header.chain_id !=
+        this.latest.block?.header.chain_id
+      ) {
         //reset earliest and recents
         this.earliest = this.latest;
         this.recents = [];
       }
       //check if the block exists in recents
-      if (this.recents.findIndex((x) => x.block_id.hash === this.latest.block_id?.hash) === -1) {
+      if (
+        this.recents.findIndex(
+          (x) => x.block_id.hash === this.latest.block_id?.hash
+        ) === -1
+      ) {
         const newBlocks = await this.fetchNewBlocks();
         const combined = [...this.recents, ...newBlocks];
         this.recents = combined.slice(-RECENT_BLOCKS_LIMIT);
@@ -117,7 +130,9 @@ export const useBaseStore = defineStore('baseStore', {
       const latest = this.latest;
       if (!latest.block?.header.height) return [];
       if (!FETCH_ALL_BLOCKS) return [latest as Block];
-      const oldHeight = Number(this.recents[this.recents.length - 1]?.block.header.height);
+      const oldHeight = Number(
+        this.recents[this.recents.length - 1]?.block.header.height
+      );
       const newHeight = Number(latest.block.header.height);
       const newBlocks: Block[] = [];
       // Fetch all blocks between oldHeight+1 and less than newHeight

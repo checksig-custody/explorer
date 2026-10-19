@@ -89,7 +89,9 @@ export class WasmRestClient extends BaseRestClient<WasmRequestRegistry> {
   getWasmContractsByCreator(creator_address: string) {
     // if(!page) page = new PageRequest()
     // const query = `?${page.toQueryString()}`
-    return this.request(this.registry.cosmwasm_wasm_contracts_creator, { creator_address });
+    return this.request(this.registry.cosmwasm_wasm_contracts_creator, {
+      creator_address,
+    });
   }
   getWasmContractHistory(address: string) {
     return this.request(this.registry.cosmwasm_contract_address_history, {
@@ -98,18 +100,27 @@ export class WasmRestClient extends BaseRestClient<WasmRequestRegistry> {
   }
   getWasmContractRawQuery(address: string, query: string) {
     const query_data = toBase64(new TextEncoder().encode(query));
-    return this.request(this.registry.cosmwasm_contract_address_raw_query_data, { address, query_data });
+    return this.request(
+      this.registry.cosmwasm_contract_address_raw_query_data,
+      { address, query_data }
+    );
   }
   getWasmContractSmartQuery(address: string, query: string) {
     const query_data = toBase64(new TextEncoder().encode(query));
-    return this.get(this.registry.cosmwasm_contract_address_smart_query_data, { address, query_data });
+    return this.get(this.registry.cosmwasm_contract_address_smart_query_data, {
+      address,
+      query_data,
+    });
   }
   async getWasmContractQueries(address: string) {
     const query_data = toBase64(new TextEncoder().encode('{"":""}'));
-    const { code, message } = (await this.get(this.registry.cosmwasm_contract_address_smart_query_data, {
-      address,
-      query_data,
-    })) as { code?: number; message?: string };
+    const { code, message } = (await this.get(
+      this.registry.cosmwasm_contract_address_smart_query_data,
+      {
+        address,
+        query_data,
+      }
+    )) as { code?: number; message?: string };
     const re = /`(\w+)`/g;
     const x = String(message).match(re);
     return code === 2 && x ? x.map((e) => e.replaceAll('`', '')) : [];

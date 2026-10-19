@@ -4,8 +4,21 @@ import { MdPreview } from 'md-editor-v3';
 import { sanitizeMarkdownHtml } from '@/libs/sanitize';
 import 'md-editor-v3/lib/preview.css';
 import ObjectElement from '@/components/dynamic/ObjectElement.vue';
-import { useBaseStore, useBlockchain, useFormatter, useGovStore, useStakingStore, useTxDialog } from '@/stores';
-import { PageRequest, type GovProposal, type GovVote, type PaginatedProposalDeposit, type Pagination } from '@/types';
+import {
+  useBaseStore,
+  useBlockchain,
+  useFormatter,
+  useGovStore,
+  useStakingStore,
+  useTxDialog,
+} from '@/stores';
+import {
+  PageRequest,
+  type GovProposal,
+  type GovVote,
+  type PaginatedProposalDeposit,
+  type Pagination,
+} from '@/types';
 import { ref, reactive } from 'vue';
 import Countdown from '@/components/Countdown.vue';
 import PaginationBar from '@/components/PaginationBar.vue';
@@ -91,7 +104,9 @@ const status = computed(() => {
 });
 
 const deposit = ref({} as PaginatedProposalDeposit);
-void store.fetchProposalDeposits(props.proposal_id).then((x) => (deposit.value = x));
+void store
+  .fetchProposalDeposits(props.proposal_id)
+  .then((x) => (deposit.value = x));
 
 const votes = ref({} as GovVote[]);
 const pageRequest = ref(new PageRequest());
@@ -194,7 +209,9 @@ function showValidatorName(voter: string) {
   try {
     const { data } = fromBech32(voter);
     const hex = toHex(data);
-    const v = stakingStore.validators.find((x) => toHex(fromBech32(x.operator_address).data) === hex);
+    const v = stakingStore.validators.find(
+      (x) => toHex(fromBech32(x.operator_address).data) === hex
+    );
     return v ? v.description.moniker : voter;
   } catch {
     return voter;
@@ -203,10 +220,12 @@ function showValidatorName(voter: string) {
 
 function pageload(p: number) {
   pageRequest.value.setPage(p);
-  void store.fetchProposalVotes(props.proposal_id, pageRequest.value).then((x) => {
-    votes.value = x.votes;
-    pageResponse.value = x.pagination;
-  });
+  void store
+    .fetchProposalVotes(props.proposal_id, pageRequest.value)
+    .then((x) => {
+      votes.value = x.votes;
+      pageResponse.value = x.pagination;
+    });
 }
 </script>
 
@@ -216,12 +235,16 @@ function pageload(p: number) {
       <h2
         class="card-title flex flex-col md:!justify-between md:!flex-row mb-2"
       >
-        <p class="truncate w-full">
-          {{ proposal_id }}. {{ proposal.title }}
-        </p>
+        <p class="truncate w-full">{{ proposal_id }}. {{ proposal.title }}</p>
         <div
           class="badge badge-ghost"
-          :class="color === 'success' ? 'text-yes' : color === 'error' ? 'text-no' : 'text-info'"
+          :class="
+            color === 'success'
+              ? 'text-yes'
+              : color === 'error'
+                ? 'text-no'
+                : 'text-info'
+          "
         >
           {{ status }}
         </div>
@@ -232,11 +255,7 @@ function pageload(p: number) {
       <div v-if="proposal.summary">
         <!-- Chain text is untrusted: mermaid and echarts run code outside sanitize. -->
         <MdPreview
-          :model-value="
-            format.multiLine(
-              proposal.summary
-            )
-          "
+          :model-value="format.multiLine(proposal.summary)"
           :sanitize="sanitizeMarkdownHtml"
           :no-mermaid="true"
           :no-echarts="true"
@@ -253,7 +272,10 @@ function pageload(p: number) {
         <div v-for="(item, index) of processList" :key="index" class="mb-1">
           <label class="block text-sm mb-1">{{ item.name }}</label>
           <div class="h-5 w-full relative">
-            <div class="absolute inset-x-0 inset-y-0 w-full opacity-10 rounded-sm" :class="`${item.class}`" />
+            <div
+              class="absolute inset-x-0 inset-y-0 w-full opacity-10 rounded-sm"
+              :class="`${item.class}`"
+            />
             <div
               class="absolute inset-x-0 inset-y-0 rounded-sm"
               :class="`${item.class}`"
@@ -348,13 +370,22 @@ function pageload(p: number) {
             </div>
           </div>
 
-          <div v-if="proposal?.content?.['@type']?.endsWith('SoftwareUpgradeProposal')" class="mt-4">
+          <div
+            v-if="
+              proposal?.content?.['@type']?.endsWith('SoftwareUpgradeProposal')
+            "
+            class="mt-4"
+          >
             <div class="flex items-center">
               <div class="w-2 h-2 rounded-full bg-warning mr-3" />
               <div class="text-base flex-1 text-main">
                 {{ $t('gov.upgrade_plan') }}:
-                <span v-if="Number(proposal.content?.plan?.height || '0') > 0"> (EST)</span>
-                <span v-else>{{ format.toDay(proposal.content?.plan?.time) }}</span>
+                <span v-if="Number(proposal.content?.plan?.height || '0') > 0">
+                  (EST)</span
+                >
+                <span v-else>{{
+                  format.toDay(proposal.content?.plan?.time)
+                }}</span>
               </div>
               <div class="text-sm">
                 {{ shortTime(proposal.voting_end_time) }}
@@ -388,14 +419,21 @@ function pageload(p: number) {
               <td v-if="item.options" class="py-2 text-sm">
                 {{
                   item.options
-                    .map((x) => `${x.option.replace('VOTE_OPTION_', '')}:${format.percent(x.weight)}`)
+                    .map(
+                      (x) =>
+                        `${x.option.replace('VOTE_OPTION_', '')}:${format.percent(x.weight)}`
+                    )
                     .join(', ')
                 }}
               </td>
             </tr>
           </tbody>
         </table>
-        <PaginationBar :limit="pageRequest.limit" :total="pageResponse.total" :callback="pageload" />
+        <PaginationBar
+          :limit="pageRequest.limit"
+          :total="pageResponse.total"
+          :callback="pageload"
+        />
       </div>
     </div>
   </div>

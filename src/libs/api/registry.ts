@@ -15,8 +15,16 @@ import type {
   PaginatedIBCConnections,
   PaginatedTendermintValidator,
 } from '@/types';
-import type { BankParams, PaginatedBalances, PaginatedDenomMetadata, PaginatedSupply } from '@/types/bank';
-import type { DistributionParams, PaginatedSlashes } from '@/types/distribution';
+import type {
+  BankParams,
+  PaginatedBalances,
+  PaginatedDenomMetadata,
+  PaginatedSupply,
+} from '@/types/bank';
+import type {
+  DistributionParams,
+  PaginatedSlashes,
+} from '@/types/distribution';
 import type {
   GovParams,
   GovProposal,
@@ -152,10 +160,18 @@ export interface RequestRegistry extends AbstractRegistry {
   ibc_core_connection_connections: Request<PaginatedIBCConnections>;
   ibc_core_connection_connections_connection_id: Request<ConnectionWithProof>;
   ibc_core_connection_connections_connection_id_client_state: Request<ClientStateWithProof>;
-  interchain_security_ccv_provider_validator_consumer_addr: Request<{ consumer_address: string }>;
-  interchain_security_provider_opted_in_validators: Request<{ validators_provider_addresses: string[] }>;
+  interchain_security_ccv_provider_validator_consumer_addr: Request<{
+    consumer_address: string;
+  }>;
+  interchain_security_provider_opted_in_validators: Request<{
+    validators_provider_addresses: string[];
+  }>;
   interchain_security_consumer_validators: Request<{
-    validators: { provider_address: string; consumer_key: { ed25519: string }; power: string }[];
+    validators: {
+      provider_address: string;
+      consumer_key: { ed25519: string };
+      power: string;
+    }[];
   }>;
 }
 
@@ -166,7 +182,10 @@ export function adapter<T>(source: unknown): Promise<T> {
 
 export type ApiProfileRegistry = Record<string, RequestRegistry>;
 
-export function withCustomRequest<T extends RequestRegistry>(target: T, source?: Partial<T>): T {
+export function withCustomRequest<T extends RequestRegistry>(
+  target: T,
+  source?: Partial<T>
+): T {
   return source ? Object.assign({}, target, source) : target;
 }
 
@@ -175,14 +194,22 @@ export const VERSION_REGISTRY: ApiProfileRegistry = {};
 // ChainName Profile Registory
 export const NAME_REGISTRY: ApiProfileRegistry = {};
 
-export function registryVersionProfile(version: string, requests: RequestRegistry) {
+export function registryVersionProfile(
+  version: string,
+  requests: RequestRegistry
+) {
   VERSION_REGISTRY[version] = requests;
 }
 
-export function registryChainProfile(version: string, requests: RequestRegistry) {
+export function registryChainProfile(
+  version: string,
+  requests: RequestRegistry
+) {
   NAME_REGISTRY[version] = requests;
 }
-export function findApiProfileByChain(name: string): RequestRegistry | undefined {
+export function findApiProfileByChain(
+  name: string
+): RequestRegistry | undefined {
   const url = NAME_REGISTRY[name];
   // if (!url) {
   //   throw new Error(`Unsupported version or name: ${name}`);
@@ -190,7 +217,9 @@ export function findApiProfileByChain(name: string): RequestRegistry | undefined
   return url;
 }
 
-export function findApiProfileBySDKVersion(version: string): RequestRegistry | undefined {
+export function findApiProfileBySDKVersion(
+  version: string
+): RequestRegistry | undefined {
   let closestVersion: string | null = null;
   const chain_version = version.match(/(\d+\.\d+\.?\d*)/g) ?? [''];
   for (const k in VERSION_REGISTRY) {

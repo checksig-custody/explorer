@@ -26,7 +26,7 @@ export interface Tx {
           };
         };
         sequence: string;
-      }
+      },
     ];
     fee: {
       amount: Coin[];
@@ -56,7 +56,7 @@ export interface TxResponse {
       msg_index: number;
       log: string;
       events: Attributes[];
-    }
+    },
   ];
   info: '';
   gas_wanted: '204431';

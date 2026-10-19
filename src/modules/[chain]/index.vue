@@ -5,7 +5,13 @@ import 'md-editor-v3/lib/preview.css';
 import PriceMarketChart from '@/components/charts/PriceMarketChart.vue';
 
 import { Icon } from '@iconify/vue';
-import { useBlockchain, useFormatter, useTxDialog, useWalletStore, useParamStore } from '@/stores';
+import {
+  useBlockchain,
+  useFormatter,
+  useTxDialog,
+  useWalletStore,
+  useParamStore,
+} from '@/stores';
 import { onMounted, ref } from 'vue';
 import { useIndexModule, colorMap, tickerUrl } from './indexStore';
 import { computed } from 'vue';
@@ -45,7 +51,10 @@ blockchain.$subscribe((m, s) => {
   }
 });
 function shortName(name: string, id: string) {
-  return name.toLowerCase().startsWith('ibc/') || name.toLowerCase().startsWith('0x') ? id : name;
+  return name.toLowerCase().startsWith('ibc/') ||
+    name.toLowerCase().startsWith('0x')
+    ? id
+    : name;
 }
 
 const comLinks = computed(() => {
@@ -126,7 +135,9 @@ const amount = computed({
       <div class="grid grid-cols-2 md:grid-cols-3 p-4">
         <div class="col-span-2 md:col-span-1">
           <div class="text-xl font-semibold text-main">
-            {{ coinInfo.name }} (<span class="uppercase">{{ coinInfo.symbol }}</span
+            {{ coinInfo.name }} (<span class="uppercase">{{
+              coinInfo.symbol
+            }}</span
             >)
           </div>
           <div class="text-xs mt-2">
@@ -175,7 +186,9 @@ const amount = computed({
                     >
                       ${{ ticker?.converted_last?.usd }}
                     </div>
-                    <div class="text-sm" :class="store.priceColor">{{ store.priceChange }}%</div>
+                    <div class="text-sm" :class="store.priceColor">
+                      {{ store.priceChange }}%
+                    </div>
                   </div>
                 </div>
               </label>
@@ -204,7 +217,9 @@ const amount = computed({
                           </div>
                         </div>
 
-                        <div class="text-base text-main">${{ item?.converted_last?.usd }}</div>
+                        <div class="text-base text-main">
+                          ${{ item?.converted_last?.usd }}
+                        </div>
                       </div>
                     </li>
                   </ul>
@@ -225,7 +240,11 @@ const amount = computed({
                   stroke-linejoin="round"
                 >
                   <g id="SVGRepo_bgCarrier" stroke-width="0" />
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" />
+                  <g
+                    id="SVGRepo_tracerCarrier"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
                   <g id="SVGRepo_iconCarrier">
                     <rect x="4" y="2" width="16" height="20" rx="2" />
                     <line x1="8" x2="16" y1="6" y2="6" />
@@ -241,7 +260,7 @@ const amount = computed({
                 </svg>
               </label>
               <!-- Put this part before </body> tag -->
-              <input id="calculator" type="checkbox" class="modal-toggle">
+              <input id="calculator" type="checkbox" class="modal-toggle" />
               <div class="modal">
                 <div class="modal-box">
                   <h3 class="text-lg font-bold">
@@ -261,7 +280,7 @@ const amount = computed({
                           min="0"
                           placeholder="Input a number"
                           class="input grow input-bordered join-item"
-                        >
+                        />
                       </div>
                     </div>
                     <div class="divider">=</div>
@@ -278,7 +297,7 @@ const amount = computed({
                           min="0"
                           placeholder="Input amount"
                           class="join-item grow input input-bordered"
-                        >
+                        />
                       </div>
                     </div>
                   </div>
@@ -289,7 +308,10 @@ const amount = computed({
               </div>
               <a
                 class="my-5 !text-white btn grow"
-                :class="{ '!btn-success': store.trustColor === 'green', '!btn-warning': store.trustColor === 'yellow' }"
+                :class="{
+                  '!btn-success': store.trustColor === 'green',
+                  '!btn-warning': store.trustColor === 'yellow',
+                }"
                 :href="tickerUrl(ticker.trade_url)"
                 target="_blank"
               >
@@ -349,8 +371,12 @@ const amount = computed({
     </div>
 
     <div class="bg-base-100 rounded mt-4 shadow">
-      <div class="flex justify-between px-4 pt-4 pb-2 text-lg font-semibold text-main">
-        <span class="truncate">{{ walletStore.currentAddress || 'Not Connected' }}</span>
+      <div
+        class="flex justify-between px-4 pt-4 pb-2 text-lg font-semibold text-main"
+      >
+        <span class="truncate">{{
+          walletStore.currentAddress || 'Not Connected'
+        }}</span>
         <RouterLink
           v-if="walletStore.currentAddress"
           class="float-right text-sm cursor-pointert link link-primary no-underline font-medium"
@@ -366,28 +392,36 @@ const amount = computed({
           <div class="text-lg font-semibold text-main">
             {{ format.formatToken(walletStore.balanceOfStakingToken) }}
           </div>
-          <div class="text-sm" :class="color">${{ format.tokenValue(walletStore.balanceOfStakingToken) }}</div>
+          <div class="text-sm" :class="color">
+            ${{ format.tokenValue(walletStore.balanceOfStakingToken) }}
+          </div>
         </div>
         <div class="bg-gray-100 dark:bg-[#373f59] rounded-sm px-4 py-3">
           <div class="text-sm mb-1">{{ $t('module.staking') }}</div>
           <div class="text-lg font-semibold text-main">
             {{ format.formatToken(walletStore.stakingAmount) }}
           </div>
-          <div class="text-sm" :class="color">${{ format.tokenValue(walletStore.stakingAmount) }}</div>
+          <div class="text-sm" :class="color">
+            ${{ format.tokenValue(walletStore.stakingAmount) }}
+          </div>
         </div>
         <div class="bg-gray-100 dark:bg-[#373f59] rounded-sm px-4 py-3">
           <div class="text-sm mb-1">{{ $t('index.reward') }}</div>
           <div class="text-lg font-semibold text-main">
             {{ format.formatToken(walletStore.rewardAmount) }}
           </div>
-          <div class="text-sm" :class="color">${{ format.tokenValue(walletStore.rewardAmount) }}</div>
+          <div class="text-sm" :class="color">
+            ${{ format.tokenValue(walletStore.rewardAmount) }}
+          </div>
         </div>
         <div class="bg-gray-100 dark:bg-[#373f59] rounded-sm px-4 py-3">
           <div class="text-sm mb-1">{{ $t('index.unbonding') }}</div>
           <div class="text-lg font-semibold text-main">
             {{ format.formatToken(walletStore.unbondingAmount) }}
           </div>
-          <div class="text-sm" :class="color">${{ format.tokenValue(walletStore.unbondingAmount) }}</div>
+          <div class="text-sm" :class="color">
+            ${{ format.tokenValue(walletStore.unbondingAmount) }}
+          </div>
         </div>
       </div>
 
@@ -411,7 +445,11 @@ const amount = computed({
                   class="link link-primary no-underline"
                   :to="`/${chain}/staking/${item?.delegation?.validator_address}`"
                 >
-                  {{ format.validatorFromBech32(item?.delegation?.validator_address) }}
+                  {{
+                    format.validatorFromBech32(
+                      item?.delegation?.validator_address
+                    )
+                  }}
                 </RouterLink>
               </td>
               <td>{{ format.formatToken(item?.balance) }}</td>
@@ -419,7 +457,9 @@ const amount = computed({
                 {{
                   format.formatTokens(
                     walletStore?.rewards?.rewards?.find(
-                      (el) => el?.validator_address === item?.delegation?.validator_address
+                      (el) =>
+                        el?.validator_address ===
+                        item?.delegation?.validator_address
                     )?.reward
                   )
                 }}
@@ -430,7 +470,13 @@ const amount = computed({
                     for="delegate"
                     class="btn !btn-xs !btn-primary btn-ghost rounded-sm mr-2"
                     @click="
-                      dialog.open('delegate', { validator_address: item.delegation.validator_address }, updateState)
+                      dialog.open(
+                        'delegate',
+                        {
+                          validator_address: item.delegation.validator_address,
+                        },
+                        updateState
+                      )
                     "
                   >
                     {{ $t('account.btn_delegate') }}
@@ -439,7 +485,13 @@ const amount = computed({
                     for="withdraw"
                     class="btn !btn-xs !btn-primary btn-ghost rounded-sm"
                     @click="
-                      dialog.open('withdraw', { validator_address: item.delegation.validator_address }, updateState)
+                      dialog.open(
+                        'withdraw',
+                        {
+                          validator_address: item.delegation.validator_address,
+                        },
+                        updateState
+                      )
                     "
                   >
                     {{ $t('index.btn_withdraw_reward') }}
@@ -452,19 +504,26 @@ const amount = computed({
       </div>
 
       <div class="grid grid-cols-3 gap-4 px-4 pb-6 mt-4">
-        <label for="PingTokenConvert" class="btn btn-primary text-white">{{ $t('index.btn_swap') }}</label>
-        <label for="send" class="btn !bg-yes !border-yes text-white" @click="dialog.open('send', {}, updateState)">{{
-          $t('account.btn_send')
+        <label for="PingTokenConvert" class="btn btn-primary text-white">{{
+          $t('index.btn_swap')
         }}</label>
+        <label
+          for="send"
+          class="btn !bg-yes !border-yes text-white"
+          @click="dialog.open('send', {}, updateState)"
+          >{{ $t('account.btn_send') }}</label
+        >
         <label
           for="delegate"
           class="btn !bg-info !border-info text-white"
           @click="dialog.open('delegate', {}, updateState)"
           >{{ $t('account.btn_delegate') }}</label
         >
-        <RouterLink to="/wallet/receive" class="btn !bg-info !border-info text-white hidden">{{
-          $t('index.receive')
-        }}</RouterLink>
+        <RouterLink
+          to="/wallet/receive"
+          class="btn !bg-info !border-info text-white hidden"
+          >{{ $t('index.receive') }}</RouterLink
+        >
       </div>
       <Teleport to="body">
         <ping-token-convert
@@ -491,7 +550,10 @@ const amount = computed({
       <div class="px-4 pt-4 pb-2 text-lg font-semibold text-main">
         {{ $t('index.node_info') }}
       </div>
-      <ArrayObjectElement :value="paramStore.nodeVersion?.items" :thead="false" />
+      <ArrayObjectElement
+        :value="paramStore.nodeVersion?.items"
+        :thead="false"
+      />
       <div class="h-4" />
     </div>
   </div>

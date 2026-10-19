@@ -49,7 +49,8 @@ export interface CoinInfo {
 
 const LocalStoreKey = 'currency';
 
-export const coingeckoUrl = import.meta.env.VITE_COINGECKO_URL || 'https://api.coingecko.com';
+export const coingeckoUrl =
+  import.meta.env.VITE_COINGECKO_URL || 'https://api.coingecko.com';
 
 interface CoingeckoState {
   currency: string | null; // secondary currency
@@ -83,7 +84,10 @@ export const useCoingecko = defineStore('coingecko', {
         this.currency,
       ].join(',')}&ids=${ids.join(',')}`;
       void get(url).then((data) => {
-        this.prices = { ...this.prices, ...(data as Record<string, PriceMeta>) };
+        this.prices = {
+          ...this.prices,
+          ...(data as Record<string, PriceMeta>),
+        };
       });
     },
     getCoinInfo(coinId: string) {

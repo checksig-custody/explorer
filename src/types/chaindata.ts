@@ -1,5 +1,11 @@
-import type { Asset as RegistryAsset, DenomUnit as RegistryDenomUnit } from '@chain-registry/types';
-import type { Chain as RegistryChain, Endpoint as RegistryEndPoint } from '@chain-registry/types/chain.schema';
+import type {
+  Asset as RegistryAsset,
+  DenomUnit as RegistryDenomUnit,
+} from '@chain-registry/types';
+import type {
+  Chain as RegistryChain,
+  Endpoint as RegistryEndPoint,
+} from '@chain-registry/types/chain.schema';
 
 export enum NetworkType {
   Mainnet,

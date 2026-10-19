@@ -183,8 +183,12 @@ export const colorVariables = (theme: string) => {
   };
 };
 /// Price Chart config
-export const getMarketPriceChartConfig = (theme: string, categories: (string | number)[]) => {
-  const { themeSecondaryTextColor, themeBorderColor, themeDisabledTextColor } = colorVariables(theme);
+export const getMarketPriceChartConfig = (
+  theme: string,
+  categories: (string | number)[]
+) => {
+  const { themeSecondaryTextColor, themeBorderColor, themeDisabledTextColor } =
+    colorVariables(theme);
 
   return {
     chart: {
@@ -305,7 +309,8 @@ const donutColors = [
 ];
 
 export const getDonutChartConfig = (theme: string, labels: string[]) => {
-  const { themeSecondaryTextColor, themePrimaryTextColor } = colorVariables(theme);
+  const { themeSecondaryTextColor, themePrimaryTextColor } =
+    colorVariables(theme);
 
   return {
     stroke: { width: 0 },

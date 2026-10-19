@@ -45,8 +45,14 @@ test('ordinary markup survives', () => {
   );
   assert.equal(d.querySelectorAll('li').length, 1);
   assert.equal(d.querySelector('pre code')?.textContent, 'x < y');
-  assert.equal(d.querySelector('img')?.getAttribute('src'), 'https://example.com/a.png');
-  assert.equal(d.querySelector('a')?.getAttribute('href'), 'https://example.com/p');
+  assert.equal(
+    d.querySelector('img')?.getAttribute('src'),
+    'https://example.com/a.png'
+  );
+  assert.equal(
+    d.querySelector('a')?.getAttribute('href'),
+    'https://example.com/p'
+  );
 });
 
 test('links open in a new tab without opener', () => {

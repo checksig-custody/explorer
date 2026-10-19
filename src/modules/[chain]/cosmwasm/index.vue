@@ -27,17 +27,25 @@ function pageload(pageNum: number) {
 pageload(1);
 
 onMounted(() => {
-  const historyStore = JSON.parse(localStorage.getItem('contract_history') || '{}') as Record<string, string[] | undefined>;
+  const historyStore = JSON.parse(
+    localStorage.getItem('contract_history') || '{}'
+  ) as Record<string, string[] | undefined>;
   history.value = historyStore[props.chain] ?? [];
 });
 
 function myContracts() {
-  if (field.value === 'contract') void router.push(`/${props.chain}/cosmwasm/0/transactions?contract=${creator.value}`);
-  else if (field.value === 'creator') void router.push(`/${props.chain}/cosmwasm/${creator.value}/contracts`);
+  if (field.value === 'contract')
+    void router.push(
+      `/${props.chain}/cosmwasm/0/transactions?contract=${creator.value}`
+    );
+  else if (field.value === 'creator')
+    void router.push(`/${props.chain}/cosmwasm/${creator.value}/contracts`);
 }
 const togo = ref('');
 function gotoHistory() {
-  void router.push(`/${props.chain}/cosmwasm/0/transactions?contract=${togo.value}`);
+  void router.push(
+    `/${props.chain}/cosmwasm/0/transactions?contract=${togo.value}`
+  );
 }
 </script>
 <template>
@@ -49,13 +57,26 @@ function gotoHistory() {
           <option value="contract">Contract</option>
           <option value="creator">Creator</option>
         </select>
-        <input v-model="creator" type="text" class="input input-bordered w-full join-item" placeholder="address">
-        <button class="join-item btn btn-primary" @click="myContracts()">{{ $t('cosmwasm.btn_query') }}</button>
+        <input
+          v-model="creator"
+          type="text"
+          class="input input-bordered w-full join-item"
+          placeholder="address"
+        />
+        <button class="join-item btn btn-primary" @click="myContracts()">
+          {{ $t('cosmwasm.btn_query') }}
+        </button>
       </div>
       <div>
-        <select v-model="togo" class="select select-primary" @change="gotoHistory()">
+        <select
+          v-model="togo"
+          class="select select-primary"
+          @change="gotoHistory()"
+        >
           <option value="">History</option>
-          <option v-for="(v, index) in history" :key="index" :value="v">...{{ String(v).substring(45) }}</option>
+          <option v-for="(v, index) in history" :key="index" :value="v">
+            ...{{ String(v).substring(45) }}
+          </option>
         </select>
       </div>
     </div>
@@ -85,16 +106,26 @@ function gotoHistory() {
             <td>{{ v.creator }}</td>
             <td>
               {{ v.instantiate_permission?.permission }}
-              <span>{{ v.instantiate_permission?.address }} {{ v.instantiate_permission?.addresses.join(', ') }}</span>
+              <span
+                >{{ v.instantiate_permission?.address }}
+                {{ v.instantiate_permission?.addresses.join(', ') }}</span
+              >
             </td>
           </tr>
         </tbody>
       </table>
       <div class="flex justify-between">
-        <PaginationBar :limit="pageRequest.limit" :total="codes.pagination?.total" :callback="pageload" />
-        <label for="wasm_store_code" class="btn btn-primary my-5" @click="dialog.open('wasm_store_code', {})">{{
-          $t('cosmwasm.btn_up_sc')
-        }}</label>
+        <PaginationBar
+          :limit="pageRequest.limit"
+          :total="codes.pagination?.total"
+          :callback="pageload"
+        />
+        <label
+          for="wasm_store_code"
+          class="btn btn-primary my-5"
+          @click="dialog.open('wasm_store_code', {})"
+          >{{ $t('cosmwasm.btn_up_sc') }}</label
+        >
       </div>
     </div>
   </div>

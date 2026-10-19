@@ -103,11 +103,7 @@ export default defineConfig(
   {
     // File-based routing and layouts fix these file names (index.vue,
     // [address].vue, default.vue): they cannot be multi-word.
-    files: [
-      'src/modules/**/*.vue',
-      'src/pages/**/*.vue',
-      'src/layouts/*.vue',
-    ],
+    files: ['src/modules/**/*.vue', 'src/pages/**/*.vue', 'src/layouts/*.vue'],
     rules: { 'vue/multi-word-component-names': 'off' },
   },
   {

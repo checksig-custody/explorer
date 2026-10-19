@@ -97,10 +97,17 @@ export class NFTRestClient extends BaseRestClient<NFTRequestRegistry> {
   getNFTs(class_id: string, id: string, page?: PageRequest) {
     page ??= new PageRequest();
     const query = `?${page.toQueryString()}`;
-    return this.request(this.registry.nft_classes_nfts_class_id_nft_id, { class_id, id }, query);
+    return this.request(
+      this.registry.nft_classes_nfts_class_id_nft_id,
+      { class_id, id },
+      query
+    );
   }
   getNFTOwner(class_id: string, id: string) {
-    return this.request(this.registry.nft_classes_nfts_class_id_nft_id_owner, { class_id, id });
+    return this.request(this.registry.nft_classes_nfts_class_id_nft_id_owner, {
+      class_id,
+      id,
+    });
   }
   getNFTSupply(class_id: string) {
     return this.request(this.registry.nft_supply_class_id, { class_id });

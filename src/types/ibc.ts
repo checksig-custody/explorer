@@ -1,5 +1,5 @@
 import type { PaginatedResponse } from '.';
-import type { IBCInfo as RegistryIBCInfo } from "@chain-registry/types"
+import type { IBCInfo as RegistryIBCInfo } from '@chain-registry/types';
 
 export type IBCInfo = RegistryIBCInfo;
 

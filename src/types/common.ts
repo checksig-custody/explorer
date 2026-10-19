@@ -28,8 +28,10 @@ export class PageRequest {
     const query = [];
     if (this.key) query.push(`pagination.key=${this.key}`);
     if (this.limit) query.push(`pagination.limit=${String(this.limit)}`);
-    if (this.offset !== undefined) query.push(`pagination.offset=${String(this.offset)}`);
-    if (this.count_total) query.push(`pagination.count_total=${String(this.count_total)}`);
+    if (this.offset !== undefined)
+      query.push(`pagination.offset=${String(this.offset)}`);
+    if (this.count_total)
+      query.push(`pagination.count_total=${String(this.count_total)}`);
     if (this.reverse) query.push(`pagination.reverse=${String(this.reverse)}`);
     return query.join('&');
   }

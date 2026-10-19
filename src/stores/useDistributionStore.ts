@@ -26,7 +26,9 @@ export const useDistributionStore = defineStore('distributionStore', {
       void this.fetchParams();
     },
     async fetchParams() {
-      const response = await this.blockchain.rpcIfSet()?.getDistributionParams();
+      const response = await this.blockchain
+        .rpcIfSet()
+        ?.getDistributionParams();
       if (response?.params) this.params = response.params;
       return this.params;
     },

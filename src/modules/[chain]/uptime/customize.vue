@@ -1,6 +1,11 @@
 <script lang="ts" setup>
 import { ref, computed } from 'vue';
-import { useFormatter, useStakingStore, useBlockchain, useDashboard } from '@/stores';
+import {
+  useFormatter,
+  useStakingStore,
+  useBlockchain,
+  useDashboard,
+} from '@/stores';
 import { consensusPubkeyToHexAddress, valconsToBase64 } from '@/libs';
 import type { SigningInfo } from '@/types/slashing';
 import { CosmosRestClient } from '@/libs/client';
@@ -47,19 +52,27 @@ function initial() {
 
 const filterValidators = computed(() => {
   if (keyword.value) {
-    return validators.value.filter((x) => x.description.moniker.includes(keyword.value));
+    return validators.value.filter((x) =>
+      x.description.moniker.includes(keyword.value)
+    );
   }
   return validators.value;
 });
 
 const list = computed(() => {
-  const list: { chainName: string; v: { name: string; address: string }; sigingInfo: SigningInfo | undefined }[] = [];
+  const list: {
+    chainName: string;
+    v: { name: string; address: string };
+    sigingInfo: SigningInfo | undefined;
+  }[] = [];
   Object.keys(local.value).forEach((chainName) => {
     const vals = local.value[chainName];
     const info = signingInfo.value[chainName];
     if (vals && info) {
       vals.forEach((v) => {
-        const sigingInfo = info.find((x) => valconsToBase64(x.address) === v.address);
+        const sigingInfo = info.find(
+          (x) => valconsToBase64(x.address) === v.address
+        );
         list.push({
           chainName,
           v,
@@ -77,7 +90,9 @@ function add() {
   }
   const newList = [] as { name: string; address: string }[];
   selected.value.forEach((x) => {
-    const validator = validators.value.find((v) => consensusPubkeyToHexAddress(v.consensus_pubkey) === x);
+    const validator = validators.value.find(
+      (v) => consensusPubkeyToHexAddress(v.consensus_pubkey) === x
+    );
     if (validator)
       newList.push({
         name: validator.description.moniker || x,
@@ -91,7 +106,8 @@ function add() {
 
 function changeChain() {
   validators.value = [];
-  const endpoint = dashboard.chains[selectChain.value]?.endpoints.rest?.at(0)?.address;
+  const endpoint =
+    dashboard.chains[selectChain.value]?.endpoints.rest?.at(0)?.address;
   if (!endpoint) return;
 
   const client = CosmosRestClient.newDefault(endpoint);
@@ -125,10 +141,14 @@ function color(v: string) {
         class="lg:!flex lg:!items-center lg:!justify-between bg-base-100 p-5"
       >
         <div class="min-w-0 flex-1">
-          <h2 class="text-2xl font-bold leading-7 sm:!truncate sm:!text-3xl sm:!tracking-tight">
+          <h2
+            class="text-2xl font-bold leading-7 sm:!truncate sm:!text-3xl sm:!tracking-tight"
+          >
             {{ $t('uptime.my_validators') }}
           </h2>
-          <div class="mt-1 flex flex-col sm:!mt-0 sm:!flex-row sm:!flex-wrap sm:!space-x-6">
+          <div
+            class="mt-1 flex flex-col sm:!mt-0 sm:!flex-row sm:!flex-wrap sm:!space-x-6"
+          >
             <div class="mt-2 flex items-center text-sm text-gray-500">
               <svg
                 class="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400"
@@ -171,7 +191,8 @@ function color(v: string) {
             <td>{{ v.v.name }}</td>
             <td>
               <span v-if="v.sigingInfo">{{
-                Number(v.sigingInfo.index_offset) - Number(v.sigingInfo.start_height)
+                Number(v.sigingInfo.index_offset) -
+                Number(v.sigingInfo.start_height)
               }}</span>
             </td>
             <td>
@@ -197,14 +218,19 @@ function color(v: string) {
             </td>
             <td class="capitalize">{{ v.sigingInfo?.tombstoned }}</td>
             <td>
-              <span v-if="v.sigingInfo" class="badge" :class="color(v.sigingInfo?.missed_blocks_counter)">{{
-                v.sigingInfo?.missed_blocks_counter
-              }}</span>
+              <span
+                v-if="v.sigingInfo"
+                class="badge"
+                :class="color(v.sigingInfo?.missed_blocks_counter)"
+                >{{ v.sigingInfo?.missed_blocks_counter }}</span
+              >
             </td>
             <td class="">
-              <RouterLink :to="`/${v.chainName}/uptime/#blocks`" class="btn btn-xs btn-primary">{{
-                $t('module.blocks')
-              }}</RouterLink>
+              <RouterLink
+                :to="`/${v.chainName}/uptime/#blocks`"
+                class="btn btn-xs btn-primary"
+                >{{ $t('module.blocks') }}</RouterLink
+              >
             </td>
           </tr>
         </tbody>
@@ -223,7 +249,7 @@ function color(v: string) {
       type="checkbox"
       class="modal-toggle"
       @change="initial"
-    >
+    />
     <div class="modal">
       <div class="modal-box relative">
         <label
@@ -234,12 +260,25 @@ function color(v: string) {
         <h3 class="text-lg font-bold">{{ $t('uptime.add_validators') }}</h3>
         <div class="form-control my-5 border-2">
           <div class="input-group input-group-md">
-            <select v-model="selectChain" class="select select-bordered capitalize" @change="changeChain">
-              <option v-for="v in dashboard.chains" :key="v.chainName" :value="v.chainName">
+            <select
+              v-model="selectChain"
+              class="select select-bordered capitalize"
+              @change="changeChain"
+            >
+              <option
+                v-for="v in dashboard.chains"
+                :key="v.chainName"
+                :value="v.chainName"
+              >
                 {{ v.chainName }}
               </option>
             </select>
-            <input v-model="keyword" type="text" class="input w-full" placeholder="keywords to filter validator">
+            <input
+              v-model="keyword"
+              type="text"
+              class="input w-full"
+              placeholder="keywords to filter validator"
+            />
           </div>
         </div>
         <div class="py-4 max-h-60 overflow-y-auto">
@@ -254,7 +293,9 @@ function color(v: string) {
               <tr v-for="(v, i) in filterValidators" :key="v.operator_address">
                 <td>
                   <label :for="v.operator_address"
-                    ><div class="w-full">{{ i + 1 }}. {{ v.description.moniker }}</div></label
+                    ><div class="w-full">
+                      {{ i + 1 }}. {{ v.description.moniker }}
+                    </div></label
                   >
                 </td>
                 <td>
@@ -264,7 +305,7 @@ function color(v: string) {
                     class="checkbox"
                     type="checkbox"
                     :value="consensusPubkeyToHexAddress(v.consensus_pubkey)"
-                  >
+                  />
                 </td>
               </tr>
             </tbody>

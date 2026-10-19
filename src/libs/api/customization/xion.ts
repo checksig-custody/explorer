@@ -46,21 +46,30 @@ export const requests: Partial<RequestRegistry> = {
     url: '/cosmos/mint/v1beta1/inflation',
     adapter: async (data: unknown): Promise<{ inflation: string }> => {
       try {
-        const client = CosmosRestClient.newDefault(useBlockchain().endpoint.address);
+        const client = CosmosRestClient.newDefault(
+          useBlockchain().endpoint.address
+        );
 
         // Get distribution params to fetch community tax
-        const { params } = await client.getDistributionParams().catch((e: unknown) => {
-          console.error('[Xion Adapter] Failed to fetch distribution params:', {
-            error: e instanceof Error ? e.message : e,
-            endpoint: '/distribution/params',
+        const { params } = await client
+          .getDistributionParams()
+          .catch((e: unknown) => {
+            console.error(
+              '[Xion Adapter] Failed to fetch distribution params:',
+              {
+                error: e instanceof Error ? e.message : e,
+                endpoint: '/distribution/params',
+              }
+            );
+            return { params: { community_tax: '0' } };
           });
-          return { params: { community_tax: '0' } };
-        });
 
         const communityTax = params.community_tax;
 
         // apr calcuation is inflation * (1 - communityTax)
-        const adjustedInflation = parseFloat((data as { inflation: string }).inflation) * (1 - parseFloat(communityTax));
+        const adjustedInflation =
+          parseFloat((data as { inflation: string }).inflation) *
+          (1 - parseFloat(communityTax));
 
         return { inflation: adjustedInflation.toString() };
       } catch (e) {

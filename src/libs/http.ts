@@ -1,9 +1,14 @@
 import fetch from 'cross-fetch';
 
-export async function fetchData<T>(url: string, adapter: (source: unknown) => Promise<T>): Promise<T> {
+export async function fetchData<T>(
+  url: string,
+  adapter: (source: unknown) => Promise<T>
+): Promise<T> {
   const response = await fetch(url);
   if (!response.ok) {
-    throw new Error(`HTTP error: ${String(response.status)}, ${response.statusText}`);
+    throw new Error(
+      `HTTP error: ${String(response.status)}, ${response.statusText}`
+    );
   }
   const data: unknown = await response.json();
   return adapter(data);
@@ -26,11 +31,15 @@ try {
 }
 // */
 export async function get(url: string): Promise<unknown> {
-  return (await fetch(url, { referrerPolicy: 'origin-when-cross-origin' })).json();
+  return (
+    await fetch(url, { referrerPolicy: 'origin-when-cross-origin' })
+  ).json();
 }
 
 export async function getB(url: string) {
-  return (await fetch(url, { referrerPolicy: 'origin-when-cross-origin' })).arrayBuffer();
+  return (
+    await fetch(url, { referrerPolicy: 'origin-when-cross-origin' })
+  ).arrayBuffer();
 }
 
 export async function post(url: string, data: unknown): Promise<unknown> {

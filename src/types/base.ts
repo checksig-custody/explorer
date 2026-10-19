@@ -30,7 +30,7 @@ export interface NodeInfo {
         path: string;
         version: string;
         sum: string;
-      }
+      },
     ];
     cosmos_sdk_version: string;
   };

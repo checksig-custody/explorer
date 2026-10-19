@@ -10,7 +10,9 @@ const baseStore = useBaseStore();
 // walletStore.$subscribe((m, s) => {
 //   console.log(m, s);
 // });
-function walletStateChange(res: CustomEvent<{ value?: WalletConnected } | undefined>) {
+function walletStateChange(
+  res: CustomEvent<{ value?: WalletConnected } | undefined>
+) {
   walletStore.setConnectedWallet(res.detail?.value);
 }
 let showCopyToast = ref(0);
@@ -51,7 +53,9 @@ const params = computed(() => {
       class="btn btn-sm btn-primary m-1 lowercase truncate !inline-flex text-xs md:!text-sm"
     >
       <Icon icon="mdi:wallet" />
-      <span class="ml-1 hidden md:block"> {{ walletStore.shortAddress || 'Wallet' }}</span>
+      <span class="ml-1 hidden md:block">
+        {{ walletStore.shortAddress || 'Wallet' }}</span
+      >
     </label>
     <div
       tabindex="0"

@@ -13,7 +13,10 @@ import AdBanner from '@/components/ad/AdBanner.vue';
 
 const format = useFormatter();
 const conf = ref(
-  JSON.parse(localStorage.getItem('imported-addresses') || '{}') as Record<string, AccountEntry[] | undefined>
+  JSON.parse(localStorage.getItem('imported-addresses') || '{}') as Record<
+    string,
+    AccountEntry[] | undefined
+  >
 );
 const chainStore = useBlockchain();
 const balances = ref({} as Record<string, Coin[]>);
@@ -73,7 +76,9 @@ Object.values(conf.value).forEach((imported) => {
       if (x.endpoint && x.address) {
         loading.value += 1;
         const endpoint = chainStore.randomEndpoint(x.chainName);
-        const client = CosmosRestClient.newDefault(endpoint?.address || x.endpoint);
+        const client = CosmosRestClient.newDefault(
+          endpoint?.address || x.endpoint
+        );
         void client
           .getBankBalances(x.address)
           .then((res) => {
@@ -106,7 +111,11 @@ const tokenQty = computed(() => {
         if (existing) {
           existing.qty += v;
         } else {
-          values[coin.denom] = { qty: v, coinId: format.findGlobalAssetConfig(coin.denom)?.coingecko_id || '' };
+          values[coin.denom] = {
+            qty: v,
+            coinId:
+              format.findGlobalAssetConfig(coin.denom)?.coingecko_id || '',
+          };
         }
       }
     });
@@ -121,7 +130,8 @@ const tokenQty = computed(() => {
         } else {
           values[d.balance.denom] = {
             qty: v,
-            coinId: format.findGlobalAssetConfig(d.balance.denom)?.coingecko_id || '',
+            coinId:
+              format.findGlobalAssetConfig(d.balance.denom)?.coingecko_id || '',
           };
         }
       }
@@ -190,9 +200,12 @@ const changeData = computed(() => {
   const vals = Object.keys(tokenQty.value)
     .map((denom) => {
       const token = tokenQty.value[denom];
-      const marketData = token && prices.value.find((x) => x.id === token.coinId);
+      const marketData =
+        token && prices.value.find((x) => x.id === token.coinId);
       if (token && marketData) {
-        return (marketData.sparkline_in_7d?.price ?? []).map((p) => p * token.qty);
+        return (marketData.sparkline_in_7d?.price ?? []).map(
+          (p) => p * token.qty
+        );
       }
       return [];
     })
@@ -250,11 +263,19 @@ const currencySign = computed(() => {
   <div class="overflow-x-auto w-full rounded-md">
     <div class="flex flex-wrap justify-between bg-base-100 p-5">
       <div class="min-w-0">
-        <h2 class="text-2xl font-bold leading-7 sm:!truncate sm:!text-3xl sm:!tracking-tight">Portfolio</h2>
+        <h2
+          class="text-2xl font-bold leading-7 sm:!truncate sm:!text-3xl sm:!tracking-tight"
+        >
+          Portfolio
+        </h2>
         <div>
           <div class="flex items-center text-sm">
             Currency:
-            <select v-model="currency" class="ml-1 uppercase" @change="loadPrice">
+            <select
+              v-model="currency"
+              class="ml-1 uppercase"
+              @change="loadPrice"
+            >
               <option>usd</option>
               <option>cny</option>
               <option>eur</option>
@@ -290,7 +311,11 @@ const currencySign = computed(() => {
           <DonutChart
             height="280"
             :series="Object.values(tokenValues)"
-            :labels="Object.keys(tokenValues).map((x) => format.tokenDisplayDenom(x)?.toUpperCase() ?? '')"
+            :labels="
+              Object.keys(tokenValues).map(
+                (x) => format.tokenDisplayDenom(x)?.toUpperCase() ?? ''
+              )
+            "
           />
         </div>
         <div class="md:col-span-2">
@@ -303,7 +328,13 @@ const currencySign = computed(() => {
         </div>
       </div>
       <div class="overflow-x-auto mt-4">
-        <AdBanner id="portfolio-banner-ad" class="bg-base-200" unit="banner" width="970px" height="90px" />
+        <AdBanner
+          id="portfolio-banner-ad"
+          class="bg-base-200"
+          unit="banner"
+          width="970px"
+          height="90px"
+        />
         <table class="table w-full">
           <thead class="bg-base-200">
             <tr>
@@ -318,10 +349,13 @@ const currencySign = computed(() => {
                 <div class="flex gap-1 text-xs items-center">
                   <div class="avatar">
                     <div class="mask mask-squircle w-6 h-6 mr-2">
-                      <img :src="x.logo" :alt="x.chainName">
+                      <img :src="x.logo" :alt="x.chainName" />
                     </div>
                   </div>
-                  <span class="uppercase font-bold text-lg">{{ format.tokenDisplayDenom(x.denom) }}</span> @
+                  <span class="uppercase font-bold text-lg">{{
+                    format.tokenDisplayDenom(x.denom)
+                  }}</span>
+                  @
                   <span class="capitalize">{{ x.chainName }} </span>
                 </div>
               </td>

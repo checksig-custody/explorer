@@ -1,7 +1,12 @@
 <script lang="ts" setup>
 import { ref, onMounted, computed, onUnmounted } from 'vue';
 import { fromHex, toBase64 } from '@cosmjs/encoding';
-import { useStakingStore, useBaseStore, useBlockchain, useFormatter } from '@/stores';
+import {
+  useStakingStore,
+  useBaseStore,
+  useBlockchain,
+  useFormatter,
+} from '@/stores';
 import UptimeBar from '@/components/UptimeBar.vue';
 import type { SlashingParam, SigningInfo, Block } from '@/types';
 import { consensusPubkeyToHexAddress, valconsToBase64 } from '@/libs';
@@ -34,7 +39,9 @@ interface ValidatorUnit {
 }
 
 function padding(blocks: BlockColor[] = []) {
-  const raw = new Array<BlockColor>(50).fill({ height: '0', color: 'bg-secondary' }).concat(blocks);
+  const raw = new Array<BlockColor>(50)
+    .fill({ height: '0', color: 'bg-secondary' })
+    .concat(blocks);
   return raw.slice(raw.length - 50);
 }
 
@@ -43,7 +50,9 @@ const validatorSet = computed(() => {
     return consumerValidators.value.map((v) => {
       const b64 = valconsToBase64(v.moniker);
       const moniker = stakingStore.validators.find(
-        (x) => toBase64(fromHex(consensusPubkeyToHexAddress(x.consensus_pubkey))) === b64
+        (x) =>
+          toBase64(fromHex(consensusPubkeyToHexAddress(x.consensus_pubkey))) ===
+          b64
       )?.description.moniker;
       return {
         moniker: moniker || v.moniker,
@@ -66,12 +75,17 @@ const grid = computed(() => {
   const validators =
     keyword.value.length === 0
       ? validatorSet.value
-      : validatorSet.value.filter((v) => v.moniker.toLowerCase().includes(keyword.value.toLowerCase()));
+      : validatorSet.value.filter((v) =>
+          v.moniker.toLowerCase().includes(keyword.value.toLowerCase())
+        );
 
   const window = Number(slashingParam.value.signed_blocks_window || 0);
   return validators.map((v) => {
     const signing = signingInfo.value[v.base64];
-    const uptime = signing && window > 0 ? (window - Number(signing.missed_blocks_counter)) / window : undefined;
+    const uptime =
+      signing && window > 0
+        ? (window - Number(signing.missed_blocks_counter)) / window
+        : undefined;
     return {
       moniker: v.moniker,
       base64: v.base64,
@@ -105,7 +119,10 @@ baseStore.$subscribe((_, state) => {
             .forEach((v) => {
               const base64 = toBase64(
                 fromHex(
-                  consensusPubkeyToHexAddress({ '@type': '/cosmos.crypto.ed25519.PubKey', key: v.consumer_key.ed25519 })
+                  consensusPubkeyToHexAddress({
+                    '@type': '/cosmos.crypto.ed25519.PubKey',
+                    key: v.consumer_key.ed25519,
+                  })
                 )
               );
               const moniker = v.provider_address;
@@ -139,7 +156,11 @@ function preFill() {
   if (latest.value > 50 && baseStore.recents.length >= 49) return;
   // preload 50 blocks if recent blocks are not enough
   let promise = Promise.resolve();
-  for (let i = latest.value - baseStore.recents.length; i > latest.value - 50 && i > 1; i -= 1) {
+  for (
+    let i = latest.value - baseStore.recents.length;
+    i > latest.value - 50 && i > 1;
+    i -= 1
+  ) {
     promise = promise.then(
       () =>
         new Promise((resolve) => {
@@ -159,7 +180,9 @@ function fillblock(b: Partial<Block>, direction = 'end') {
   const data = b.block;
   if (!data) return;
   validatorSet.value.forEach((v) => {
-    const sig = data.last_commit.signatures.find((s) => s.validator_address === v.base64);
+    const sig = data.last_commit.signatures.find(
+      (s) => s.validator_address === v.base64
+    );
     const block = blockColors.value[v.base64] ?? [];
     let color = {
       height: data.header.height,
@@ -168,7 +191,10 @@ function fillblock(b: Partial<Block>, direction = 'end') {
     if (sig) {
       color = {
         height: data.header.height,
-        color: sig.block_id_flag === 'BLOCK_ID_FLAG_COMMIT' ? 'bg-green-500' : 'bg-yellow-500',
+        color:
+          sig.block_id_flag === 'BLOCK_ID_FLAG_COMMIT'
+            ? 'bg-green-500'
+            : 'bg-yellow-500',
       };
     }
     if (direction === 'end') {
@@ -203,12 +229,18 @@ function changeTab(v: string) {
 <template>
   <div>
     <div class="tabs tabs-boxed bg-transparent mb-4">
-      <a class="tab text-gray-400 capitalize" :class="{ 'tab-active': tab === '3' }" @click="changeTab('3')">{{
-        $t('uptime.overall')
-      }}</a>
-      <a class="tab text-gray-400 capitalize" :class="{ 'tab-active': tab === '2' }" @click="changeTab('2')">{{
-        $t('module.blocks')
-      }}</a>
+      <a
+        class="tab text-gray-400 capitalize"
+        :class="{ 'tab-active': tab === '3' }"
+        @click="changeTab('3')"
+        >{{ $t('uptime.overall') }}</a
+      >
+      <a
+        class="tab text-gray-400 capitalize"
+        :class="{ 'tab-active': tab === '2' }"
+        @click="changeTab('2')"
+        >{{ $t('module.blocks') }}</a
+      >
       <RouterLink :to="`/${chain}/uptime/customize`">
         <a class="tab text-gray-400 capitalize">{{ $t('uptime.customize') }}</a>
       </RouterLink>
@@ -220,7 +252,7 @@ function changeTab(v: string) {
           type="text"
           placeholder="Keywords to filter validators"
           class="input input-sm w-full flex-1 border border-gray-200 dark:border-gray-600"
-        >
+        />
       </div>
 
       <!-- grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-x-4 mt-4 -->
@@ -275,8 +307,17 @@ function changeTab(v: string) {
               <div class="truncate max-w-sm">{{ i + 1 }}. {{ v.moniker }}</div>
             </td>
             <td class="text-right">
-              <span :class="v.uptime && v.uptime > 0.95 ? 'text-green-500' : 'text-red-500'">
-                <div class="tooltip" :data-tip="`${v.missed_blocks_counter} missing blocks`">
+              <span
+                :class="
+                  v.uptime && v.uptime > 0.95
+                    ? 'text-green-500'
+                    : 'text-red-500'
+                "
+              >
+                <div
+                  class="tooltip"
+                  :data-tip="`${v.missed_blocks_counter} missing blocks`"
+                >
                   {{ format.percent(v.uptime) }}
                 </div>
               </span>
@@ -296,9 +337,16 @@ function changeTab(v: string) {
               </span>
             </td>
             <td class="text-xs text-right">
-              <span v-if="v.signing && v.signing.jailed_until.startsWith('1970')" class="text-right">{{
-                format.percent(Number(v.signing.index_offset) / (latest - Number(v.signing.start_height)))
-              }}</span>
+              <span
+                v-if="v.signing && v.signing.jailed_until.startsWith('1970')"
+                class="text-right"
+                >{{
+                  format.percent(
+                    Number(v.signing.index_offset) /
+                      (latest - Number(v.signing.start_height))
+                  )
+                }}</span
+              >
               {{ v.signing?.index_offset }}
             </td>
             <td class="text-right">{{ v.signing?.start_height }}</td>
@@ -308,7 +356,9 @@ function changeTab(v: string) {
             <tr>
               <td colspan="2" class="text-right">
                 {{ $t('uptime.minimum_uptime') }}:
-                <span class="lowercase tooltip" :data-tip="`Window size: ${slashingParam.signed_blocks_window}`"
+                <span
+                  class="lowercase tooltip"
+                  :data-tip="`Window size: ${slashingParam.signed_blocks_window}`"
                   ><span class="ml-2 btn btn-error btn-xs">{{
                     format.percent(slashingParam.min_signed_per_window)
                   }}</span>

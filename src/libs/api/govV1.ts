@@ -21,7 +21,10 @@ interface ProposalWire {
   };
 }
 
-export function proposalAdapter(p: ProposalWire | undefined, setProposalId = true): GovProposal {
+export function proposalAdapter(
+  p: ProposalWire | undefined,
+  setProposalId = true
+): GovProposal {
   if (p) {
     const [first] = p.messages ?? [];
     if (first) p.content = first.content ?? first;
@@ -41,7 +44,10 @@ export function proposalAdapter(p: ProposalWire | undefined, setProposalId = tru
 // that serves gov v1 shares.
 export function proposalsAdapter(setProposalId = true) {
   return (source: unknown): Promise<PaginatedProposals> => {
-    const { proposals, pagination } = source as { proposals: ProposalWire[]; pagination: PaginatedProposals['pagination'] };
+    const { proposals, pagination } = source as {
+      proposals: ProposalWire[];
+      pagination: PaginatedProposals['pagination'];
+    };
     return Promise.resolve({
       proposals: proposals.map((p) => proposalAdapter(p, setProposalId)),
       pagination,
@@ -52,6 +58,8 @@ export function proposalsAdapter(setProposalId = true) {
 export function proposalByIdAdapter(setProposalId = true) {
   return (source: unknown): Promise<{ proposal: GovProposal }> => {
     const { proposal } = source as { proposal: ProposalWire | undefined };
-    return Promise.resolve({ proposal: proposalAdapter(proposal, setProposalId) });
+    return Promise.resolve({
+      proposal: proposalAdapter(proposal, setProposalId),
+    });
   };
 }

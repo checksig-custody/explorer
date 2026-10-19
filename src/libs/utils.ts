@@ -30,7 +30,26 @@ export function uint8ArrayToString(arr: Uint8Array) {
   return str;
 }
 
-const COUNT_ABBRS = ['', 'K', 'M', 'B', 't', 'q', 's', 'S', 'o', 'n', 'd', 'U', 'D', 'T', 'Qt', 'Qd', 'Sd', 'St'];
+const COUNT_ABBRS = [
+  '',
+  'K',
+  'M',
+  'B',
+  't',
+  'q',
+  's',
+  'S',
+  'o',
+  'n',
+  'd',
+  'U',
+  'D',
+  'T',
+  'Qt',
+  'Qd',
+  'Sd',
+  'St',
+];
 
 export function formatNumber(count: number, withAbbr = false, decimals = 2) {
   const i = count === 0 ? count : Math.floor(Math.log(count) / Math.log(1000));
@@ -49,9 +68,16 @@ export function formatTokenAmount(
   tokenDenom: string | { denom_trace?: { base_denom?: string } } = 'uatom',
   format = true
 ) {
-  const denom = typeof tokenDenom === 'string' ? tokenDenom : tokenDenom.denom_trace?.base_denom;
+  const denom =
+    typeof tokenDenom === 'string'
+      ? tokenDenom
+      : tokenDenom.denom_trace?.base_denom;
   const asset = assets.find((a) => a.base === denom);
-  const exp = asset ? asset.exponent : String(denom).startsWith('gravity') ? 18 : 6;
+  const exp = asset
+    ? asset.exponent
+    : String(denom).startsWith('gravity')
+      ? 18
+      : 6;
 
   const amount = Number(tokenAmount) / 10 ** Number(exp);
   if (amount > 10) {

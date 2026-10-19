@@ -141,7 +141,9 @@ function selectTab(tabName: string) {
 
 const executions = computed(() => {
   return schemas.value
-    .filter((x) => x.path.includes('execute_msg') || x.path.includes('query_msg'))
+    .filter(
+      (x) => x.path.includes('execute_msg') || x.path.includes('query_msg')
+    )
     .map((x) => JSON.parse(x.sourceCode || '{}') as Schema);
   // if(raw && raw.sourceCode) {
   //   return JSON.parse(raw.sourceCode) as Schema
@@ -157,7 +159,9 @@ function callFunction(title: string, method: string, arg: Argument) {
   const args: Record<string, string> = {};
   if (arg.properties)
     Object.keys(arg.properties).forEach((k) => {
-      const input = document.querySelector<HTMLInputElement>(`input[name="${method}-${k}"]`);
+      const input = document.querySelector<HTMLInputElement>(
+        `input[name="${method}-${k}"]`
+      );
       if (input) {
         args[k] = input.value;
       }
@@ -169,7 +173,10 @@ function callFunction(title: string, method: string, arg: Argument) {
     const execution: Record<string, Record<string, string>> = {};
     execution[method] = args;
     console.log('execution', execution);
-    dialog.open('wasm_execute_contract', { contract: props.contract, execution });
+    dialog.open('wasm_execute_contract', {
+      contract: props.contract,
+      execution,
+    });
   } else {
     // QueryMsg
     wasmStore.wasmClient
@@ -189,35 +196,66 @@ function callFunction(title: string, method: string, arg: Argument) {
 <template>
   <div class="bg-base-100 px-4 pt-3 pb-4 rounded mb-4 shadow">
     <div role="tablist" class="tabs tabs-boxed">
-      <a role="tab" class="tab tooltip tooltip-right tooltip-success" data-tip="Powered By WELLDONE Studio">
+      <a
+        role="tab"
+        class="tab tooltip tooltip-right tooltip-success"
+        data-tip="Powered By WELLDONE Studio"
+      >
         <div class="w-8 rounded">
-          <img src="../assets/images/welldone-logo.svg" alt="Powered By WELLDONE Studio">
+          <img
+            src="../assets/images/welldone-logo.svg"
+            alt="Powered By WELLDONE Studio"
+          />
         </div>
       </a>
-      <a role="tab" class="tab" :class="{ 'tab-active': tab === 'verification' }" @click="selectTab('verification')"
+      <a
+        role="tab"
+        class="tab"
+        :class="{ 'tab-active': tab === 'verification' }"
+        @click="selectTab('verification')"
         >Verification</a
       >
-      <a role="tab" class="tab" :class="{ 'tab-active': tab === 'executions' }" @click="selectTab('executions')"
+      <a
+        role="tab"
+        class="tab"
+        :class="{ 'tab-active': tab === 'executions' }"
+        @click="selectTab('executions')"
         >Functions</a
       >
-      <a role="tab" class="tab" :class="{ 'tab-active': tab === 'source_code' }" @click="selectTab('source_code')"
+      <a
+        role="tab"
+        class="tab"
+        :class="{ 'tab-active': tab === 'source_code' }"
+        @click="selectTab('source_code')"
         >Source Code</a
       >
     </div>
     <div class="">
-      <div v-if="tab === 'verification'"><DynamicComponent :value="verification" /></div>
+      <div v-if="tab === 'verification'">
+        <DynamicComponent :value="verification" />
+      </div>
       <div v-if="tab === 'executions'" class="">
-        <div v-for="({ title, oneOf }, ti) in executions" :key="ti" class="join join-vertical w-full mt-2">
+        <div
+          v-for="({ title, oneOf }, ti) in executions"
+          :key="ti"
+          class="join join-vertical w-full mt-2"
+        >
           <div v-for="(m, mi) in oneOf ?? []" :key="mi">
             <div
               v-for="(prop, method) in m.properties"
               :key="method"
               class="collapse collapse-arrow join-item border border-base-300"
             >
-              <input type="radio" name="my-accordion-1" :checked="false">
-              <div class="collapse-title font-medium">{{ title }}::{{ method }}</div>
+              <input type="radio" name="my-accordion-1" :checked="false" />
+              <div class="collapse-title font-medium">
+                {{ title }}::{{ method }}
+              </div>
               <div class="collapse-content">
-                <div v-for="(p, name) in prop.properties" :key="name" class="form-control pb-2">
+                <div
+                  v-for="(p, name) in prop.properties"
+                  :key="name"
+                  class="form-control pb-2"
+                >
                   <label class="label">
                     <span class="label-text">{{ name }}</span>
                     <span />
@@ -227,7 +265,7 @@ function callFunction(title: string, method: string, arg: Argument) {
                     type="text"
                     :placeholder="p.format"
                     class="input input-sm border border-gray-300 dark:border-gray-600 w-full"
-                  >
+                  />
                 </div>
                 <div>
                   <label
@@ -237,7 +275,12 @@ function callFunction(title: string, method: string, arg: Argument) {
                     @click="callFunction(title, method, prop)"
                     >{{ method }}</label
                   >
-                  <label v-else class="btn btn-sm" @click="callFunction(title, method, prop)">{{ method }}</label>
+                  <label
+                    v-else
+                    class="btn btn-sm"
+                    @click="callFunction(title, method, prop)"
+                    >{{ method }}</label
+                  >
                 </div>
                 <div v-if="result[`${title}-${method}`]" class="mt-2">
                   <JsonViewer
@@ -261,7 +304,7 @@ function callFunction(title: string, method: string, arg: Argument) {
           :key="sc.path"
           class="collapse collapse-arrow join-item border border-base-300"
         >
-          <input type="radio" name="sourceCodeAccordion" :checked="false">
+          <input type="radio" name="sourceCodeAccordion" :checked="false" />
           <div class="collapse-title font-medium">{{ sc.path }}</div>
           <!-- eslint-disable-next-line vue/no-v-html -- shiki escapes the code it highlights -->
           <div class="collapse-content overflow-auto" v-html="sc.sourceCode" />
@@ -269,7 +312,9 @@ function callFunction(title: string, method: string, arg: Argument) {
       </div>
     </div>
     <div v-show="tab === 'verification'" class="text-center">
-      <div v-if="Object.keys(verification).length == 0">Haven't found verification</div>
+      <div v-if="Object.keys(verification).length == 0">
+        Haven't found verification
+      </div>
       <button
         v-show="tab === 'verification'"
         class="btn btn-primary mt-5"
@@ -281,8 +326,13 @@ function callFunction(title: string, method: string, arg: Argument) {
     </div>
 
     <!-- alert-info -->
-    <div class="text-[#00cfe8] bg-[rgba(0,207,232,0.12)] rounded shadow mt-4 alert-info">
-      <div class="drop-shadow-md px-4 pt-2 pb-2" style="box-shadow: rgba(0, 207, 232, 0.4) 0px 6px 15px -7px">
+    <div
+      class="text-[#00cfe8] bg-[rgba(0,207,232,0.12)] rounded shadow mt-4 alert-info"
+    >
+      <div
+        class="drop-shadow-md px-4 pt-2 pb-2"
+        style="box-shadow: rgba(0, 207, 232, 0.4) 0px 6px 15px -7px"
+      >
         <h2 class="text-base font-semibold">{{ $t('consensus.tips') }}</h2>
       </div>
       <div class="px-4 py-4">
@@ -291,7 +341,9 @@ function callFunction(title: string, method: string, arg: Argument) {
             {{ $t('cosmwasm.tips_description_1') }}
           </li>
           <li>
-            <a href="https://docs.welldonestudio.io/code/verification-api/" target="_blank"
+            <a
+              href="https://docs.welldonestudio.io/code/verification-api/"
+              target="_blank"
               >Link to Verification API Manual</a
             >
           </li>

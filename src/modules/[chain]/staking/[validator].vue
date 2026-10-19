@@ -12,7 +12,11 @@ import {
 import { onMounted, computed, ref } from 'vue';
 import { Icon } from '@iconify/vue';
 import CommissionRate from '@/components/ValidatorCommissionRate.vue';
-import { consensusPubkeyToHexAddress, operatorAddressToAccount, pubKeyToValcons } from '@/libs';
+import {
+  consensusPubkeyToHexAddress,
+  operatorAddressToAccount,
+  pubKeyToValcons,
+} from '@/libs';
 import {
   PageRequest,
   type Coin,
@@ -39,7 +43,10 @@ const page = new PageRequest();
 const validator: string = props.validator;
 
 const v = ref<Partial<Validator>>({});
-const cache = JSON.parse(localStorage.getItem('avatars') || '{}') as Record<string, string> | null;
+const cache = JSON.parse(localStorage.getItem('avatars') || '{}') as Record<
+  string,
+  string
+> | null;
 const avatars = ref<Record<string, string>>(cache ?? {});
 const identity = ref('');
 const rewards = ref([] as Coin[] | undefined);
@@ -57,11 +64,13 @@ const selfBonded = ref<Partial<Delegation>>({});
 
 addresses.value.account = operatorAddressToAccount(validator);
 // load self bond
-void staking.fetchValidatorDelegation(validator, addresses.value.account).then((x) => {
-  if (x) {
-    selfBonded.value = x.delegation_response;
-  }
-});
+void staking
+  .fetchValidatorDelegation(validator, addresses.value.account)
+  .then((x) => {
+    if (x) {
+      selfBonded.value = x.delegation_response;
+    }
+  });
 
 const txs = ref({} as PaginatedTxs);
 
@@ -76,12 +85,17 @@ const apr = computed(() => {
   const bondedRatio =
     Number(staking.pool.bonded_tokens) / Number(useBankStore().supply.amount);
 
-  return format.percent(((1 - communityTax) * (1 - rate) * Number(inflation)) / bondedRatio);
+  return format.percent(
+    ((1 - communityTax) * (1 - rate) * Number(inflation)) / bondedRatio
+  );
 });
 
 const selfRate = computed(() => {
   if (selfBonded.value.balance?.amount) {
-    return format.calculatePercent(selfBonded.value.balance.amount, v.value.tokens);
+    return format.calculatePercent(
+      selfBonded.value.balance.amount,
+      v.value.tokens
+    );
   }
   return '-';
 });
@@ -89,7 +103,9 @@ const selfRate = computed(() => {
 const logo = (identity?: string) => {
   if (!identity) return '';
   const url = avatars.value[identity] || '';
-  return url.startsWith('http') ? url : `https://s3.amazonaws.com/keybase_processed_uploads/${url}`;
+  return url.startsWith('http')
+    ? url
+    : `https://s3.amazonaws.com/keybase_processed_uploads/${url}`;
 };
 
 const fetchAvatar = (identity: string) => {
@@ -130,28 +146,38 @@ onMounted(() => {
       if (identity.value && !avatars.value[identity.value])
         loadAvatar(identity.value);
 
-      addresses.value.hex = consensusPubkeyToHexAddress(v.value.consensus_pubkey);
+      addresses.value.hex = consensusPubkeyToHexAddress(
+        v.value.consensus_pubkey
+      );
       addresses.value.valCons = pubKeyToValcons(
         v.value.consensus_pubkey,
         blockchain.current?.bech32ConsensusPrefix || ''
       );
     });
-    void blockchain.rpc.getDistributionValidatorOutstandingRewards(validator).then((res) => {
-      rewards.value = res.rewards?.rewards?.sort((a, b) => Number(b.amount) - Number(a.amount));
-      res.rewards?.rewards?.forEach((x) => {
-        if (x.denom.startsWith('ibc/')) {
-          void format.fetchDenomTrace(x.denom);
-        }
+    void blockchain.rpc
+      .getDistributionValidatorOutstandingRewards(validator)
+      .then((res) => {
+        rewards.value = res.rewards?.rewards?.sort(
+          (a, b) => Number(b.amount) - Number(a.amount)
+        );
+        res.rewards?.rewards?.forEach((x) => {
+          if (x.denom.startsWith('ibc/')) {
+            void format.fetchDenomTrace(x.denom);
+          }
+        });
       });
-    });
-    void blockchain.rpc.getDistributionValidatorCommission(validator).then((res) => {
-      commission.value = res.commission?.commission?.sort((a, b) => Number(b.amount) - Number(a.amount));
-      res.commission?.commission?.forEach((x) => {
-        if (x.denom.startsWith('ibc/')) {
-          void format.fetchDenomTrace(x.denom);
-        }
+    void blockchain.rpc
+      .getDistributionValidatorCommission(validator)
+      .then((res) => {
+        commission.value = res.commission?.commission?.sort(
+          (a, b) => Number(b.amount) - Number(a.amount)
+        );
+        res.commission?.commission?.forEach((x) => {
+          if (x.denom.startsWith('ibc/')) {
+            void format.fetchDenomTrace(x.denom);
+          }
+        });
       });
-    });
 
     // Disable delegations due to its bad performance
     // Comment out the following code if you want to enable it
@@ -186,9 +212,11 @@ function pageload(p: number) {
   page.setPage(p);
   page.limit = 10;
 
-  void blockchain.rpc.getStakingValidatorsDelegations(validator, page).then((res) => {
-    delegations.value = res;
-  });
+  void blockchain.rpc
+    .getStakingValidatorsDelegations(validator, page)
+    .then((res) => {
+      delegations.value = res;
+    });
 }
 
 const events = ref({} as PaginatedTxs);
@@ -205,7 +233,11 @@ function loadPowerEvents(p: number, type: EventType) {
   page.setPage(p);
   page.setPageSize(5);
   void blockchain.rpc
-    .getTxs("?order_by=2&events={type}.validator='{validator}'", { type: selectedEventType.value, validator }, page)
+    .getTxs(
+      "?order_by=2&events={type}.validator='{validator}'",
+      { type: selectedEventType.value, validator },
+      page
+    )
     .then((res) => {
       events.value = res;
     });
@@ -217,14 +249,18 @@ function pagePowerEvents(page: number) {
 
 pagePowerEvents(1);
 
-function mapEvents(events: { type: string; attributes: { key: string; value: string }[] }[]) {
+function mapEvents(
+  events: { type: string; attributes: { key: string; value: string }[] }[]
+) {
   const selectedType: string = selectedEventType.value;
   const attributes = events
     .filter((x) => x.type === selectedType)
     .filter(
       (x) =>
         x.attributes.findIndex(
-          (attr) => attr.value === validator || attr.value === toBase64(stringToUint8Array(validator))
+          (attr) =>
+            attr.value === validator ||
+            attr.value === toBase64(stringToUint8Array(validator))
         ) > -1
     )
     .map((x) => {
@@ -237,7 +273,9 @@ function mapEvents(events: { type: string; attributes: { key: string; value: str
         });
       } else {
         x.attributes.forEach((attr) => {
-          output[uint8ArrayToString(fromBase64(attr.key))] = uint8ArrayToString(fromBase64(attr.value));
+          output[uint8ArrayToString(fromBase64(attr.key))] = uint8ArrayToString(
+            fromBase64(attr.value)
+          );
         });
       }
 
@@ -250,9 +288,13 @@ function mapEvents(events: { type: string; attributes: { key: string; value: str
   return coins.map((coin) => format.formatToken(coin)).join(', ');
 }
 
-function mapDelegators(messages: { delegator_address?: string; grantee?: string }[] | undefined) {
+function mapDelegators(
+  messages: { delegator_address?: string; grantee?: string }[] | undefined
+) {
   if (!messages) return [];
-  return Array.from(new Set(messages.map((x) => x.delegator_address || x.grantee)));
+  return Array.from(
+    new Set(messages.map((x) => x.delegator_address || x.grantee))
+  );
 }
 </script>
 <template>
@@ -273,8 +315,12 @@ function mapDelegators(messages: { delegator_address?: string; grantee?: string 
                       loadAvatar(identity);
                     }
                   "
-                >
-                <Icon v-else class="text-8xl" :icon="`mdi-help-circle-outline`" />
+                />
+                <Icon
+                  v-else
+                  class="text-8xl"
+                  :icon="`mdi-help-circle-outline`"
+                />
               </div>
             </div>
             <div class="mx-2">
@@ -304,7 +350,11 @@ function mapDelegators(messages: { delegator_address?: string; grantee?: string 
                 </span>
                 <a
                   :href="v?.description?.website || '#'"
-                  :class="v?.description?.website ? 'cursor-pointer' : 'cursor-default'"
+                  :class="
+                    v?.description?.website
+                      ? 'cursor-pointer'
+                      : 'cursor-default'
+                  "
                 >
                   {{ v.description?.website || '-' }}
                 </a>
@@ -346,9 +396,19 @@ function mapDelegators(messages: { delegator_address?: string; grantee?: string 
             <div class="card-list">
               <div class="flex items-center mb-2">
                 <Icon icon="mdi-lock" class="text-xl mr-1" />
-                <span class="font-bold mr-2">{{ $t('staking.validator_bond_share') }}: </span>
+                <span class="font-bold mr-2"
+                  >{{ $t('staking.validator_bond_share') }}:
+                </span>
                 <span>
-                  {{ format.formatToken({ amount: v.validator_bond_shares ?? '', denom: staking.params.bond_denom }, false) }}
+                  {{
+                    format.formatToken(
+                      {
+                        amount: v.validator_bond_shares ?? '',
+                        denom: staking.params.bond_denom,
+                      },
+                      false
+                    )
+                  }}
                 </span>
               </div>
               <div class="flex items-center">
@@ -357,7 +417,15 @@ function mapDelegators(messages: { delegator_address?: string; grantee?: string 
                   >{{ $t('staking.liquid_staking_shares') }}:
                 </span>
                 <span>
-                  {{ format.formatToken({ amount: v.liquid_shares ?? '', denom: staking.params.bond_denom }, false) }}
+                  {{
+                    format.formatToken(
+                      {
+                        amount: v.liquid_shares ?? '',
+                        denom: staking.params.bond_denom,
+                      },
+                      false
+                    )
+                  }}
                 </span>
               </div>
             </div>
@@ -366,7 +434,10 @@ function mapDelegators(messages: { delegator_address?: string; grantee?: string 
         <div class="flex-1">
           <div class="flex flex-col mt-10">
             <div class="flex mb-2">
-              <div class="flex items-center justify-center rounded w-10 h-10" style="border: 1px solid #666">
+              <div
+                class="flex items-center justify-center rounded w-10 h-10"
+                style="border: 1px solid #666"
+              >
                 <Icon icon="mdi-coin" class="text-3xl" />
               </div>
               <div class="ml-3 flex flex-col justify-center">
@@ -382,27 +453,40 @@ function mapDelegators(messages: { delegator_address?: string; grantee?: string 
               </div>
             </div>
             <div class="flex mb-2">
-              <div class="flex items-center justify-center rounded w-10 h-10" style="border: 1px solid #666">
+              <div
+                class="flex items-center justify-center rounded w-10 h-10"
+                style="border: 1px solid #666"
+              >
                 <Icon icon="mdi-percent" class="text-3xl" />
               </div>
               <div class="ml-3 flex flex-col justify-center">
-                <h4>{{ format.formatToken(selfBonded.balance) }} ({{ selfRate }})</h4>
+                <h4>
+                  {{ format.formatToken(selfBonded.balance) }} ({{ selfRate }})
+                </h4>
                 <span class="text-sm">{{ $t('staking.self_bonded') }}</span>
               </div>
             </div>
 
             <div class="flex mb-2">
-              <div class="flex items-center justify-center rounded w-10 h-10" style="border: 1px solid #666">
+              <div
+                class="flex items-center justify-center rounded w-10 h-10"
+                style="border: 1px solid #666"
+              >
                 <Icon icon="mdi-account-tie" class="text-3xl" />
               </div>
 
               <div class="ml-3 flex flex-col">
-                <h4>{{ v.min_self_delegation }} {{ staking.params.bond_denom }}</h4>
+                <h4>
+                  {{ v.min_self_delegation }} {{ staking.params.bond_denom }}
+                </h4>
                 <span class="text-sm">{{ $t('staking.min_self') }}</span>
               </div>
             </div>
             <div class="flex mb-2">
-              <div class="flex items-center justify-center rounded w-10 h-10" style="border: 1px solid #666">
+              <div
+                class="flex items-center justify-center rounded w-10 h-10"
+                style="border: 1px solid #666"
+              >
                 <Icon icon="mdi-finance" class="text-3xl" />
               </div>
               <div class="ml-3 flex flex-col justify-center">
@@ -412,8 +496,14 @@ function mapDelegators(messages: { delegator_address?: string; grantee?: string 
             </div>
 
             <div class="flex mb-2">
-              <div class="flex items-center justify-center rounded w-10 h-10" style="border: 1px solid #666">
-                <Icon icon="mdi:arrow-down-bold-circle-outline" class="text-3xl" />
+              <div
+                class="flex items-center justify-center rounded w-10 h-10"
+                style="border: 1px solid #666"
+              >
+                <Icon
+                  icon="mdi:arrow-down-bold-circle-outline"
+                  class="text-3xl"
+                />
               </div>
               <div class="ml-3 flex flex-col justify-center">
                 <h4>{{ v.unbonding_height }}</h4>
@@ -424,11 +514,18 @@ function mapDelegators(messages: { delegator_address?: string; grantee?: string 
             </div>
 
             <div class="flex mb-2">
-              <div class="flex items-center justify-center rounded w-10 h-10" style="border: 1px solid #666">
+              <div
+                class="flex items-center justify-center rounded w-10 h-10"
+                style="border: 1px solid #666"
+              >
                 <Icon icon="mdi-clock" class="text-3xl" />
               </div>
               <div class="ml-3 flex flex-col justify-center">
-                <h4 v-if="v.unbonding_time && !v.unbonding_time.startsWith('1970')">
+                <h4
+                  v-if="
+                    v.unbonding_time && !v.unbonding_time.startsWith('1970')
+                  "
+                >
                   {{ format.toDay(v.unbonding_time, 'from') }}
                 </h4>
                 <h4 v-else>-</h4>
@@ -449,7 +546,10 @@ function mapDelegators(messages: { delegator_address?: string; grantee?: string 
         <div class="text-lg font-semibold text-main px-4 pt-4">
           {{ $t('staking.commissions_&_rewards') }}
         </div>
-        <div class="px-4 mt-1 flex flex-col justify-between pb-4 max-h-72" style="height: calc(100% - 50px)">
+        <div
+          class="px-4 mt-1 flex flex-col justify-between pb-4 max-h-72"
+          style="height: calc(100% - 50px)"
+        >
           <div class="overflow-auto flex-1">
             <div class="text-sm mb-2">{{ $t('staking.commissions') }}</div>
             <div
@@ -462,8 +562,14 @@ function mapDelegators(messages: { delegator_address?: string; grantee?: string 
             >
               {{ format.formatToken2(i) }}
             </div>
-            <div class="text-sm mb-2 mt-2">{{ $t('staking.outstanding') }} {{ $t('account.rewards') }}</div>
-            <div v-for="(i, k) in rewards" :key="`reward-${k}`" class="mr-1 mb-1 badge text-xs">
+            <div class="text-sm mb-2 mt-2">
+              {{ $t('staking.outstanding') }} {{ $t('account.rewards') }}
+            </div>
+            <div
+              v-for="(i, k) in rewards"
+              :key="`reward-${k}`"
+              class="mr-1 mb-1 badge text-xs"
+            >
               {{ format.formatToken2(i) }}
             </div>
           </div>
@@ -496,7 +602,10 @@ function mapDelegators(messages: { delegator_address?: string; grantee?: string 
                 @click="copyWebsite(addresses.account || '')"
               />
             </div>
-            <RouterLink class="text-xs text-primary" :to="`/${chain}/account/${addresses.account}`">
+            <RouterLink
+              class="text-xs text-primary"
+              :to="`/${chain}/account/${addresses.account}`"
+            >
               {{ addresses.account }}
             </RouterLink>
           </div>
@@ -554,11 +663,15 @@ function mapDelegators(messages: { delegator_address?: string; grantee?: string 
       </div>
     </div>
 
-    <div v-if="delegations.delegation_responses" class="mt-5 bg-base-100 shadow rounded p-4">
+    <div
+      v-if="delegations.delegation_responses"
+      class="mt-5 bg-base-100 shadow rounded p-4"
+    >
       <div class="text-lg mb-4 font-semibold">
         {{ $t('account.delegations') }}
         <span class="float-right">
-          {{ delegations.delegation_responses?.length || 0 }} / {{ delegations.pagination?.total || 0 }}
+          {{ delegations.delegation_responses?.length || 0 }} /
+          {{ delegations.pagination?.total || 0 }}
         </span>
       </div>
       <div class="rounded overflow-auto">
@@ -570,7 +683,13 @@ function mapDelegators(messages: { delegator_address?: string; grantee?: string 
             <th class="text-left pl-4">{{ $t('account.delegation') }}</th>
           </thead>
           <tbody>
-            <tr v-for="{ balance, delegation } in delegations.delegation_responses" :key="delegation.delegator_address">
+            <tr
+              v-for="{
+                balance,
+                delegation,
+              } in delegations.delegation_responses"
+              :key="delegation.delegator_address"
+            >
               <td class="text-sm text-primary">
                 {{ delegation.delegator_address }}
               </td>
@@ -580,7 +699,11 @@ function mapDelegators(messages: { delegator_address?: string; grantee?: string 
             </tr>
           </tbody>
         </table>
-        <PaginationBar :total="delegations.pagination?.total" :limit="page.limit" :callback="pageload" />
+        <PaginationBar
+          :total="delegations.pagination?.total"
+          :limit="page.limit"
+          :callback="pageload"
+        />
       </div>
     </div>
 
@@ -603,7 +726,9 @@ function mapDelegators(messages: { delegator_address?: string; grantee?: string 
           <tbody>
             <tr v-for="item in txs.tx_responses" :key="item.txhash">
               <td class="text-sm text-primary">
-                <RouterLink :to="`/${props.chain}/block/${item.height}`">{{ item.height }}</RouterLink>
+                <RouterLink :to="`/${props.chain}/block/${item.height}`">{{
+                  item.height
+                }}</RouterLink>
               </td>
               <td class="truncate text-primary" style="max-width: 200px">
                 <RouterLink :to="`/${props.chain}/tx/${item.txhash}`">
@@ -612,8 +737,14 @@ function mapDelegators(messages: { delegator_address?: string; grantee?: string 
               </td>
               <td>
                 <div class="flex items-center">
-                  <span class="mr-2">{{ format.messages(item.tx.body.messages) }}</span>
-                  <Icon v-if="item.code === 0" icon="mdi-check" class="text-yes" />
+                  <span class="mr-2">{{
+                    format.messages(item.tx.body.messages)
+                  }}</span>
+                  <Icon
+                    v-if="item.code === 0"
+                    icon="mdi-check"
+                    class="text-yes"
+                  />
                   <Icon v-else icon="mdi-multiply" class="text-no" />
                 </div>
               </td>
@@ -672,24 +803,36 @@ function mapDelegators(messages: { delegator_address?: string; grantee?: string 
                 >
                   <RouterLink :to="`/${props.chain}/tx/${item.txhash}`">
                     <span class="mr-2">
-                      {{ selectedEventType === EventType.Delegate ? '+' : '-' }} {{ mapEvents(item.events) }}</span
+                      {{ selectedEventType === EventType.Delegate ? '+' : '-' }}
+                      {{ mapEvents(item.events) }}</span
                     >
                   </RouterLink>
-                  <Icon v-if="item.code === 0" icon="mdi-check" class="text-yes" />
+                  <Icon
+                    v-if="item.code === 0"
+                    icon="mdi-check"
+                    class="text-yes"
+                  />
                   <Icon v-else icon="mdi-multiply" class="text-no" />
                 </div>
               </td>
               <td width="150">
-                <RouterLink class="text-primary mb-0" :to="`/${props.chain}/block/${item.height}`">{{
-                  item.height
-                }}</RouterLink
-                ><br>
-                <span class="text-xs pt-0 mt-0">{{ format.toDay(item.timestamp, 'from') }}</span>
+                <RouterLink
+                  class="text-primary mb-0"
+                  :to="`/${props.chain}/block/${item.height}`"
+                  >{{ item.height }}</RouterLink
+                ><br />
+                <span class="text-xs pt-0 mt-0">{{
+                  format.toDay(item.timestamp, 'from')
+                }}</span>
               </td>
             </tr>
           </tbody>
         </table>
-        <PaginationBar :total="events.pagination?.total" :limit="page.limit" :callback="pagePowerEvents" />
+        <PaginationBar
+          :total="events.pagination?.total"
+          :limit="page.limit"
+          :callback="pagePowerEvents"
+        />
       </div>
     </div>
     <!-- end -->

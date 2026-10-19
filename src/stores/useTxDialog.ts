@@ -32,7 +32,12 @@ export const useTxDialog = defineStore('txDialogStore', {
     setParams(param: unknown) {
       this.params = JSON.stringify(param);
     },
-    openWithArgument(type: string, sender: string, endpoint: string, param: unknown) {
+    openWithArgument(
+      type: string,
+      sender: string,
+      endpoint: string,
+      param: unknown
+    ) {
       this.type = type;
       this.sender = sender;
       this.endpoint = endpoint;
@@ -56,7 +61,10 @@ export const useTxDialog = defineStore('txDialogStore', {
       };
     }) {
       console.log(tx.detail);
-      if (tx.detail.hash) void router.push({ path: `/${this.blockchain.chainName}/tx/${tx.detail.hash}` });
+      if (tx.detail.hash)
+        void router.push({
+          path: `/${this.blockchain.chainName}/tx/${tx.detail.hash}`,
+        });
     },
     confirmed(tx: unknown) {
       console.log('confirmed:', tx);

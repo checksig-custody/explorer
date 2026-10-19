@@ -3,7 +3,8 @@ export interface SupplyAssetInfo {
   symbol?: string | undefined;
   base?: string | undefined;
   display?: string | undefined;
-  logo_URIs?: { png?: string | undefined; svg?: string | undefined } | undefined;
+  logo_URIs?:
+    { png?: string | undefined; svg?: string | undefined } | undefined;
 }
 
 export interface SupplyRow {
@@ -18,7 +19,9 @@ export interface SupplyRow {
 // back to the coin's own denom.
 export function supplyRow(
   coin: { denom: string; amount: string },
-  asset: SupplyAssetInfo | undefined, amountOf: (denom: string) => string): SupplyRow {
+  asset: SupplyAssetInfo | undefined,
+  amountOf: (denom: string) => string
+): SupplyRow {
   const denom = asset?.symbol || coin.denom;
   const parts = denom.split('/');
   return {

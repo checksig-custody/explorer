@@ -8,21 +8,32 @@ import { computed, onMounted, ref } from 'vue';
 
 import { fromBase64, toHex } from '@cosmjs/encoding';
 
-import { registry as nameMatcha, type NameServiceLookupResult } from '@leapwallet/name-matcha';
+import {
+  registry as nameMatcha,
+  type NameServiceLookupResult,
+} from '@leapwallet/name-matcha';
 
 const chainStore = useBlockchain();
 // Strings, other primitives, or the empty array ArrayElement hands over.
-const props = defineProps<{ value: string | number | boolean | bigint | unknown[] | null | undefined }>();
+const props = defineProps<{
+  value: string | number | boolean | bigint | unknown[] | null | undefined;
+}>();
 const format = useFormatter();
 function isMD() {
-  if (props.value && (String(props.value).includes('\n') || String(props.value).includes('\\n'))) {
+  if (
+    props.value &&
+    (String(props.value).includes('\n') || String(props.value).includes('\\n'))
+  ) {
     return true;
   }
   return false;
 }
 
 function isAddress() {
-  return isBech32Address(props.value ? String(props.value) : undefined) && !String(props.value).includes('valoper1');
+  return (
+    isBech32Address(props.value ? String(props.value) : undefined) &&
+    !String(props.value).includes('valoper1')
+  );
 }
 
 const text = computed(() => {
@@ -33,7 +44,8 @@ const text = computed(() => {
       return format.validator(v) || v;
     }
     // 2023-06-12T03:09:38.253756368Z
-    case v.search(/^[1-9]\d{3}-\d{1,2}-\d{1,2}T\d{1,2}:\d{2}:\d{2}[.\d]*Z$/g) > -1: {
+    case v.search(/^[1-9]\d{3}-\d{1,2}-\d{1,2}T\d{1,2}:\d{2}:\d{2}[.\d]*Z$/g) >
+      -1: {
       return new Date(v).toLocaleString(navigator.language);
     }
     case toHexOutput.value:
@@ -42,7 +54,9 @@ const text = computed(() => {
   return v;
 });
 
-const names = ref<{ name: NameServiceLookupResult | null; provider: string }[]>([]);
+const names = ref<{ name: NameServiceLookupResult | null; provider: string }[]>(
+  []
+);
 
 onMounted(() => {
   if (isAddress())
@@ -59,9 +73,18 @@ const isConvertable = computed(() => {
 </script>
 <template>
   <!-- Chain text is untrusted: mermaid and echarts run code outside sanitize. -->
-  <MdPreview v-if="isMD()" :model-value="format.multiLine(String(value))" :sanitize="sanitizeMarkdownHtml" :no-mermaid="true" :no-echarts="true" class="md-editor-recover" />
+  <MdPreview
+    v-if="isMD()"
+    :model-value="format.multiLine(String(value))"
+    :sanitize="sanitizeMarkdownHtml"
+    :no-mermaid="true"
+    :no-echarts="true"
+    class="md-editor-recover"
+  />
   <span v-else-if="isAddress()" class="flex">
-    <RouterLink :to="`/${chainStore.chainName}/account/${text}`">{{ text }}</RouterLink>
+    <RouterLink :to="`/${chainStore.chainName}/account/${text}`">{{
+      text
+    }}</RouterLink>
     <div v-for="{ name, provider } in names" :key="provider">
       <span
         class="text-xs truncate relative py-1 px-2 p2-4 w-fit ml-2 rounded text-success tooltip"
@@ -75,7 +98,11 @@ const isConvertable = computed(() => {
   </span>
   <span v-else class="flex"
     ><span class="break-words max-w-5xl">{{ text }}</span>
-    <span v-if="isConvertable" class="ml-2 cursor-pointer" @click="toHexOutput = !toHexOutput">
+    <span
+      v-if="isConvertable"
+      class="ml-2 cursor-pointer"
+      @click="toHexOutput = !toHexOutput"
+    >
       <svg
         xmlns="http://www.w3.org/2000/svg"
         fill="none"

@@ -18,7 +18,12 @@ test('a denom with no asset config and no metadata still gets a row', () => {
 test('the asset symbol, base, display and logo win over the coin denom', () => {
   const row = supplyRow(
     { denom: 'uatom', amount: '5' },
-    { symbol: 'ATOM', base: 'uatom', display: 'atom', logo_URIs: { svg: 'a.svg', png: 'a.png' } },
+    {
+      symbol: 'ATOM',
+      base: 'uatom',
+      display: 'atom',
+      logo_URIs: { svg: 'a.svg', png: 'a.png' },
+    },
     amount
   );
   assert.deepEqual(row, {
@@ -31,6 +36,10 @@ test('the asset symbol, base, display and logo win over the coin denom', () => {
 });
 
 test('the png logo is used when there is no svg', () => {
-  const row = supplyRow({ denom: 'x', amount: '1' }, { logo_URIs: { png: 'a.png' } }, amount);
+  const row = supplyRow(
+    { denom: 'x', amount: '1' },
+    { logo_URIs: { png: 'a.png' } },
+    amount
+  );
   assert.equal(row.logo, 'a.png');
 });

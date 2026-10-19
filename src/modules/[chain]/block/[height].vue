@@ -28,7 +28,8 @@ const isFutureBlock = computed({
     const latest = store.latest.block?.header.height;
     const isFuture = latest ? target.value > Number(latest) : true;
     // eslint-disable-next-line vue/no-async-in-computed-properties -- existing behaviour: a watcher would refetch after every failed fetch
-    if (!isFuture && !current.value.block_id) void store.fetchBlock(target.value).then((x) => (current.value = x));
+    if (!isFuture && !current.value.block_id)
+      void store.fetchBlock(target.value).then((x) => (current.value = x));
     return isFuture;
   },
   set: (val) => {
@@ -59,7 +60,9 @@ function updateTarget() {
 
 onBeforeRouteUpdate((to, from, next) => {
   if (from.path !== to.path) {
-    void store.fetchBlock(String(to.params['height'])).then((x) => (current.value = x));
+    void store
+      .fetchBlock(String(to.params['height']))
+      .then((x) => (current.value = x));
     next();
   }
 });
@@ -72,7 +75,9 @@ onBeforeRouteUpdate((to, from, next) => {
         <Countdown :time="estimateTime" css="md:!text-5xl font-sans md:mx-5" />
         <div class="my-5">
           {{ $t('block.estimated_time') }}:
-          <span class="text-xl font-bold">{{ format.toLocaleDate(estimateDate) }}</span>
+          <span class="text-xl font-bold">{{
+            format.toLocaleDate(estimateDate)
+          }}</span>
         </div>
         <div class="pt-10 flex justify-center">
           <table class="table w-max rounded-lg bg-base-100">
@@ -85,11 +90,20 @@ onBeforeRouteUpdate((to, from, next) => {
               </tr>
               <tr v-if="edit">
                 <td colspan="2" class="text-center">
-                  <h3 class="text-lg font-bold">{{ $t('block.countdown_for_block_input') }}</h3>
+                  <h3 class="text-lg font-bold">
+                    {{ $t('block.countdown_for_block_input') }}
+                  </h3>
                   <div class="py-4">
                     <div class="join">
-                      <input v-model="newHeight" class="input input-bordered join-item" type="number">
-                      <button class="btn btn-primary join-item" @click="updateTarget()">
+                      <input
+                        v-model="newHeight"
+                        class="input input-bordered join-item"
+                        type="number"
+                      />
+                      <button
+                        class="btn btn-primary join-item"
+                        @click="updateTarget()"
+                      >
                         {{ $t('block.btn_update') }}
                       </button>
                     </div>

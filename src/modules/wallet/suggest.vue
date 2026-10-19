@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { suggestChain, type ChainInfo } from '@leapwallet/cosmos-snap-provider';
-import {
-  useDashboard,
-  useBlockchain,
-} from '@/stores';
+import { useDashboard, useBlockchain } from '@/stores';
 import type { ChainConfig } from '@/types/chaindata';
 import { NetworkType } from '@/types/chaindata';
 import { CosmosRestClient } from '@/libs/client';
@@ -55,7 +52,9 @@ async function initParamsForKeplr() {
   };
   const asset = chain.assets[0];
   if (!asset) throw new Error('The chain has no assets');
-  const coinDecimals = asset.denom_units.find((x) => x.denom === asset.symbol.toLowerCase())?.exponent || 6;
+  const coinDecimals =
+    asset.denom_units.find((x) => x.denom === asset.symbol.toLowerCase())
+      ?.exponent || 6;
   conf.value = JSON.stringify(
     {
       chainId: chainid,
@@ -129,7 +128,9 @@ async function initSnap() {
         {
           coinDenom: token.display,
           coinMinimalDenom: token.base,
-          coinDecimals: token.denom_units.find((x) => x.denom === token.display)?.exponent || 6,
+          coinDecimals:
+            token.denom_units.find((x) => x.denom === token.display)
+              ?.exponent || 6,
           coinGeckoId: token.coingecko_id,
           gasPriceStep: {
             low: 0.0625,
@@ -147,9 +148,11 @@ async function initSnap() {
 function suggest() {
   if (wallet.value === 'keplr') {
     if (window.keplr) {
-      window.keplr.experimentalSuggestChain(JSON.parse(conf.value)).catch((e: unknown) => {
-        error.value = String(e);
-      });
+      window.keplr
+        .experimentalSuggestChain(JSON.parse(conf.value))
+        .catch((e: unknown) => {
+          error.value = String(e);
+        });
     }
   } else {
     void suggestChain(JSON.parse(conf.value) as ChainInfo);
@@ -164,34 +167,62 @@ function suggest() {
         <option :value="NetworkType.Mainnet">Mainnet</option>
         <option :value="NetworkType.Testnet">Testnet</option>
       </select>
-      <select v-model="selected" class="select select-bordered mx-5" @change="onchange">
+      <select
+        v-model="selected"
+        class="select select-bordered mx-5"
+        @change="onchange"
+      >
         <option v-for="c in chains" :key="c.chainName" :value="c">
           {{ c.chainName }}
         </option>
       </select>
       <label
-        ><input v-model="wallet" type="radio" value="keplr" class="radio radio-bordered" @change="onchange">
+        ><input
+          v-model="wallet"
+          type="radio"
+          value="keplr"
+          class="radio radio-bordered"
+          @change="onchange"
+        />
         Keplr</label
       >
       <label
-        ><input v-model="wallet" type="radio" value="metamask" class="radio radio-bordered ml-4" @change="onchange">
+        ><input
+          v-model="wallet"
+          type="radio"
+          value="metamask"
+          class="radio radio-bordered ml-4"
+          @change="onchange"
+        />
         Metamask</label
       >
     </div>
     <div class="text-main mt-5">
-      <textarea v-model="conf" class="textarea textarea-bordered w-full" rows="15" />
+      <textarea
+        v-model="conf"
+        class="textarea textarea-bordered w-full"
+        rows="15"
+      />
     </div>
     <div class="mt-4 mb-4">
-      <button class="btn !bg-primary !border-primary text-white mr-2" @click="suggest">
+      <button
+        class="btn !bg-primary !border-primary text-white mr-2"
+        @click="suggest"
+      >
         Suggest {{ selected?.chainName }} TO {{ wallet }}
       </button>
 
       <div class="mt-4">
-        If the chain is not offically support on Keplr/Metamask Snap, you can submit these parameters to enable
-        Keplr/Metamask Snap.
+        If the chain is not offically support on Keplr/Metamask Snap, you can
+        submit these parameters to enable Keplr/Metamask Snap.
       </div>
     </div>
 
-    <AdBanner id="suggest-banner-ad" unit="banner" width="970px" height="90px" />
+    <AdBanner
+      id="suggest-banner-ad"
+      unit="banner"
+      width="970px"
+      height="90px"
+    />
   </div>
 </template>

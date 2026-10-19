@@ -198,7 +198,11 @@ export const useIndexModule = defineStore('module-index', {
           title: 'Community Pool',
           color: 'primary',
           icon: 'mdi-bank',
-          stats: formatter.formatTokens(this.communityPool?.filter((x) => x.denom === staking.params.bond_denom)),
+          stats: formatter.formatTokens(
+            this.communityPool?.filter(
+              (x) => x.denom === staking.params.bond_denom
+            )
+          ),
           change: 0,
         },
       ];
@@ -242,9 +246,11 @@ export const useIndexModule = defineStore('module-index', {
           this.coinInfo = x;
           // this.coinInfo.tickers.sort((a, b) => a.converted_last.usd - b.converted_last.usd)
         });
-        void this.coingecko.getMarketChart(this.days, firstAsset.coingecko_id).then((x) => {
-          this.marketData = x;
-        });
+        void this.coingecko
+          .getMarketChart(this.days, firstAsset.coingecko_id)
+          .then((x) => {
+            this.marketData = x;
+          });
       }
     },
     selectTicker(i: number) {
@@ -260,7 +266,11 @@ export const useIndexModule = defineStore('module-index', {
  * @param value - The value to set for the parameter.
  * @returns The new URL with the parameter added or replaced.
  */
-export function addOrReplaceUrlParam(url: string, param: string, value: string): string {
+export function addOrReplaceUrlParam(
+  url: string,
+  param: string,
+  value: string
+): string {
   // Parse the URL
   const urlObj = new URL(url, window.location.origin);
 

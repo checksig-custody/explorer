@@ -18,7 +18,10 @@ export interface ParamItem {
 
 // Object.entries types the values of an interface as any.
 function paramItems(params: object): ParamItem[] {
-  return Object.entries(params).map(([key, value]: [string, unknown]) => ({ subtitle: key, value }));
+  return Object.entries(params).map(([key, value]: [string, unknown]) => ({
+    subtitle: key,
+    value,
+  }));
 }
 
 export interface ParamCard {
@@ -139,20 +142,44 @@ export const useParamStore = defineStore('paramstore', {
     async handleStakingParams() {
       const res = await this.getStakingParams();
       const bond_denom = res.params.bond_denom;
-      this.staking.items = paramItems(res.params)
-        .filter((item) => !['min_commission_rate', 'min_self_delegation'].includes(item.subtitle));
-      void Promise.all([this.getStakingPool(), this.getBankTotal(bond_denom)]).then(([poolRes, supplyRes]) => {
+      this.staking.items = paramItems(res.params).filter(
+        (item) =>
+          !['min_commission_rate', 'min_self_delegation'].includes(
+            item.subtitle
+          )
+      );
+      void Promise.all([
+        this.getStakingPool(),
+        this.getBankTotal(bond_denom),
+      ]).then(([poolRes, supplyRes]) => {
         const pool = poolRes.pool;
         const amount = supplyRes.amount?.amount;
         const assets = this.blockchain.current?.assets;
         if (!assets) return;
-        const bondedAndSupply = this.chain.items.find((x) => x.subtitle === 'bonded_and_supply');
+        const bondedAndSupply = this.chain.items.find(
+          (x) => x.subtitle === 'bonded_and_supply'
+        );
         if (bondedAndSupply)
           bondedAndSupply.value = `${String(
-            formatNumber(Number(formatTokenAmount(assets, pool.bonded_tokens, 2, bond_denom, false)), true, 0)
+            formatNumber(
+              Number(
+                formatTokenAmount(
+                  assets,
+                  pool.bonded_tokens,
+                  2,
+                  bond_denom,
+                  false
+                )
+              ),
+              true,
+              0
+            )
           )}/${String(formatNumber(Number(formatTokenAmount(assets, amount, 2, bond_denom, false)), true, 0))}`;
-        const bondedRatio = this.chain.items.find((x) => x.subtitle === 'bonded_ratio');
-        if (bondedRatio) bondedRatio.value = `${String(percent(Number(pool.bonded_tokens) / Number(amount)))}%`;
+        const bondedRatio = this.chain.items.find(
+          (x) => x.subtitle === 'bonded_ratio'
+        );
+        if (bondedRatio)
+          bondedRatio.value = `${String(percent(Number(pool.bonded_tokens) / Number(amount)))}%`;
       });
     },
     async handleMintParam() {
@@ -179,21 +206,26 @@ export const useParamStore = defineStore('paramstore', {
       if (excludes?.includes('governance')) {
         return;
       }
-      void Promise.all([this.getGovParamsVoting(), this.getGovParamsDeposit(), this.getGovParamsTally()]).then(
-        ([voting, deposit, tally]) => {
-          const govParams = {
-            ...voting.voting_params,
-            ...deposit.deposit_params,
-            ...tally.tally_params,
-          };
-          this.gov.items = paramItems(govParams);
-        }
-      );
+      void Promise.all([
+        this.getGovParamsVoting(),
+        this.getGovParamsDeposit(),
+        this.getGovParamsTally(),
+      ]).then(([voting, deposit, tally]) => {
+        const govParams = {
+          ...voting.voting_params,
+          ...deposit.deposit_params,
+          ...tally.tally_params,
+        };
+        this.gov.items = paramItems(govParams);
+      });
     },
     async handleAbciInfo() {
       const res = await this.fetchAbciInfo();
 
-      localStorage.setItem(`sdk_version_${this.blockchain.chainName}`, res.application_version.cosmos_sdk_version);
+      localStorage.setItem(
+        `sdk_version_${this.blockchain.chainName}`,
+        res.application_version.cosmos_sdk_version
+      );
 
       this.appVersion.items = paramItems(res.application_version);
       this.nodeVersion.items = paramItems(res.default_node_info);

@@ -17,7 +17,8 @@ defineProps({
   >
     <span class="text-primary font-bold" :class="css">{{ days }}</span> days
     <span class="text-primary font-bold" :class="css">{{ hours }}</span> hours
-    <span class="text-primary font-bold" :class="css">{{ minutes }}</span> minutes
+    <span class="text-primary font-bold" :class="css">{{ minutes }}</span>
+    minutes
     <span class="text-primary font-bold w-40" :class="css">
       <Transition name="slide-up">
         <span v-if="seconds % 2 === 0" class="countdown">{{ seconds }}</span>

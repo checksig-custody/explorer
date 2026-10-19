@@ -6,7 +6,8 @@ export interface NavSectionTitle {
 }
 
 // 👉 Vertical nav link
-declare type ATagTargetAttrValues = '_blank' | '_self' | '_parent' | '_top' | 'framename';
+declare type ATagTargetAttrValues =
+  '_blank' | '_self' | '_parent' | '_top' | 'framename';
 declare type ATagRelAttrValues =
   | 'alternate'
   | 'author'

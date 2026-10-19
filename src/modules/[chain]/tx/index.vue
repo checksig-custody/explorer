@@ -27,10 +27,16 @@ function search() {
 <template>
   <div>
     <div class="tabs tabs-boxed bg-transparent mb-4">
-      <a class="tab text-gray-400 uppercase" :class="{ 'tab-active': tab === 'recent' }" @click="tab = 'recent'">{{
-        $t('block.recent')
-      }}</a>
-      <a class="tab text-gray-400 uppercase" :class="{ 'tab-active': tab === 'search' }" @click="tab = 'search'"
+      <a
+        class="tab text-gray-400 uppercase"
+        :class="{ 'tab-active': tab === 'recent' }"
+        @click="tab = 'recent'"
+        >{{ $t('block.recent') }}</a
+      >
+      <a
+        class="tab text-gray-400 uppercase"
+        :class="{ 'tab-active': tab === 'search' }"
+        @click="tab = 'search'"
         >Search</a
       >
     </div>
@@ -39,19 +45,32 @@ function search() {
       <table class="table w-full table-compact">
         <thead class="bg-base-200">
           <tr>
-            <th style="position: relative; z-index: 2">{{ $t('account.height') }}</th>
-            <th style="position: relative; z-index: 2">{{ $t('account.hash') }}</th>
+            <th style="position: relative; z-index: 2">
+              {{ $t('account.height') }}
+            </th>
+            <th style="position: relative; z-index: 2">
+              {{ $t('account.hash') }}
+            </th>
             <th>{{ $t('account.messages') }}</th>
             <th>{{ $t('block.fees') }}</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(item, index) in base.txsInRecents" :key="index" :index="index" class="hover">
+          <tr
+            v-for="(item, index) in base.txsInRecents"
+            :key="index"
+            :index="index"
+            class="hover"
+          >
             <td class="text-sm text-primary">
-              <RouterLink :to="`/${props.chain}/block/${item.height}`">{{ item.height }}</RouterLink>
+              <RouterLink :to="`/${props.chain}/block/${item.height}`">{{
+                item.height
+              }}</RouterLink>
             </td>
             <td class="truncate text-primary" width="50%">
-              <RouterLink :to="`/${props.chain}/tx/${item.hash}`">{{ item.hash }}</RouterLink>
+              <RouterLink :to="`/${props.chain}/tx/${item.hash}`">{{
+                item.hash
+              }}</RouterLink>
             </td>
             <td>{{ format.messages(item.tx.body.messages) }}</td>
             <td>{{ format.formatTokens(item.tx.authInfo.fee?.amount) }}</td>
@@ -60,7 +79,9 @@ function search() {
       </table>
       <div class="p-4">
         <div class="alert relative bg-transparent">
-          <div class="alert absolute inset-x-0 inset-y-0 w-full h-full bg-info opacity-10" />
+          <div
+            class="alert absolute inset-x-0 inset-y-0 w-full h-full bg-info opacity-10"
+          />
           <div class="text-info flex gap-2">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -90,7 +111,7 @@ function search() {
             class="input input-bordered"
             placeholder="Search by Tx Hash"
             @blur="search"
-          >
+          />
         </div>
       </div>
     </div>

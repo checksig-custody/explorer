@@ -11,7 +11,10 @@ export const requests: Partial<RequestRegistry> = {
     url: '/evmos/inflation/v1/inflation_rate',
     adapter: (data: unknown) =>
       Promise.resolve({
-        inflation: (Number((data as { inflation_rate?: string }).inflation_rate || 0) / 100).toFixed(2),
+        inflation: (
+          Number((data as { inflation_rate?: string }).inflation_rate || 0) /
+          100
+        ).toFixed(2),
       }),
   },
   gov_params_voting: { url: '/cosmos/gov/v1/params/voting', adapter },

@@ -68,13 +68,19 @@ function showPubkey(v: unknown) {
       <tr v-for="(acc, i) in accounts" :key="i">
         <td>{{ showType(acc['@type']) }}</td>
         <td>
-          <RouterLink :to="`/${chain}/account/${showAddress(acc)}`">{{ showAddress(acc) }}</RouterLink>
+          <RouterLink :to="`/${chain}/account/${showAddress(acc)}`">{{
+            showAddress(acc)
+          }}</RouterLink>
         </td>
         <td>{{ showAccountNumber(acc) }}</td>
         <td>{{ showSequence(acc) }}</td>
         <td>{{ showPubkey(acc) }}</td>
       </tr>
     </table>
-    <PaginationBar :limit="pageRequest.limit" :total="pageResponse.total" :callback="pageload" />
+    <PaginationBar
+      :limit="pageRequest.limit"
+      :total="pageResponse.total"
+      :callback="pageload"
+    />
   </div>
 </template>

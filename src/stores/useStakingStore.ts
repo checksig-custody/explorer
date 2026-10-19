@@ -31,6 +31,11 @@ interface StakingState {
   keyRotation: Record<string, string>;
 }
 
+// The part of keybase's lookup reply that the explorer reads.
+export interface KeybaseLookup {
+  them?: { pictures?: { primary?: { url?: string } } }[];
+}
+
 export const useStakingStore = defineStore('stakingStore', {
   state: (): StakingState => {
     return {
@@ -59,7 +64,9 @@ export const useStakingStore = defineStore('stakingStore', {
       return await this.fetchParams();
     },
     async keybase(identity: string) {
-      return get(`https://keybase.io/_/api/1.0/user/lookup.json?key_suffix=${identity}&fields=pictures`);
+      return (await get(
+        `https://keybase.io/_/api/1.0/user/lookup.json?key_suffix=${identity}&fields=pictures`
+      )) as KeybaseLookup;
     },
     async fetchParams() {
       const response = await this.blockchain.rpcIfSet()?.getStakingParams();

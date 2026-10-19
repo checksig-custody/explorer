@@ -3,7 +3,13 @@ import type { Coin, Key, PaginatedResponse } from './common';
 export interface Tx {
   '@type'?: string;
   body: {
-    messages: { '@type': string; amount?: Coin[]; packet?: { data: string } }[];
+    messages: {
+      '@type': string;
+      amount?: Coin[];
+      packet?: { data: string };
+      delegator_address?: string;
+      grantee?: string;
+    }[];
     memo: string;
     timeout_height: string;
     extension_options: unknown[];

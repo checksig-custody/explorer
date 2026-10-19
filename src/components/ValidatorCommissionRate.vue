@@ -5,7 +5,7 @@ import { useFormatter } from '@/stores';
 import type { CommissionRate } from '@/types';
 
 const props = defineProps({
-  commission: { type: Object as PropType<CommissionRate>, default: undefined },
+  commission: { type: Object as PropType<CommissionRate | undefined>, default: undefined },
 });
 
 let rate = computed(() => Number(props.commission?.commission_rates.rate || 0) * 100);

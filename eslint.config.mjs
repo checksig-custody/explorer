@@ -98,6 +98,8 @@ export default defineConfig(
       'vue/html-closing-bracket-newline': 'off',
       'vue/mustache-interpolation-spacing': 'off',
       'vue/no-multi-spaces': 'off',
+      // Prettier prints void elements self-closed (<img />).
+      'vue/html-self-closing': ['error', { html: { void: 'any' } }],
     },
   },
   {

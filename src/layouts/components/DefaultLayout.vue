@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { Icon } from '@iconify/vue';
 import { computed, ref } from 'vue';
+import type { RouteLocationNormalizedLoaded } from 'vue-router';
 
 // Components
 import newFooter from '@/layouts/components/NavFooter.vue';
@@ -25,9 +26,9 @@ import dayjs from 'dayjs';
 import AdBanner from '@/components/ad/AdBanner.vue';
 
 const dashboard = useDashboard();
-dashboard.initial();
+void dashboard.initial();
 const blockchain = useBlockchain();
-blockchain.randomSetupEndpoint();
+void blockchain.randomSetupEndpoint();
 const baseStore = useBaseStore();
 
 const current = ref(''); // the current chain
@@ -35,11 +36,11 @@ const temp = ref('');
 blockchain.$subscribe((m, s) => {
   if (current.value === s.chainName && temp.value != s.endpoint.address) {
     temp.value = s.endpoint.address;
-    blockchain.initial();
+    void blockchain.initial();
   }
   if (current.value != s.chainName) {
     current.value = s.chainName;
-    blockchain.randomSetupEndpoint();
+    void blockchain.randomSetupEndpoint();
   }
 });
 
@@ -53,22 +54,25 @@ const changeOpen = (index: number) => {
 };
 const showDiscord = window.location.host.search('ping.pub') > -1;
 
-function isNavGroup(nav: VerticalNavItems | any): nav is NavGroup {
-  return (nav as NavGroup).children !== undefined;
+type NavItem = VerticalNavItems[number];
+function isNavGroup(nav: NavItem): nav is NavGroup {
+  return 'children' in nav;
 }
-function isNavLink(nav: VerticalNavItems | any): nav is NavLink {
-  return (nav as NavLink).to !== undefined;
+function isNavLink(nav: NavItem): nav is NavLink {
+  return 'to' in nav;
 }
-function isNavTitle(nav: VerticalNavItems | any): nav is NavSectionTitle {
-  return (nav as NavSectionTitle).heading !== undefined;
+function isNavTitle(nav: NavItem): nav is NavSectionTitle {
+  return 'heading' in nav;
 }
-function selected(route: any, nav: NavLink) {
-  const b =
-    route.path === nav.to?.path || (route.path.startsWith(nav.to?.path) && !nav.title.includes('dashboard'));
-  return b;
+function selected(route: RouteLocationNormalizedLoaded, nav: NavLink) {
+  const to = nav.to;
+  const path = typeof to === 'object' && to !== null && 'path' in to ? to.path : undefined;
+  return (
+    route.path === path || (path !== undefined && route.path.startsWith(path) && !nav.title.includes('dashboard'))
+  );
 }
 const blocktime = computed(() => {
-  return dayjs(baseStore.latest?.block?.header?.time);
+  return dayjs(baseStore.latest.block?.header.time);
 });
 
 const behind = computed(() => {
@@ -139,7 +143,7 @@ const show_ad = computed(() => {
             </div>
           </div>
           <div class="collapse-content">
-            <div v-for="(el, key) of item?.children" class="menu bg-base-100 w-full !p-0">
+            <div v-for="(el, key) of item.children" :key="key" class="menu bg-base-100 w-full !p-0">
               <RouterLink
                 v-if="isNavLink(el)"
                 class="hover:bg-gray-100 dark:hover:bg-[#373f59] rounded cursor-pointer px-3 py-2 flex items-center"
@@ -322,6 +326,7 @@ const show_ad = computed(() => {
         </div>
         <RouterView v-slot="{ Component }">
           <Transition mode="out-in">
+            <!-- eslint-disable-next-line vue/require-toggle-inside-transition -- the wrapper is static; kept so the markup does not change -->
             <div>
               <AdBanner v-if="show_ad" />
               <Component :is="Component" />

@@ -1,17 +1,16 @@
 <script setup lang="ts">
-import { useRoute } from 'vue-router';
 import { useBaseStore, useBlockchain, useWalletStore } from '@/stores';
 import { Icon } from '@iconify/vue';
 import { ref, computed } from 'vue';
+import type { WalletConnected } from '@/types';
 
-const route = useRoute();
 const walletStore = useWalletStore();
 const chainStore = useBlockchain();
 const baseStore = useBaseStore();
 // walletStore.$subscribe((m, s) => {
 //   console.log(m, s);
 // });
-function walletStateChange(res: any) {
+function walletStateChange(res: CustomEvent<{ value?: WalletConnected } | undefined>) {
   walletStore.setConnectedWallet(res.detail?.value);
 }
 let showCopyToast = ref(0);
@@ -22,7 +21,7 @@ async function copyAdress(address: string) {
     setTimeout(() => {
       showCopyToast.value = 0;
     }, 1000);
-  } catch (err) {
+  } catch {
     showCopyToast.value = 2;
     setTimeout(() => {
       showCopyToast.value = 0;

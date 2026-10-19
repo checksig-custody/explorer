@@ -6,20 +6,20 @@ import {
   type ClientState,
   type Channel,
   PageRequest,
-  type TxResponse,
   type PaginatedTxs,
 } from '@/types';
 import { computed, onMounted } from 'vue';
 import { ref } from 'vue';
-import { useIBCModule } from '../connStore';
 import PaginationBar from '@/components/PaginationBar.vue';
 import { Icon } from '@iconify/vue';
 
-const props = defineProps(['chain', 'connection_id']);
+const props = defineProps({
+  chain: { type: String, default: undefined },
+  connection_id: { type: String, default: undefined },
+});
 const chainStore = useBlockchain();
 const baseStore = useBaseStore();
 const format = useFormatter();
-const ibcStore = useIBCModule();
 const conn = ref({} as Connection);
 const clientState = ref({} as { client_id: string; client_state: ClientState });
 const channels = ref([] as Channel[]);
@@ -38,20 +38,20 @@ page.value.limit = 5;
 
 onMounted(() => {
   if (connId.value) {
-    chainStore.rpc.getIBCConnectionsById(connId.value).then((x) => {
+    void chainStore.rpc.getIBCConnectionsById(connId.value).then((x) => {
       conn.value = x.connection;
     });
-    chainStore.rpc.getIBCConnectionsClientState(connId.value).then((x) => {
+    void chainStore.rpc.getIBCConnectionsClientState(connId.value).then((x) => {
       clientState.value = x.identified_client_state;
     });
-    chainStore.rpc.getIBCConnectionsChannels(connId.value).then((x) => {
+    void chainStore.rpc.getIBCConnectionsChannels(connId.value).then((x) => {
       channels.value = x.channels;
     });
   }
 });
 
 function loadChannel(channel: string, port: string) {
-  chainStore.rpc.getIBCChannelNextSequence(channel, port).then((x) => {
+  void chainStore.rpc.getIBCChannelNextSequence(channel, port).then((x) => {
     console.log(x);
   });
 }
@@ -71,7 +71,7 @@ function fetchSendingTxs(channel: string, port: string, pageNum = 0) {
   channel_id.value = channel;
   port_id.value = port;
   txs.value = {} as PaginatedTxs;
-  chainStore.rpc
+  void chainStore.rpc
     .getTxs(
       "?order_by=2&events=send_packet.packet_src_channel='{channel}'&events=send_packet.packet_src_port='{port}'",
       { channel, port },
@@ -89,7 +89,7 @@ function fetchRecevingTxs(channel: string, port: string, pageNum = 0) {
   channel_id.value = channel;
   port_id.value = port;
   txs.value = {} as PaginatedTxs;
-  chainStore.rpc
+  void chainStore.rpc
     .getTxs(
       "?order_by=2&events=recv_packet.packet_dst_channel='{channel}'&events=recv_packet.packet_dst_port='{port}'",
       { channel, port },
@@ -101,8 +101,8 @@ function fetchRecevingTxs(channel: string, port: string, pageNum = 0) {
     .finally(() => (loading.value = false));
 }
 
-function color(v: string) {
-  if (v && v.includes('_OPEN')) {
+function color(v: string | undefined) {
+  if (v?.includes('_OPEN')) {
     return 'success';
   }
   return 'warning';
@@ -254,7 +254,7 @@ function color(v: string) {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="v in channels">
+            <tr v-for="v in channels" :key="`${v.port_id}/${v.channel_id}`">
               <td>
                 <div class="flex gap-1">
                   <button
@@ -324,7 +324,7 @@ function color(v: string) {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="resp in txs?.tx_responses">
+          <tr v-for="resp in txs.tx_responses" :key="resp.txhash">
             <td>{{ resp.height }}</td>
             <td>
               <div class="text-xs truncate text-primary dark:invert">

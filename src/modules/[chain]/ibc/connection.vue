@@ -6,7 +6,7 @@ import { ref } from 'vue';
 
 import { useIBCModule } from './connStore';
 
-const props = defineProps(['chain']);
+defineProps({ chain: { type: String, default: undefined } });
 const chainStore = useBlockchain();
 const ibcStore = useIBCModule();
 const list = ref([] as Connection[]);
@@ -21,11 +21,12 @@ onMounted(() => {
 
 function pageload(p: number) {
   pageRequest.value.setPage(p);
-  chainStore.rpc.getIBCConnections(pageRequest.value).then((x) => {
+  void chainStore.rpc.getIBCConnections(pageRequest.value).then((x) => {
     list.value = x.connections;
     pageResponse.value = x.pagination;
+    const [first] = list.value;
     if (x.pagination.total && Number(x.pagination.total) > 0) {
-      ibcStore.showConnection(list.value[0].id);
+      ibcStore.showConnection(first?.id);
     }
   });
 }
@@ -54,6 +55,7 @@ function pageload(p: number) {
         <div v-show="tab === 'registry'" class="flex flex-wrap gap-1 p-4">
           <span
             v-for="(s, i) in ibcStore.info"
+            :key="i"
             class="btn btn-xs btn-link mr-1"
             @click="ibcStore.fetchConnection(i)"
             >{{

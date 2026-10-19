@@ -118,6 +118,11 @@ export default defineConfig(
     },
   },
   {
+    // The route file name [code_id] fixes the prop name, which cannot be camelCase.
+    files: ['src/modules/**/*_id*/*.vue', 'src/modules/**/*_id*.vue'],
+    rules: { 'vue/prop-name-casing': 'off' },
+  },
+  {
     // node:test registers a test when test() is called; the promise it returns
     // settles when the run ends and is not meant to be awaited.
     files: ['tests/**/*.ts'],

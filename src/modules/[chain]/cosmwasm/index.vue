@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { useBlockchain, useFormatter, useTxDialog } from '@/stores';
+import { useTxDialog } from '@/stores';
 import { useWasmStore } from './WasmStore';
 import { onMounted, ref } from 'vue';
 import type { PaginabledCodeInfos } from './types';
@@ -7,37 +7,37 @@ import { PageRequest } from '@/types';
 import PaginationBar from '@/components/PaginationBar.vue';
 import router from '@/router';
 
-const props = defineProps(['chain']);
+const props = defineProps({ chain: { type: String, required: true } });
 
-const codes = ref({} as PaginabledCodeInfos);
+const codes = ref<Partial<PaginabledCodeInfos>>({});
 
 const pageRequest = ref(new PageRequest());
 const wasmStore = useWasmStore();
 const dialog = useTxDialog();
 const creator = ref('');
 const field = ref('contract');
-const history = ref([]);
+const history = ref<string[]>([]);
 
 function pageload(pageNum: number) {
   pageRequest.value.setPage(pageNum);
-  wasmStore.wasmClient.getWasmCodeList(pageRequest.value).then((x) => {
+  void wasmStore.wasmClient.getWasmCodeList().then((x) => {
     codes.value = x;
   });
 }
 pageload(1);
 
 onMounted(() => {
-  const historyStore = JSON.parse(localStorage.getItem('contract_history') || '{}');
-  history.value = historyStore[props.chain] || [];
+  const historyStore = JSON.parse(localStorage.getItem('contract_history') || '{}') as Record<string, string[] | undefined>;
+  history.value = historyStore[props.chain] ?? [];
 });
 
 function myContracts() {
-  if (field.value === 'contract') router.push(`/${props.chain}/cosmwasm/0/transactions?contract=${creator.value}`);
-  else if (field.value === 'creator') router.push(`/${props.chain}/cosmwasm/${creator.value}/contracts`);
+  if (field.value === 'contract') void router.push(`/${props.chain}/cosmwasm/0/transactions?contract=${creator.value}`);
+  else if (field.value === 'creator') void router.push(`/${props.chain}/cosmwasm/${creator.value}/contracts`);
 }
 const togo = ref('');
 function gotoHistory() {
-  router.push(`/${props.chain}/cosmwasm/0/transactions?contract=${togo.value}`);
+  void router.push(`/${props.chain}/cosmwasm/0/transactions?contract=${togo.value}`);
 }
 </script>
 <template>

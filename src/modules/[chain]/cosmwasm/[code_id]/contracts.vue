@@ -7,26 +7,27 @@ import PaginationBar from '@/components/PaginationBar.vue';
 import { PageRequest } from '@/types';
 import { useTxDialog } from '@/stores';
 
-const props = defineProps(['code_id', 'chain']);
+const props = defineProps({
+  code_id: { type: String, required: true },
+  chain: { type: String, default: undefined },
+});
 
 const pageRequest = ref(new PageRequest());
-const response = ref({} as PaginabledContracts);
+const response = ref<Partial<PaginabledContracts>>({});
 
 const info = ref({} as ContractInfo);
 const dialog = useTxDialog();
 const infoDialog = ref(false);
 const wasmStore = useWasmStore();
-function loadContract(pageNum: number) {
-  const pr = new PageRequest();
-  pr.setPage(pageNum);
-  if (String(props.code_id).search(/^[\d]+$/) > -1) {
+function loadContract() {
+  if (props.code_id.search(/^[\d]+$/) > -1) {
     // query with code id
-    wasmStore.wasmClient.getWasmCodeContracts(props.code_id, pr).then((x) => {
+    void wasmStore.wasmClient.getWasmCodeContracts(props.code_id).then((x) => {
       response.value = x;
     });
   } else {
     // query by creator
-    wasmStore.wasmClient.getWasmContractsByCreator(props.code_id, pr).then((x) => {
+    void wasmStore.wasmClient.getWasmContractsByCreator(props.code_id).then((x) => {
       response.value = {
         contracts: x.contract_addresses,
         pagination: x.pagination,
@@ -34,10 +35,10 @@ function loadContract(pageNum: number) {
     });
   }
 }
-loadContract(1);
+loadContract();
 
 function showInfo(address: string) {
-  wasmStore.wasmClient.getWasmContracts(address).then((x) => {
+  void wasmStore.wasmClient.getWasmContracts(address).then((x) => {
     info.value = x.contract_info;
   });
 }

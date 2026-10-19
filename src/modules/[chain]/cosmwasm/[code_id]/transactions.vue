@@ -39,15 +39,16 @@ const state = ref({} as PaginabledContractStates);
 const selected = ref('');
 const balances = ref({} as PaginatedBalances);
 
-const contractAddress = String(route.query.contract);
+const contractAddress = String(route.query['contract']);
 
-const history = JSON.parse(localStorage.getItem('contract_history') || '{}');
+const history = JSON.parse(localStorage.getItem('contract_history') || '{}') as Record<string, string[] | undefined>;
 
-if (history[chainStore.chainName]) {
-  if (!history[chainStore.chainName].includes(contractAddress)) {
-    history[chainStore.chainName].push(contractAddress);
-    if (history[chainStore.chainName].length > 10) {
-      history[chainStore.chainName].shift();
+const chainHistory = history[chainStore.chainName];
+if (chainHistory) {
+  if (!chainHistory.includes(contractAddress)) {
+    chainHistory.push(contractAddress);
+    if (chainHistory.length > 10) {
+      chainHistory.shift();
     }
   }
 } else {
@@ -57,20 +58,21 @@ localStorage.setItem('contract_history', JSON.stringify(history));
 
 onMounted(() => {
   const address = contractAddress;
-  wasmStore.wasmClient.getWasmContracts(address).then((x) => {
+  void wasmStore.wasmClient.getWasmContracts(address).then((x) => {
     info.value = x.contract_info;
   });
-  chainStore.rpc
+  void chainStore.rpc
     .getTxs("?order_by=2&events=execute._contract_address='{address}'", { address }, page.value)
     .then((res) => {
       txs.value = res;
     });
 
-  wasmStore.wasmClient.getWasmContractQueries(contractAddress).then((res) => {
+  void wasmStore.wasmClient.getWasmContractQueries(contractAddress).then((res) => {
     console.log('queries: ', res);
     queries.value = res;
-    if (res && res.length > 0) {
-      selectQuery(res[0]);
+    const [first] = res;
+    if (first !== undefined) {
+      selectQuery(first);
     }
   });
 
@@ -80,8 +82,8 @@ onMounted(() => {
 
 function pageload(pageNum: number) {
   page.value.setPage(pageNum);
-  const address = String(route.query.contract);
-  chainStore.rpc
+  const address = String(route.query['contract']);
+  void chainStore.rpc
     .getTxs("?order_by=2&events=execute._contract_address='{address}'", { address }, page.value)
     .then((res) => {
       txs.value = res;
@@ -89,27 +91,22 @@ function pageload(pageNum: number) {
 }
 
 function showFunds() {
-  const address = String(route.query.contract);
-  chainStore.rpc.getBankBalances(address).then((res) => {
+  const address = String(route.query['contract']);
+  void chainStore.rpc.getBankBalances(address).then((res) => {
     balances.value = res;
   });
 }
 function showState() {
-  const address = String(route.query.contract);
+  const address = String(route.query['contract']);
   selected.value = address;
   pageloadState(1);
 }
 
 function pageloadState(p: number) {
   pageRequest.value.setPage(p);
-  wasmStore.wasmClient.getWasmContractStates(selected.value, pageRequest.value).then((x) => {
+  void wasmStore.wasmClient.getWasmContractStates(selected.value, pageRequest.value).then((x) => {
     state.value = x;
   });
-}
-
-function showQuery() {
-  query.value = '';
-  result.value = '';
 }
 
 function selectQuery(method: string) {
@@ -119,21 +116,21 @@ function selectQuery(method: string) {
 function queryContract() {
   try {
     if (selectedRadio.value === 'raw') {
-      wasmStore.wasmClient
+      void wasmStore.wasmClient
         .getWasmContractRawQuery(contractAddress, query.value)
         .then((x) => {
           result.value = x;
         })
-        .catch((err) => {
+        .catch((err: unknown) => {
           result.value = err;
         });
     } else {
-      wasmStore.wasmClient
+      void wasmStore.wasmClient
         .getWasmContractSmartQuery(contractAddress, query.value)
         .then((x) => {
           result.value = x;
         })
-        .catch((err) => {
+        .catch((err: unknown) => {
           result.value = err;
         });
     }
@@ -145,7 +142,7 @@ function queryContract() {
 
 const selectedRadio = ref('smart');
 const query = ref('');
-const result = ref({});
+const result = ref<unknown>({});
 const queries = ref<string[]>([]);
 const tab = ref('detail');
 </script>
@@ -177,7 +174,7 @@ const tab = ref('detail');
           <div class="text-lg">{{ $t('cosmwasm.contract_balances') }}</div>
         </div>
         <ul class="menu mt-5">
-          <li v-for="b in balances.balances">
+          <li v-for="(b, bi) in balances.balances" :key="bi">
             <a class="flex justify-between"
               ><span>{{ format.formatToken(b) }}</span> {{ b.amount }}
             </a>
@@ -262,7 +259,7 @@ const tab = ref('detail');
           </tr>
         </thead>
         <tbody>
-          <tr v-for="resp in txs?.tx_responses">
+          <tr v-for="(resp, ri) in txs.tx_responses" :key="ri">
             <td>{{ resp.height }}</td>
             <td>
               <div class="text-xs truncate text-primary dark:invert">
@@ -291,7 +288,7 @@ const tab = ref('detail');
         <div class="px-3">
           <div>
             <div>
-              <span v-for="q in queries" class="btn btn-xs mx-1" @click="selectQuery(q)">{{ q }}</span>
+              <span v-for="q in queries" :key="q" class="btn btn-xs mx-1" @click="selectQuery(q)">{{ q }}</span>
             </div>
             <textarea
               v-model="query"
@@ -318,7 +315,7 @@ const tab = ref('detail');
         <div class="px-3">
           <div>
             <div>
-              <span v-for="q in queries" class="btn btn-xs mx-1" @click="selectQuery(q)">{{ q }}</span>
+              <span v-for="q in queries" :key="q" class="btn btn-xs mx-1" @click="selectQuery(q)">{{ q }}</span>
             </div>
             <textarea
               v-model="query"

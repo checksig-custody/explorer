@@ -1,7 +1,13 @@
 declare module 'vue3-json-viewer' {
-  import { AllowedComponentProps, App, Component, ComponentCustomProps, VNodeProps } from 'vue';
+  import {
+    AllowedComponentProps,
+    App,
+    Component,
+    ComponentCustomProps,
+    VNodeProps,
+  } from 'vue';
   interface JsonViewerProps {
-    value: Object | Array<any> | string | number | boolean; //对象
+    value: object | unknown[] | string | number | boolean; //对象
     expanded: boolean; //是否自动展开
     expandDepth: number; //展开层级
     copyable: boolean | object; //是否可复制
@@ -9,9 +15,12 @@ declare module 'vue3-json-viewer' {
     boxed: boolean; //是否boxed
     theme: string; //主题 jv-dark | jv-light
     previewMode: boolean; //是否可复制
-    timeformat: (value: any) => string;
+    timeformat: (value: unknown) => string;
   }
-  type JsonViewerType = JsonViewerProps & VNodeProps & AllowedComponentProps & ComponentCustomProps;
+  type JsonViewerType = JsonViewerProps &
+    VNodeProps &
+    AllowedComponentProps &
+    ComponentCustomProps;
   const JsonViewer: Component<JsonViewerType>;
   export { JsonViewer };
   const def: { install: (app: App) => void };

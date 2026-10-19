@@ -1,5 +1,6 @@
 import { useBlockchain } from '@/stores';
 import numeral from 'numeral';
+import { orDefault } from '@/libs/utils';
 
 const chainStore = useBlockchain();
 
@@ -12,7 +13,7 @@ const themeColors = (theme: string) => {
         surface: '#FFFFFF',
         'surface-variant': '#424242',
         'on-surface-variant': '#EEEEEE',
-        primary: chainStore.current?.themeColor || '#666CFF',
+        primary: orDefault(chainStore.current?.themeColor, '#666CFF'),
         'primary-darken-1': '#3700B3',
         secondary: '#6D788D',
         'secondary-darken-1': '#018786',
@@ -92,7 +93,7 @@ const themeColors = (theme: string) => {
       surface: '#30334E',
       'surface-variant': '#BDBDBD',
       'on-surface-variant': '#424242',
-      primary: chainStore.current?.themeColor || '#666CFF',
+      primary: orDefault(chainStore.current?.themeColor, '#666CFF'),
       'primary-darken-1': '#3700B3',
       secondary: '#6D788D',
       'secondary-darken-1': '#03DAC5',
@@ -183,8 +184,12 @@ export const colorVariables = (theme: string) => {
   };
 };
 /// Price Chart config
-export const getMarketPriceChartConfig = (theme: string, categories: string[]) => {
-  const { themeSecondaryTextColor, themeBorderColor, themeDisabledTextColor } = colorVariables(theme);
+export const getMarketPriceChartConfig = (
+  theme: string,
+  categories: (string | number)[]
+) => {
+  const { themeSecondaryTextColor, themeBorderColor, themeDisabledTextColor } =
+    colorVariables(theme);
 
   return {
     chart: {
@@ -305,7 +310,8 @@ const donutColors = [
 ];
 
 export const getDonutChartConfig = (theme: string, labels: string[]) => {
-  const { themeSecondaryTextColor, themePrimaryTextColor } = colorVariables(theme);
+  const { themeSecondaryTextColor, themePrimaryTextColor } =
+    colorVariables(theme);
 
   return {
     stroke: { width: 0 },
@@ -319,7 +325,7 @@ export const getDonutChartConfig = (theme: string, labels: string[]) => {
     // ],
     dataLabels: {
       enabled: true,
-      formatter: (val: string) => `${parseInt(val, 10)}%`,
+      formatter: (val: string) => `${String(parseInt(val, 10))}%`,
     },
     legend: {
       position: 'bottom',
@@ -341,7 +347,7 @@ export const getDonutChartConfig = (theme: string, labels: string[]) => {
             value: {
               fontSize: '1.5rem',
               color: themeSecondaryTextColor,
-              formatter: (val: string) => `${parseInt(val, 10)}`,
+              formatter: (val: string) => String(parseInt(val, 10)),
             },
             total: {
               show: false,

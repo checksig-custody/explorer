@@ -1,17 +1,32 @@
 <script lang="ts" setup>
-import { useBlockchain, useFormatter, useStakingStore, useTxDialog } from '@/stores';
+import {
+  useBlockchain,
+  useFormatter,
+  useStakingStore,
+  useTxDialog,
+} from '@/stores';
 import DynamicComponent from '@/components/dynamic/DynamicComponent.vue';
 import DonutChart from '@/components/charts/DonutChart.vue';
-import { computed, ref } from '@vue/reactivity';
+import { computed, ref } from 'vue';
 import { onMounted } from 'vue';
 import { Icon } from '@iconify/vue';
+import { maybe } from '@/libs/utils';
 
-import type { AuthAccount, Delegation, TxResponse, DelegatorRewards, UnbondingResponses } from '@/types';
+import type {
+  AuthAccount,
+  Delegation,
+  TxResponse,
+  DelegatorRewards,
+  UnbondingResponses,
+} from '@/types';
 import type { Coin } from '@cosmjs/amino';
 import Countdown from '@/components/Countdown.vue';
 import { fromBase64 } from '@cosmjs/encoding';
 
-const props = defineProps(['address', 'chain']);
+const props = defineProps({
+  address: { type: String, required: true },
+  chain: { type: String, default: undefined },
+});
 
 const blockchain = useBlockchain();
 const stakingStore = useStakingStore();
@@ -20,31 +35,30 @@ const format = useFormatter();
 const account = ref({} as AuthAccount);
 const txs = ref({} as TxResponse[]);
 const delegations = ref([] as Delegation[]);
-const rewards = ref({} as DelegatorRewards);
+const rewards = ref<Partial<DelegatorRewards>>({});
 const balances = ref([] as Coin[]);
 const recentReceived = ref([] as TxResponse[]);
 const unbonding = ref([] as UnbondingResponses[]);
 const unbondingTotal = ref(0);
-const chart = {};
 onMounted(() => {
   loadAccount(props.address);
 });
 const totalAmountByCategory = computed(() => {
   let sumDel = 0;
-  delegations.value?.forEach((x) => {
+  maybe(delegations.value)?.forEach((x) => {
     sumDel += Number(x.balance.amount);
   });
   let sumRew = 0;
-  rewards.value?.total?.forEach((x) => {
+  rewards.value.total?.forEach((x) => {
     sumRew += Number(x.amount);
   });
   let sumBal = 0;
-  balances.value?.forEach((x) => {
+  maybe(balances.value)?.forEach((x) => {
     sumBal += Number(x.amount);
   });
   let sumUn = 0;
-  unbonding.value?.forEach((x) => {
-    x.entries?.forEach((y) => {
+  maybe(unbonding.value)?.forEach((x) => {
+    maybe(x.entries)?.forEach((y) => {
       sumUn += Number(y.balance);
     });
   });
@@ -59,42 +73,45 @@ const totalAmount = computed(() => {
 
 const totalValue = computed(() => {
   let value = 0;
-  delegations.value?.forEach((x) => {
+  maybe(delegations.value)?.forEach((x) => {
     value += format.tokenValueNumber(x.balance);
   });
-  rewards.value?.total?.forEach((x) => {
+  rewards.value.total?.forEach((x) => {
     value += format.tokenValueNumber(x);
   });
-  balances.value?.forEach((x) => {
+  maybe(balances.value)?.forEach((x) => {
     value += format.tokenValueNumber(x);
   });
-  unbonding.value?.forEach((x) => {
-    x.entries?.forEach((y) => {
-      value += format.tokenValueNumber({ amount: y.balance, denom: stakingStore.params.bond_denom });
+  maybe(unbonding.value)?.forEach((x) => {
+    maybe(x.entries)?.forEach((y) => {
+      value += format.tokenValueNumber({
+        amount: y.balance,
+        denom: stakingStore.params.bond_denom,
+      });
     });
   });
   return format.formatNumber(value, '0,0.00');
 });
 
 function loadAccount(address: string) {
-  blockchain.rpc.getAuthAccount(address).then((x) => {
+  void blockchain.rpc.getAuthAccount(address).then((x) => {
     account.value = x.account;
   });
-  blockchain.rpc.getTxsBySender(address).then((x) => {
+  void blockchain.rpc.getTxsBySender(address).then((x) => {
     txs.value = x.tx_responses;
   });
-  blockchain.rpc.getDistributionDelegatorRewards(address).then((x) => {
+  void blockchain.rpc.getDistributionDelegatorRewards(address).then((x) => {
     rewards.value = x;
   });
-  blockchain.rpc.getStakingDelegations(address).then((x) => {
+  void blockchain.rpc.getStakingDelegations(address).then((x) => {
     delegations.value = x.delegation_responses;
   });
-  blockchain.rpc.getBankBalances(address).then((x) => {
+  void blockchain.rpc.getBankBalances(address).then((x) => {
     balances.value = x.balances;
   });
-  blockchain.rpc.getStakingDelegatorUnbonding(address).then((x) => {
+  void blockchain.rpc.getStakingDelegatorUnbonding(address).then((x) => {
     unbonding.value = x.unbonding_responses;
-    x.unbonding_responses?.forEach((y) => {
+    maybe(x.unbonding_responses)?.forEach((y) => {
       y.entries.forEach((z) => {
         unbondingTotal.value += Number(z.balance);
       });
@@ -102,7 +119,7 @@ function loadAccount(address: string) {
   });
 
   const receivedQuery = `?&pagination.reverse=true&events=coin_received.receiver='${address}'&pagination.limit=5`;
-  blockchain.rpc.getTxs(receivedQuery, {}).then((x) => {
+  void blockchain.rpc.getTxs(receivedQuery, {}).then((x) => {
     recentReceived.value = x.tx_responses;
   });
 }
@@ -111,12 +128,17 @@ function updateEvent() {
   loadAccount(props.address);
 }
 
-function mapAmount(events: { type: string; attributes: { key: string; value: string }[] }[]) {
+function mapAmount(
+  events:
+    { type: string; attributes: { key: string; value: string }[] }[] | undefined
+) {
   if (!events) return [];
   return events
     .find((x) => x.type === 'coin_received')
     ?.attributes.filter((x) => x.key === 'YW1vdW50' || x.key === `amount`)
-    .map((x) => (x.key === 'amount' ? x.value : String.fromCharCode(...fromBase64(x.value))));
+    .map((x) =>
+      x.key === 'amount' ? x.value : String.fromCharCode(...fromBase64(x.value))
+    );
 }
 </script>
 <template>
@@ -126,9 +148,15 @@ function mapAmount(events: { type: string; attributes: { key: string; value: str
       <div class="flex items-center">
         <!-- img -->
         <div class="inline-flex relative w-11 h-11 rounded-md">
-          <div class="w-11 h-11 absolute rounded-md opacity-10 bg-primary"></div>
-          <div class="w-full inline-flex items-center align-middle flex-none justify-center">
-            <Icon icon="mdi-qrcode" class="text-primary" style="width: 27px; height: 27px" />
+          <div class="w-11 h-11 absolute rounded-md opacity-10 bg-primary" />
+          <div
+            class="w-full inline-flex items-center align-middle flex-none justify-center"
+          >
+            <Icon
+              icon="mdi-qrcode"
+              class="text-primary"
+              style="width: 27px; height: 27px"
+            />
           </div>
         </div>
         <!-- content -->
@@ -145,9 +173,12 @@ function mapAmount(events: { type: string; attributes: { key: string; value: str
         <h2 class="card-title mb-4">{{ $t('account.assets') }}</h2>
         <!-- button -->
         <div class="flex justify-end mb-4 pr-5">
-          <label for="send" class="btn btn-primary btn-sm mr-2" @click="dialog.open('send', {}, updateEvent)">{{
-            $t('account.btn_send')
-          }}</label>
+          <label
+            for="send"
+            class="btn btn-primary btn-sm mr-2"
+            @click="dialog.open('send', {}, updateEvent)"
+            >{{ $t('account.btn_send') }}</label
+          >
           <label
             for="transfer"
             class="btn btn-primary btn-sm"
@@ -172,10 +203,18 @@ function mapAmount(events: { type: string; attributes: { key: string; value: str
           <!-- list-->
           <div class="">
             <!--balances  -->
-            <div class="flex items-center px-4 mb-2" v-for="(balanceItem, index) in balances" :key="index">
-              <div class="w-9 h-9 rounded overflow-hidden flex items-center justify-center relative mr-4">
+            <div
+              v-for="(balanceItem, index) in balances"
+              :key="index"
+              class="flex items-center px-4 mb-2"
+            >
+              <div
+                class="w-9 h-9 rounded overflow-hidden flex items-center justify-center relative mr-4"
+              >
                 <Icon icon="mdi-account-cash" class="text-info" size="20" />
-                <div class="absolute top-0 bottom-0 left-0 right-0 bg-info opacity-20"></div>
+                <div
+                  class="absolute top-0 bottom-0 left-0 right-0 bg-info opacity-20"
+                />
               </div>
               <div class="flex-1">
                 <div class="text-sm font-semibold">
@@ -185,35 +224,68 @@ function mapAmount(events: { type: string; attributes: { key: string; value: str
                   {{ format.calculatePercent(balanceItem.amount, totalAmount) }}
                 </div>
               </div>
-              <div class="text-xs truncate relative py-1 px-3 rounded-full w-fit text-primary dark:invert mr-2">
-                <span class="inset-x-0 inset-y-0 opacity-10 absolute bg-primary dark:invert text-sm"></span>
+              <div
+                class="text-xs truncate relative py-1 px-3 rounded-full w-fit text-primary dark:invert mr-2"
+              >
+                <span
+                  class="inset-x-0 inset-y-0 opacity-10 absolute bg-primary dark:invert text-sm"
+                />
                 ${{ format.tokenValue(balanceItem) }}
               </div>
             </div>
             <!--delegations  -->
-            <div class="flex items-center px-4 mb-2" v-for="(delegationItem, index) in delegations" :key="index">
-              <div class="w-9 h-9 rounded overflow-hidden flex items-center justify-center relative mr-4">
+            <div
+              v-for="(delegationItem, index) in delegations"
+              :key="index"
+              class="flex items-center px-4 mb-2"
+            >
+              <div
+                class="w-9 h-9 rounded overflow-hidden flex items-center justify-center relative mr-4"
+              >
                 <Icon icon="mdi-user-clock" class="text-warning" size="20" />
-                <div class="absolute top-0 bottom-0 left-0 right-0 bg-warning opacity-20"></div>
+                <div
+                  class="absolute top-0 bottom-0 left-0 right-0 bg-warning opacity-20"
+                />
               </div>
               <div class="flex-1">
                 <div class="text-sm font-semibold">
                   {{ format.formatToken(delegationItem?.balance) }}
                 </div>
                 <div class="text-xs">
-                  {{ format.calculatePercent(delegationItem?.balance?.amount, totalAmount) }}
+                  {{
+                    format.calculatePercent(
+                      delegationItem?.balance?.amount,
+                      totalAmount
+                    )
+                  }}
                 </div>
               </div>
-              <div class="text-xs truncate relative py-1 px-3 rounded-full w-fit text-primary dark:invert mr-2">
-                <span class="inset-x-0 inset-y-0 opacity-10 absolute bg-primary dark:invert text-sm"></span>
+              <div
+                class="text-xs truncate relative py-1 px-3 rounded-full w-fit text-primary dark:invert mr-2"
+              >
+                <span
+                  class="inset-x-0 inset-y-0 opacity-10 absolute bg-primary dark:invert text-sm"
+                />
                 ${{ format.tokenValue(delegationItem?.balance) }}
               </div>
             </div>
             <!-- rewards.total -->
-            <div class="flex items-center px-4 mb-2" v-for="(rewardItem, index) in rewards.total" :key="index">
-              <div class="w-9 h-9 rounded overflow-hidden flex items-center justify-center relative mr-4">
-                <Icon icon="mdi-account-arrow-up" class="text-success" size="20" />
-                <div class="absolute top-0 bottom-0 left-0 right-0 bg-success opacity-20"></div>
+            <div
+              v-for="(rewardItem, index) in rewards.total"
+              :key="index"
+              class="flex items-center px-4 mb-2"
+            >
+              <div
+                class="w-9 h-9 rounded overflow-hidden flex items-center justify-center relative mr-4"
+              >
+                <Icon
+                  icon="mdi-account-arrow-up"
+                  class="text-success"
+                  size="20"
+                />
+                <div
+                  class="absolute top-0 bottom-0 left-0 right-0 bg-success opacity-20"
+                />
               </div>
               <div class="flex-1">
                 <div class="text-sm font-semibold">
@@ -223,17 +295,27 @@ function mapAmount(events: { type: string; attributes: { key: string; value: str
                   {{ format.calculatePercent(rewardItem.amount, totalAmount) }}
                 </div>
               </div>
-              <div class="text-xs truncate relative py-1 px-3 rounded-full w-fit text-primary dark:invert mr-2">
-                <span class="inset-x-0 inset-y-0 opacity-10 absolute bg-primary dark:invert text-sm"></span>${{
-                  format.tokenValue(rewardItem)
-                }}
+              <div
+                class="text-xs truncate relative py-1 px-3 rounded-full w-fit text-primary dark:invert mr-2"
+              >
+                <span
+                  class="inset-x-0 inset-y-0 opacity-10 absolute bg-primary dark:invert text-sm"
+                />${{ format.tokenValue(rewardItem) }}
               </div>
             </div>
             <!-- mdi-account-arrow-right -->
             <div class="flex items-center px-4">
-              <div class="w-9 h-9 rounded overflow-hidden flex items-center justify-center relative mr-4">
-                <Icon icon="mdi-account-arrow-right" class="text-error" size="20" />
-                <div class="absolute top-0 bottom-0 left-0 right-0 bg-error opacity-20"></div>
+              <div
+                class="w-9 h-9 rounded overflow-hidden flex items-center justify-center relative mr-4"
+              >
+                <Icon
+                  icon="mdi-account-arrow-right"
+                  class="text-error"
+                  size="20"
+                />
+                <div
+                  class="absolute top-0 bottom-0 left-0 right-0 bg-error opacity-20"
+                />
               </div>
               <div class="flex-1">
                 <div class="text-sm font-semibold">
@@ -248,8 +330,12 @@ function mapAmount(events: { type: string; attributes: { key: string; value: str
                   {{ format.calculatePercent(unbondingTotal, totalAmount) }}
                 </div>
               </div>
-              <div class="text-xs truncate relative py-1 px-3 rounded-full w-fit text-primary dark:invert mr-2">
-                <span class="inset-x-0 inset-y-0 opacity-10 absolute bg-primary dark:invert"></span>
+              <div
+                class="text-xs truncate relative py-1 px-3 rounded-full w-fit text-primary dark:invert mr-2"
+              >
+                <span
+                  class="inset-x-0 inset-y-0 opacity-10 absolute bg-primary dark:invert"
+                />
                 ${{
                   format.tokenValue({
                     amount: String(unbondingTotal),
@@ -273,12 +359,18 @@ function mapAmount(events: { type: string; attributes: { key: string; value: str
       <div class="flex justify-between">
         <h2 class="card-title mb-4">{{ $t('account.delegations') }}</h2>
         <div class="flex justify-end mb-4">
-          <label for="delegate" class="btn btn-primary btn-sm mr-2" @click="dialog.open('delegate', {}, updateEvent)">{{
-            $t('account.btn_delegate')
-          }}</label>
-          <label for="withdraw" class="btn btn-primary btn-sm" @click="dialog.open('withdraw', {}, updateEvent)">{{
-            $t('account.btn_withdraw')
-          }}</label>
+          <label
+            for="delegate"
+            class="btn btn-primary btn-sm mr-2"
+            @click="dialog.open('delegate', {}, updateEvent)"
+            >{{ $t('account.btn_delegate') }}</label
+          >
+          <label
+            for="withdraw"
+            class="btn btn-primary btn-sm"
+            @click="dialog.open('withdraw', {}, updateEvent)"
+            >{{ $t('account.btn_withdraw') }}</label
+          >
         </div>
       </div>
       <div class="overflow-x-auto">
@@ -294,14 +386,21 @@ function mapAmount(events: { type: string; attributes: { key: string; value: str
           <tbody class="text-sm">
             <tr v-if="delegations.length === 0">
               <td colspan="10">
-                <div class="text-center">{{ $t('account.no_delegations') }}</div>
+                <div class="text-center">
+                  {{ $t('account.no_delegations') }}
+                </div>
               </td>
             </tr>
             <tr v-for="(v, index) in delegations" :key="index">
               <td class="text-caption text-primary py-3">
-                <RouterLink :to="`/${chain}/staking/${v.delegation.validator_address}`">{{
-                  format.validatorFromBech32(v.delegation.validator_address) || v.delegation.validator_address
-                }}</RouterLink>
+                <RouterLink
+                  :to="`/${chain}/staking/${v.delegation.validator_address}`"
+                  >{{
+                    format.validatorFromBech32(
+                      v.delegation.validator_address
+                    ) || v.delegation.validator_address
+                  }}</RouterLink
+                >
               </td>
               <td class="py-3">
                 {{ format.formatToken(v.balance, true, '0,0.[000000]') }}
@@ -309,7 +408,10 @@ function mapAmount(events: { type: string; attributes: { key: string; value: str
               <td class="py-3">
                 {{
                   format.formatTokens(
-                    rewards?.rewards?.find((x) => x.validator_address === v.delegation.validator_address)?.reward
+                    rewards?.rewards?.find(
+                      (x) =>
+                        x.validator_address === v.delegation.validator_address
+                    )?.reward
                   )
                 }}
               </td>
@@ -366,7 +468,10 @@ function mapAmount(events: { type: string; attributes: { key: string; value: str
     </div>
 
     <!-- Unbonding Delegations -->
-    <div class="bg-base-100 px-4 pt-3 pb-4 rounded mb-4 shadow" v-if="unbonding && unbonding.length > 0">
+    <div
+      v-if="unbonding && unbonding.length > 0"
+      class="bg-base-100 px-4 pt-3 pb-4 rounded mb-4 shadow"
+    >
       <h2 class="card-title mb-4">{{ $t('account.unbonding_delegations') }}</h2>
       <div class="overflow-x-auto">
         <table class="table text-sm w-full">
@@ -378,13 +483,18 @@ function mapAmount(events: { type: string; attributes: { key: string; value: str
               <th class="py-3">{{ $t('account.completion_time') }}</th>
             </tr>
           </thead>
-          <tbody class="text-sm" v-for="(v, index) in unbonding" :key="index">
+          <tbody v-for="(v, index) in unbonding" :key="index" class="text-sm">
             <tr>
-              <td class="text-caption text-primary py-3 bg-slate-200" colspan="10">
-                <RouterLink :to="`/${chain}/staking/${v.validator_address}`">{{ v.validator_address }}</RouterLink>
+              <td
+                class="text-caption text-primary py-3 bg-slate-200"
+                colspan="10"
+              >
+                <RouterLink :to="`/${chain}/staking/${v.validator_address}`">{{
+                  v.validator_address
+                }}</RouterLink>
               </td>
             </tr>
-            <tr v-for="entry in v.entries">
+            <tr v-for="(entry, ei) in v.entries" :key="ei">
               <td class="py-3">{{ entry.creation_height }}</td>
               <td class="py-3">
                 {{
@@ -411,7 +521,12 @@ function mapAmount(events: { type: string; attributes: { key: string; value: str
                 }}
               </td>
               <td class="py-3">
-                <Countdown :time="new Date(entry.completion_time).getTime() - new Date().getTime()" />
+                <Countdown
+                  :time="
+                    new Date(entry.completion_time).getTime() -
+                    new Date().getTime()
+                  "
+                />
               </td>
             </tr>
           </tbody>
@@ -435,7 +550,9 @@ function mapAmount(events: { type: string; attributes: { key: string; value: str
           <tbody class="text-sm">
             <tr v-if="txs.length === 0">
               <td colspan="10">
-                <div class="text-center">{{ $t('account.no_transactions') }}</div>
+                <div class="text-center">
+                  {{ $t('account.no_transactions') }}
+                </div>
               </td>
             </tr>
             <tr v-for="(v, index) in txs" :key="index">
@@ -458,12 +575,18 @@ function mapAmount(events: { type: string; attributes: { key: string; value: str
                 <div class="mr-2">
                   {{ format.messages(v.tx.body.messages) }}
                 </div>
-                <Icon v-if="v.code === 0" icon="mdi-check" class="text-success text-lg" />
+                <Icon
+                  v-if="v.code === 0"
+                  icon="mdi-check"
+                  class="text-success text-lg"
+                />
                 <Icon v-else icon="mdi-multiply" class="text-error text-lg" />
               </td>
               <td class="py-3">
                 {{ format.toLocaleDate(v.timestamp) }}
-                <span class="text-xs">({{ format.toDay(v.timestamp, 'from') }})</span>
+                <span class="text-xs"
+                  >({{ format.toDay(v.timestamp, 'from') }})</span
+                >
               </td>
             </tr>
           </tbody>
@@ -487,7 +610,9 @@ function mapAmount(events: { type: string; attributes: { key: string; value: str
           <tbody class="text-sm">
             <tr v-if="recentReceived.length === 0">
               <td colspan="10">
-                <div class="text-center">{{ $t('account.no_transactions') }}</div>
+                <div class="text-center">
+                  {{ $t('account.no_transactions') }}
+                </div>
               </td>
             </tr>
             <tr v-for="(v, index) in recentReceived" :key="index">
@@ -510,12 +635,18 @@ function mapAmount(events: { type: string; attributes: { key: string; value: str
                 <div class="mr-2">
                   {{ mapAmount(v.events)?.join(', ') }}
                 </div>
-                <Icon v-if="v.code === 0" icon="mdi-check" class="text-success text-lg" />
+                <Icon
+                  v-if="v.code === 0"
+                  icon="mdi-check"
+                  class="text-success text-lg"
+                />
                 <Icon v-else icon="mdi-multiply" class="text-error text-lg" />
               </td>
               <td class="py-3">
                 {{ format.toLocaleDate(v.timestamp) }}
-                <span class="text-xs">({{ format.toDay(v.timestamp, 'from') }})</span>
+                <span class="text-xs"
+                  >({{ format.toDay(v.timestamp, 'from') }})</span
+                >
               </td>
             </tr>
           </tbody>

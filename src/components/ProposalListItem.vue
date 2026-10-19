@@ -1,13 +1,21 @@
 <script lang="ts" setup>
-import { useBlockchain, useFormatter, useStakingStore, useTxDialog } from '@/stores';
+import {
+  useBlockchain,
+  useFormatter,
+  useStakingStore,
+  useTxDialog,
+} from '@/stores';
 import { select } from '@/components/dynamic/index';
 import type { PaginatedProposals } from '@/types';
 import ProposalProcess from './ProposalProcess.vue';
 import type { PropType } from 'vue';
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 const dialog = useTxDialog();
 defineProps({
-  proposals: { type: Object as PropType<PaginatedProposals> },
+  proposals: {
+    type: Object as PropType<PaginatedProposals | undefined>,
+    default: undefined,
+  },
 });
 
 const format = useFormatter();
@@ -25,17 +33,16 @@ const statusMap: Record<string, string> = {
   PROPOSAL_STATUS_PASSED: 'PASSED',
   PROPOSAL_STATUS_REJECTED: 'REJECTED',
 };
-const voterStatusMap: Record<string, string> = {
-  VOTE_OPTION_NO_WITH_VETO: '',
-  VOTE_OPTION_YES: 'success',
-  VOTE_OPTION_NO: 'error',
-  VOTE_OPTION_ABSTAIN: 'warning',
-};
 
 const proposalInfo = ref();
 
-function metaItem(metadata: string | undefined): { title: string; summary: string } {
-  return metadata ? JSON.parse(metadata) : {};
+function metaItem(metadata: string | undefined): {
+  title?: string;
+  summary?: string;
+} {
+  return metadata
+    ? (JSON.parse(metadata) as { title?: string; summary?: string })
+    : {};
 }
 </script>
 <template>
@@ -58,9 +65,7 @@ function metaItem(metadata: string | undefined): { title: string; summary: strin
                 :to="`/${chain.chainName}/gov/${item?.proposal_id}`"
                 class="text-main text-base mb-1 block hover:text-indigo-400 truncate"
               >
-                {{
-                  item.title
-                }} {{ item.content?.title  }}
+                {{ item.title }} {{ item.content?.title }}
               </RouterLink>
               <div
                 v-if="item.content"
@@ -71,7 +76,10 @@ function metaItem(metadata: string | undefined): { title: string; summary: strin
             </div>
           </td>
           <td class="w-60">
-            <ProposalProcess :pool="staking.pool" :tally="item.final_tally_result"></ProposalProcess>
+            <ProposalProcess
+              :pool="staking.pool"
+              :tally="item.final_tally_result"
+            />
           </td>
           <td class="w-36">
             <div class="pl-4">
@@ -81,8 +89,8 @@ function metaItem(metadata: string | undefined): { title: string; summary: strin
                   statusMap?.[item?.status] === 'PASSED'
                     ? 'text-yes'
                     : statusMap?.[item?.status] === 'REJECTED'
-                    ? 'text-no'
-                    : 'text-info'
+                      ? 'text-no'
+                      : 'text-info'
                 "
               >
                 <div
@@ -91,10 +99,10 @@ function metaItem(metadata: string | undefined): { title: string; summary: strin
                     statusMap?.[item?.status] === 'PASSED'
                       ? 'bg-yes'
                       : statusMap?.[item?.status] === 'REJECTED'
-                      ? 'bg-no'
-                      : 'bg-info'
+                        ? 'bg-no'
+                        : 'bg-info'
                   "
-                ></div>
+                />
                 <div class="text-xs">
                   {{ statusMap?.[item?.status] || item?.status }}
                 </div>
@@ -131,11 +139,23 @@ function metaItem(metadata: string | undefined): { title: string; summary: strin
     </table>
 
     <div class="lg:!hidden">
-      <div v-for="(item, index) in proposals?.proposals" :key="index" class="px-4 py-4">
-        <div class="text-main text-base mb-1 flex justify-between hover:text-indigo-400">
-          <RouterLink :to="`/${chain.chainName}/gov/${item?.proposal_id}`" class="flex-1 w-0 truncate mr-4">{{
-            item?.content?.title || item?.title || metaItem(item?.metadata)?.title
-          }}</RouterLink>
+      <div
+        v-for="(item, index) in proposals?.proposals"
+        :key="index"
+        class="px-4 py-4"
+      >
+        <div
+          class="text-main text-base mb-1 flex justify-between hover:text-indigo-400"
+        >
+          <RouterLink
+            :to="`/${chain.chainName}/gov/${item?.proposal_id}`"
+            class="flex-1 w-0 truncate mr-4"
+            >{{
+              item?.content?.title ||
+              item?.title ||
+              metaItem(item?.metadata)?.title
+            }}</RouterLink
+          >
           <label
             for="proposal-detail-modal"
             class="text-main text-base hover:text-indigo-400 cursor-pointer"
@@ -155,16 +175,21 @@ function metaItem(metadata: string | undefined): { title: string; summary: strin
             </div>
           </div>
 
-          <div class="truncate text-xs text-gray-500 dark:text-gray-400 flex items-center justify-end">
+          <div
+            class="truncate text-xs text-gray-500 dark:text-gray-400 flex items-center justify-end"
+          >
             {{ format.toDay(item.voting_end_time, 'from') }}
           </div>
         </div>
 
         <div>
-          <ProposalProcess :pool="staking.pool" :tally="item.final_tally_result"></ProposalProcess>
+          <ProposalProcess
+            :pool="staking.pool"
+            :tally="item.final_tally_result"
+          />
         </div>
 
-        <div class="mt-4" v-if="statusMap?.[item?.status] === 'VOTING'">
+        <div v-if="statusMap?.[item?.status] === 'VOTING'" class="mt-4">
           <div class="flex justify-between">
             <div
               class="flex items-center"
@@ -172,8 +197,8 @@ function metaItem(metadata: string | undefined): { title: string; summary: strin
                 statusMap?.[item?.status] === 'PASSED'
                   ? 'text-yes'
                   : statusMap?.[item?.status] === 'REJECTED'
-                  ? 'text-no'
-                  : 'text-info'
+                    ? 'text-no'
+                    : 'text-info'
               "
             >
               <div
@@ -182,10 +207,10 @@ function metaItem(metadata: string | undefined): { title: string; summary: strin
                   statusMap?.[item?.status] === 'PASSED'
                     ? 'bg-yes'
                     : statusMap?.[item?.status] === 'REJECTED'
-                    ? 'bg-no'
-                    : 'bg-info'
+                      ? 'bg-no'
+                      : 'bg-info'
                 "
-              ></div>
+              />
               <div class="text-xs flex items-center">
                 {{ statusMap?.[item?.status] || item?.status }}
               </div>
@@ -210,16 +235,17 @@ function metaItem(metadata: string | undefined): { title: string; summary: strin
       </div>
     </div>
 
-    <input type="checkbox" id="proposal-detail-modal" class="modal-toggle" />
+    <input id="proposal-detail-modal" type="checkbox" class="modal-toggle" />
     <label for="proposal-detail-modal" class="modal">
       <label class="modal-box !w-11/12 !max-w-5xl" for="">
-        <label for="proposal-detail-modal" class="btn btn-sm btn-circle absolute right-2 top-2">✕</label>
+        <label
+          for="proposal-detail-modal"
+          class="btn btn-sm btn-circle absolute right-2 top-2"
+          >✕</label
+        >
         <h3 class="font-bold text-lg">Description</h3>
         <p class="py-4">
           <Component
-            v-if="
-              proposalInfo?.content?.description || proposalInfo?.summary || metaItem(proposalInfo?.metadata)?.summary
-            "
             :is="
               select(
                 proposalInfo?.content?.description ||
@@ -228,11 +254,17 @@ function metaItem(metadata: string | undefined): { title: string; summary: strin
                 'horizontal'
               )
             "
-            :value="
-              proposalInfo?.content?.description || proposalInfo?.summary || metaItem(proposalInfo?.metadata)?.summary
+            v-if="
+              proposalInfo?.content?.description ||
+              proposalInfo?.summary ||
+              metaItem(proposalInfo?.metadata)?.summary
             "
-          >
-          </Component>
+            :value="
+              proposalInfo?.content?.description ||
+              proposalInfo?.summary ||
+              metaItem(proposalInfo?.metadata)?.summary
+            "
+          />
         </p>
       </label>
     </label>

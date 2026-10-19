@@ -9,7 +9,7 @@ export interface Group {
   version: string;
 }
 
-export interface GroupPolicy {}
+export type GroupPolicy = Record<string, unknown>;
 
 export interface GroupTallyResult {
   abstain_count: string;
@@ -25,7 +25,7 @@ export interface GroupProposal {
   group_policy_version: string;
   group_version: string;
   id: string;
-  messages: any[];
+  messages: unknown[];
   metadata: string;
   proposers: string[];
   status: string;

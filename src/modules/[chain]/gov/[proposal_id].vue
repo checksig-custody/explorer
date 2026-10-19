@@ -1,37 +1,54 @@
 <script lang="ts" setup>
-import { computed } from '@vue/reactivity';
+import { computed } from 'vue';
 import { MdPreview } from 'md-editor-v3';
 import { sanitizeMarkdownHtml } from '@/libs/sanitize';
+import { maybe, orDefault } from '@/libs/utils';
 import 'md-editor-v3/lib/preview.css';
 import ObjectElement from '@/components/dynamic/ObjectElement.vue';
-import { useBaseStore, useBlockchain, useFormatter, useGovStore, useStakingStore, useTxDialog } from '@/stores';
-import { PageRequest, type GovProposal, type GovVote, type PaginatedProposalDeposit, type Pagination } from '@/types';
+import {
+  useBaseStore,
+  useBlockchain,
+  useFormatter,
+  useGovStore,
+  useStakingStore,
+  useTxDialog,
+} from '@/stores';
+import {
+  PageRequest,
+  type GovProposal,
+  type GovVote,
+  type PaginatedProposalDeposit,
+  type Pagination,
+} from '@/types';
 import { ref, reactive } from 'vue';
 import Countdown from '@/components/Countdown.vue';
 import PaginationBar from '@/components/PaginationBar.vue';
 import { fromBech32, toHex } from '@cosmjs/encoding';
 
-const props = defineProps(['proposal_id', 'chain']);
-const proposal = ref({} as GovProposal);
+const props = defineProps({
+  proposal_id: { type: String, required: true },
+  chain: { type: String, default: undefined },
+});
+const proposal = ref<Partial<GovProposal>>({});
 const format = useFormatter();
 const store = useGovStore();
 const dialog = useTxDialog();
 const stakingStore = useStakingStore();
 const chainStore = useBlockchain();
 
-store.fetchProposal(props.proposal_id).then((res) => {
-  let proposalDetail = reactive(res.proposal);
+void store.fetchProposal(props.proposal_id).then((res) => {
+  const proposalDetail = reactive(res.proposal);
   // when status under the voting, final_tally_result are no data, should request fetchTally
-  if (res.proposal?.status === 'PROPOSAL_STATUS_VOTING_PERIOD') {
-    store.fetchTally(props.proposal_id).then((tallRes) => {
-      proposalDetail.final_tally_result = tallRes?.tally;
+  if (maybe(res.proposal)?.status === 'PROPOSAL_STATUS_VOTING_PERIOD') {
+    void store.fetchTally(props.proposal_id).then((tallRes) => {
+      proposalDetail.final_tally_result = maybe(tallRes)?.tally;
     });
   }
   proposal.value = proposalDetail;
   // load origin params if the proposal is param change
   if (proposalDetail.content?.changes) {
-    proposalDetail.content?.changes.forEach((item) => {
-      chainStore.rpc.getParams(item.subspace, item.key).then((res) => {
+    proposalDetail.content.changes.forEach((item) => {
+      void chainStore.rpc.getParams(item.subspace, item.key).then((res) => {
         if (proposal.value.content && res.param) {
           if (proposal.value.content.current) {
             proposal.value.content.current.push(res.param);
@@ -43,32 +60,33 @@ store.fetchProposal(props.proposal_id).then((res) => {
     });
   }
 
-  const msgType = proposalDetail.content?.['@type'] || '';
+  const msgType = orDefault(proposalDetail.content?.['@type'], '');
   if (msgType.endsWith('MsgUpdateParams')) {
-    if (msgType.indexOf('staking') > -1) {
-      chainStore.rpc.getStakingParams().then((res) => {
+    if (msgType.includes('staking')) {
+      void chainStore.rpc.getStakingParams().then((res) => {
         addCurrentParams(res);
       });
-    } else if (msgType.indexOf('gov') > -1) {
-      chainStore.rpc.getGovParamsVoting().then((res) => {
+    } else if (msgType.includes('gov')) {
+      void chainStore.rpc.getGovParamsVoting().then((res) => {
         addCurrentParams(res);
       });
-    } else if (msgType.indexOf('distribution') > -1) {
-      chainStore.rpc.getDistributionParams().then((res) => {
+    } else if (msgType.includes('distribution')) {
+      void chainStore.rpc.getDistributionParams().then((res) => {
         addCurrentParams(res);
       });
-    } else if (msgType.indexOf('slashing') > -1) {
-      chainStore.rpc.getSlashingParams().then((res) => {
+    } else if (msgType.includes('slashing')) {
+      void chainStore.rpc.getSlashingParams().then((res) => {
         addCurrentParams(res);
       });
     }
   }
 });
 
-function addCurrentParams(res: any) {
-  if (proposal.value.content && res.params) {
-    proposal.value.content.params = [proposal.value.content?.params];
-    proposal.value.content.current = [res.params];
+function addCurrentParams(res: object) {
+  const { params } = res as { params?: unknown };
+  if (proposal.value.content && params) {
+    proposal.value.content.params = [proposal.value.content.params];
+    proposal.value.content.current = [params];
   }
 }
 const color = computed(() => {
@@ -87,18 +105,20 @@ const status = computed(() => {
 });
 
 const deposit = ref({} as PaginatedProposalDeposit);
-store.fetchProposalDeposits(props.proposal_id).then((x) => (deposit.value = x));
+void store
+  .fetchProposalDeposits(props.proposal_id)
+  .then((x) => (deposit.value = x));
 
 const votes = ref({} as GovVote[]);
 const pageRequest = ref(new PageRequest());
 const pageResponse = ref({} as Pagination);
 
-store.fetchProposalVotes(props.proposal_id).then((x) => {
+void store.fetchProposalVotes(props.proposal_id).then((x) => {
   votes.value = x.votes;
   pageResponse.value = x.pagination;
 });
 
-function shortTime(v: string) {
+function shortTime(v: string | undefined) {
   if (v) {
     return format.toDay(v, 'from');
   }
@@ -107,21 +127,21 @@ function shortTime(v: string) {
 
 const votingCountdown = computed((): number => {
   const now = new Date();
-  const end = new Date(proposal.value.voting_end_time);
+  const end = new Date(proposal.value.voting_end_time ?? '');
   return end.getTime() - now.getTime();
 });
 
 const upgradeCountdown = computed((): number => {
-  const height = Number(proposal.value.content?.plan?.height || 0);
+  const height = Number(orDefault(proposal.value.content?.plan?.height, 0));
   if (height > 0) {
     const base = useBaseStore();
-    const current = Number(base.latest?.block?.header?.height || 0);
+    const current = Number(orDefault(base.latest.block?.header.height, 0));
     return (
       (height - current) * Number((base.blocktime / 1000).toFixed()) * 1000
     );
   }
   const now = new Date();
-  const end = new Date(proposal.value.content?.plan?.time || '');
+  const end = new Date(orDefault(proposal.value.content?.plan?.time, ''));
   return end.getTime() - now.getTime();
 });
 
@@ -139,7 +159,7 @@ const total = computed(() => {
 
 const turnout = computed(() => {
   if (total.value > 0) {
-    const bonded = stakingStore.pool?.bonded_tokens || '1';
+    const bonded = stakingStore.pool.bonded_tokens || '1';
     return format.percent(total.value / Number(bonded));
   }
   return 0;
@@ -147,7 +167,7 @@ const turnout = computed(() => {
 
 const yes = computed(() => {
   if (total.value > 0) {
-    const yes = proposal.value?.final_tally_result?.yes || 0;
+    const yes = orDefault(proposal.value.final_tally_result?.yes, 0);
     return format.percent(Number(yes) / total.value);
   }
   return 0;
@@ -155,7 +175,7 @@ const yes = computed(() => {
 
 const no = computed(() => {
   if (total.value > 0) {
-    const value = proposal.value?.final_tally_result?.no || 0;
+    const value = orDefault(proposal.value.final_tally_result?.no, 0);
     return format.percent(Number(value) / total.value);
   }
   return 0;
@@ -163,7 +183,7 @@ const no = computed(() => {
 
 const veto = computed(() => {
   if (total.value > 0) {
-    const value = proposal.value?.final_tally_result?.no_with_veto || 0;
+    const value = orDefault(proposal.value.final_tally_result?.no_with_veto, 0);
     return format.percent(Number(value) / total.value);
   }
   return 0;
@@ -171,7 +191,7 @@ const veto = computed(() => {
 
 const abstain = computed(() => {
   if (total.value > 0) {
-    const value = proposal.value?.final_tally_result?.abstain || 0;
+    const value = orDefault(proposal.value.final_tally_result?.abstain, 0);
     return format.percent(Number(value) / total.value);
   }
   return 0;
@@ -190,28 +210,23 @@ function showValidatorName(voter: string) {
   try {
     const { data } = fromBech32(voter);
     const hex = toHex(data);
-    const v = stakingStore.validators.find((x) => toHex(fromBech32(x.operator_address).data) === hex);
+    const v = stakingStore.validators.find(
+      (x) => toHex(fromBech32(x.operator_address).data) === hex
+    );
     return v ? v.description.moniker : voter;
-  } catch (e) {
+  } catch {
     return voter;
   }
 }
 
 function pageload(p: number) {
   pageRequest.value.setPage(p);
-  store.fetchProposalVotes(props.proposal_id, pageRequest.value).then((x) => {
-    votes.value = x.votes;
-    pageResponse.value = x.pagination;
-  });
-}
-
-function metaItem(metadata: string | undefined): { title: string; summary: string } {
-  if (!metadata) {
-    return { title: '', summary: '' };
-  } else if (metadata.startsWith('{') && metadata.endsWith('}')) {
-    return JSON.parse(metadata);
-  }
-  return { title: metadata, summary: '' };
+  void store
+    .fetchProposalVotes(props.proposal_id, pageRequest.value)
+    .then((x) => {
+      votes.value = x.votes;
+      pageResponse.value = x.pagination;
+    });
 }
 </script>
 
@@ -221,12 +236,16 @@ function metaItem(metadata: string | undefined): { title: string; summary: strin
       <h2
         class="card-title flex flex-col md:!justify-between md:!flex-row mb-2"
       >
-        <p class="truncate w-full">
-          {{ proposal_id }}. {{ proposal.title }}
-        </p>
+        <p class="truncate w-full">{{ proposal_id }}. {{ proposal.title }}</p>
         <div
           class="badge badge-ghost"
-          :class="color === 'success' ? 'text-yes' : color === 'error' ? 'text-no' : 'text-info'"
+          :class="
+            color === 'success'
+              ? 'text-yes'
+              : color === 'error'
+                ? 'text-no'
+                : 'text-info'
+          "
         >
           {{ status }}
         </div>
@@ -237,16 +256,12 @@ function metaItem(metadata: string | undefined): { title: string; summary: strin
       <div v-if="proposal.summary">
         <!-- Chain text is untrusted: mermaid and echarts run code outside sanitize. -->
         <MdPreview
-          :model-value="
-            format.multiLine(
-              proposal.summary
-            )
-          "
+          :model-value="format.multiLine(proposal.summary)"
           :sanitize="sanitizeMarkdownHtml"
           :no-mermaid="true"
           :no-echarts="true"
           class="md-editor-recover"
-        ></MdPreview>
+        />
       </div>
     </div>
     <!-- grid lg:!!grid-cols-3 auto-rows-max-->
@@ -255,15 +270,18 @@ function metaItem(metadata: string | undefined): { title: string; summary: strin
       <!-- flex-1 -->
       <div class="bg-base-100 px-4 pt-3 pb-4 rounded shadow">
         <h2 class="card-title mb-1">{{ $t('gov.tally') }}</h2>
-        <div class="mb-1" v-for="(item, index) of processList" :key="index">
+        <div v-for="(item, index) of processList" :key="index" class="mb-1">
           <label class="block text-sm mb-1">{{ item.name }}</label>
           <div class="h-5 w-full relative">
-            <div class="absolute inset-x-0 inset-y-0 w-full opacity-10 rounded-sm" :class="`${item.class}`"></div>
+            <div
+              class="absolute inset-x-0 inset-y-0 w-full opacity-10 rounded-sm"
+              :class="`${item.class}`"
+            />
             <div
               class="absolute inset-x-0 inset-y-0 rounded-sm"
               :class="`${item.class}`"
               :style="`width: ${item.value === '-' || item.value === 'NaN%' ? '0%' : item.value}`"
-            ></div>
+            />
             <p
               class="absolute inset-x-0 inset-y-0 text-center text-sm text-[#666] dark:text-[#eee] flex items-center justify-center"
             >
@@ -292,7 +310,7 @@ function metaItem(metadata: string | undefined): { title: string; summary: strin
 
         <div class="px-1">
           <div class="flex items-center mb-4 mt-2">
-            <div class="w-2 h-2 rounded-full bg-error mr-3"></div>
+            <div class="w-2 h-2 rounded-full bg-error mr-3" />
             <div class="text-base flex-1 text-main">
               {{ $t('gov.submit_at') }}:
               {{ format.toDay(proposal.submit_time) }}
@@ -300,7 +318,7 @@ function metaItem(metadata: string | undefined): { title: string; summary: strin
             <div class="text-sm">{{ shortTime(proposal.submit_time) }}</div>
           </div>
           <div class="flex items-center mb-4">
-            <div class="w-2 h-2 rounded-full bg-primary mr-3"></div>
+            <div class="w-2 h-2 rounded-full bg-primary mr-3" />
             <div class="text-base flex-1 text-main">
               {{ $t('gov.deposited_at') }}:
               {{
@@ -323,7 +341,7 @@ function metaItem(metadata: string | undefined): { title: string; summary: strin
           </div>
           <div class="mb-4">
             <div class="flex items-center">
-              <div class="w-2 h-2 rounded-full bg-yes mr-3"></div>
+              <div class="w-2 h-2 rounded-full bg-yes mr-3" />
               <div class="text-base flex-1 text-main">
                 {{ $t('gov.vote_start_from') }}
                 {{ format.toDay(proposal.voting_start_time) }}
@@ -338,7 +356,7 @@ function metaItem(metadata: string | undefined): { title: string; summary: strin
           </div>
           <div>
             <div class="flex items-center mb-1">
-              <div class="w-2 h-2 rounded-full bg-success mr-3"></div>
+              <div class="w-2 h-2 rounded-full bg-success mr-3" />
               <div class="text-base flex-1 text-main">
                 {{ $t('gov.vote_end') }}
                 {{ format.toDay(proposal.voting_end_time) }}
@@ -353,13 +371,22 @@ function metaItem(metadata: string | undefined): { title: string; summary: strin
             </div>
           </div>
 
-          <div class="mt-4" v-if="proposal?.content?.['@type']?.endsWith('SoftwareUpgradeProposal')">
+          <div
+            v-if="
+              proposal?.content?.['@type']?.endsWith('SoftwareUpgradeProposal')
+            "
+            class="mt-4"
+          >
             <div class="flex items-center">
-              <div class="w-2 h-2 rounded-full bg-warning mr-3"></div>
+              <div class="w-2 h-2 rounded-full bg-warning mr-3" />
               <div class="text-base flex-1 text-main">
                 {{ $t('gov.upgrade_plan') }}:
-                <span v-if="Number(proposal.content?.plan?.height || '0') > 0"> (EST)</span>
-                <span v-else>{{ format.toDay(proposal.content?.plan?.time) }}</span>
+                <span v-if="Number(proposal.content?.plan?.height || '0') > 0">
+                  (EST)</span
+                >
+                <span v-else>{{
+                  format.toDay(proposal.content?.plan?.time)
+                }}</span>
               </div>
               <div class="text-sm">
                 {{ shortTime(proposal.voting_end_time) }}
@@ -393,14 +420,21 @@ function metaItem(metadata: string | undefined): { title: string; summary: strin
               <td v-if="item.options" class="py-2 text-sm">
                 {{
                   item.options
-                    .map((x) => `${x.option.replace('VOTE_OPTION_', '')}:${format.percent(x.weight)}`)
+                    .map(
+                      (x) =>
+                        `${x.option.replace('VOTE_OPTION_', '')}:${format.percent(x.weight)}`
+                    )
                     .join(', ')
                 }}
               </td>
             </tr>
           </tbody>
         </table>
-        <PaginationBar :limit="pageRequest.limit" :total="pageResponse.total" :callback="pageload" />
+        <PaginationBar
+          :limit="pageRequest.limit"
+          :total="pageResponse.total"
+          :callback="pageload"
+        />
       </div>
     </div>
   </div>

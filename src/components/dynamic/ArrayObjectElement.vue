@@ -1,18 +1,21 @@
 <script lang="ts" setup>
-import { computed } from '@vue/reactivity';
+import { computed } from 'vue';
 import DynamicComponent from './DynamicComponent.vue';
 
-const props = defineProps({
-  value: { type: null as any },
-  thead: {
-    type: Boolean,
-    default: true,
-  },
-});
+const props = withDefaults(
+  defineProps<{
+    value: Record<string, unknown>[] | undefined;
+    thead?: boolean;
+  }>(),
+  {
+    thead: true,
+  }
+);
 
 const header = computed(() => {
-  if (props.value && props.value.length > 0) {
-    return Object.keys(props.value[0]);
+  const [first] = props.value ?? [];
+  if (first) {
+    return Object.keys(first);
   }
   return [];
 });
@@ -22,7 +25,11 @@ const header = computed(() => {
     <table class="table table-xs table-compact table-pin-rows w-full">
       <thead v-if="thead">
         <tr>
-          <th v-for="(item, index) in header" :key="index" class="text-left capitalize">
+          <th
+            v-for="(item, index) in header"
+            :key="index"
+            class="text-left capitalize"
+          >
             {{ item.replace(/_/g, ' ') }}
           </th>
         </tr>

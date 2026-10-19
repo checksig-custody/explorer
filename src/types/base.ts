@@ -30,9 +30,9 @@ export interface NodeInfo {
         path: string;
         version: string;
         sum: string;
-      }
+      },
     ];
-    cosmos_sdk_version: string;
+    cosmos_sdk_version?: string;
   };
 }
 export interface BlockId {
@@ -72,13 +72,13 @@ export interface Block {
       evidence_hash: string;
       proposer_address: string;
     };
-    data: {
-      txs: any[];
+    data?: {
+      txs: string[];
     };
     evidence: {
-      evidence: any[];
+      evidence: unknown[];
     };
-    last_commit: Commit;
+    last_commit?: Commit;
   };
 }
 

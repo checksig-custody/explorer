@@ -66,7 +66,7 @@ export interface PaginabledCodeInfos extends PaginatedResponse {
 }
 export interface PaginabledContracts extends PaginatedResponse {
   // return type of cosmwasm_code_id_contracts
-  contracts?: string[];
+  contracts?: string[] | undefined;
   // return type of cosmwasm_wasm_contracts_creator
   contract_addresses?: string[];
 }

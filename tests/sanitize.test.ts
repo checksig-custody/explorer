@@ -2,14 +2,15 @@ import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 
-let sanitizeMarkdownHtml;
+let sanitizeMarkdownHtml: (html: string) => string;
 
 before(async () => {
-  globalThis.window = new JSDOM('').window;
+  globalThis.window = new JSDOM('')
+    .window as unknown as typeof globalThis.window;
   ({ sanitizeMarkdownHtml } = await import('../src/libs/sanitize.ts'));
 });
 
-const doc = (html) =>
+const doc = (html: string) =>
   new JSDOM(`<body>${sanitizeMarkdownHtml(html)}</body>`).window.document;
 
 test('img onerror handler is removed', () => {
@@ -44,19 +45,27 @@ test('ordinary markup survives', () => {
   );
   assert.equal(d.querySelectorAll('li').length, 1);
   assert.equal(d.querySelector('pre code')?.textContent, 'x < y');
-  assert.equal(d.querySelector('img')?.getAttribute('src'), 'https://example.com/a.png');
-  assert.equal(d.querySelector('a')?.getAttribute('href'), 'https://example.com/p');
+  assert.equal(
+    d.querySelector('img')?.getAttribute('src'),
+    'https://example.com/a.png'
+  );
+  assert.equal(
+    d.querySelector('a')?.getAttribute('href'),
+    'https://example.com/p'
+  );
 });
 
 test('links open in a new tab without opener', () => {
   const a = doc('<a href="https://example.com">x</a>').querySelector('a');
+  assert.ok(a);
   assert.equal(a.getAttribute('target'), '_blank');
-  assert.match(a.getAttribute('rel'), /noopener/);
-  assert.match(a.getAttribute('rel'), /noreferrer/);
+  assert.match(a.getAttribute('rel') ?? '', /noopener/);
+  assert.match(a.getAttribute('rel') ?? '', /noreferrer/);
 });
 
 test('in-page anchors keep working', () => {
   const a = doc('<a href="#top">x</a>').querySelector('a');
+  assert.ok(a);
   assert.equal(a.getAttribute('href'), '#top');
 });
 

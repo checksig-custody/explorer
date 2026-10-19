@@ -1,12 +1,20 @@
 <script lang="ts" setup>
 import { ref, onMounted, computed, onUnmounted } from 'vue';
-import { fromHex, toBase64, fromBase64, toHex } from '@cosmjs/encoding';
-import { useStakingStore, useBaseStore, useBlockchain, useFormatter } from '@/stores';
+import { fromHex, toBase64 } from '@cosmjs/encoding';
+import {
+  useStakingStore,
+  useBaseStore,
+  useBlockchain,
+  useFormatter,
+} from '@/stores';
 import UptimeBar from '@/components/UptimeBar.vue';
-import type { SlashingParam, SigningInfo, Block } from '@/types';
+import type { SlashingParam, SigningInfo } from '@/types';
 import { consensusPubkeyToHexAddress, valconsToBase64 } from '@/libs';
+import { fillBlock } from '@/libs/uptime';
+import type { BlockColor, UptimeBlock } from '@/libs/uptime';
+import { orDefault } from '@/libs/utils';
 
-const props = defineProps(['chain']);
+defineProps({ chain: { type: String, default: undefined } });
 
 const stakingStore = useStakingStore();
 const format = useFormatter();
@@ -19,10 +27,6 @@ const slashingParam = ref({} as SlashingParam);
 const signingInfo = ref({} as Record<string, SigningInfo>);
 const consumerValidators = ref([] as { moniker: string; base64: string }[]);
 
-interface BlockColor {
-  height: string;
-  color: string;
-}
 interface ValidatorUnit {
   moniker: string;
   blocks: BlockColor[];
@@ -34,8 +38,8 @@ interface ValidatorUnit {
 }
 
 function padding(blocks: BlockColor[] = []) {
-  const raw = Array(50)
-    .fill({ height: '0', color: 'bg-secondary' } as BlockColor)
+  const raw = new Array<BlockColor>(50)
+    .fill({ height: '0', color: 'bg-secondary' })
     .concat(blocks);
   return raw.slice(raw.length - 50);
 }
@@ -45,10 +49,12 @@ const validatorSet = computed(() => {
     return consumerValidators.value.map((v) => {
       const b64 = valconsToBase64(v.moniker);
       const moniker = stakingStore.validators.find(
-        (x) => toBase64(fromHex(consensusPubkeyToHexAddress(x.consensus_pubkey))) === b64
+        (x) =>
+          toBase64(fromHex(consensusPubkeyToHexAddress(x.consensus_pubkey))) ===
+          b64
       )?.description.moniker;
       return {
-        moniker: moniker || v.moniker,
+        moniker: orDefault(moniker, v.moniker),
         base64: v.base64,
       };
     });
@@ -68,16 +74,21 @@ const grid = computed(() => {
   const validators =
     keyword.value.length === 0
       ? validatorSet.value
-      : validatorSet.value.filter((v) => v.moniker.toLowerCase().includes(keyword.value.toLowerCase()));
+      : validatorSet.value.filter((v) =>
+          v.moniker.toLowerCase().includes(keyword.value.toLowerCase())
+        );
 
   const window = Number(slashingParam.value.signed_blocks_window || 0);
   return validators.map((v) => {
     const signing = signingInfo.value[v.base64];
-    const uptime = signing && window > 0 ? (window - Number(signing.missed_blocks_counter)) / window : undefined;
+    const uptime =
+      signing && window > 0
+        ? (window - Number(signing.missed_blocks_counter)) / window
+        : undefined;
     return {
       moniker: v.moniker,
       base64: v.base64,
-      blocks: padding(blockColors.value[v.base64] || []),
+      blocks: padding(blockColors.value[v.base64] ?? []),
       uptime,
       missed_blocks_counter: signing?.missed_blocks_counter,
       signing,
@@ -87,8 +98,9 @@ const grid = computed(() => {
 
 const preload = ref(false);
 baseStore.$subscribe((_, state) => {
-  const newHeight = Number(state.latest?.block?.header?.height || 0);
-  if (newHeight > latest.value) {
+  const latestBlock = state.latest.block;
+  const newHeight = Number(orDefault(latestBlock?.header.height, 0));
+  if (latestBlock && newHeight > latest.value) {
     latest.value = newHeight;
     // initialize if it's the first time
     if (!preload.value) {
@@ -98,15 +110,18 @@ baseStore.$subscribe((_, state) => {
 
     // reset the consumer validators
     if (newHeight > 0 && consumerValidators.value.length === 0) {
-      const chain_id = state.latest.block.header.chain_id;
-      Promise.resolve().then(async () => {
+      const chain_id = latestBlock.header.chain_id;
+      void Promise.resolve().then(async () => {
         await stakingStore.getConsumerValidators(chain_id).then((x) => {
           x.validators
             .sort((a, b) => Number(b.power) - Number(a.power))
             .forEach((v) => {
               const base64 = toBase64(
                 fromHex(
-                  consensusPubkeyToHexAddress({ '@type': '/cosmos.crypto.ed25519.PubKey', key: v.consumer_key.ed25519 })
+                  consensusPubkeyToHexAddress({
+                    '@type': '/cosmos.crypto.ed25519.PubKey',
+                    key: v.consumer_key.ed25519,
+                  })
                 )
               );
               const moniker = v.provider_address;
@@ -116,7 +131,7 @@ baseStore.$subscribe((_, state) => {
       });
     }
 
-    if (Number(state.latest.block.header.height) % 7 === 0) updateTotalSigningInfo();
+    if (Number(latestBlock.header.height) % 7 === 0) updateTotalSigningInfo();
     fillblock(state.latest);
   }
 });
@@ -125,13 +140,13 @@ onMounted(() => {
   live.value = true;
 
   // fill the recent blocks
-  baseStore.recents?.forEach((b) => {
+  baseStore.recents.forEach((b) => {
     fillblock(b, 'start');
   });
 
   updateTotalSigningInfo();
 
-  chainStore.rpc.getSlashingParams().then((x) => {
+  void chainStore.rpc.getSlashingParams().then((x) => {
     slashingParam.value = x.params;
   });
 });
@@ -140,14 +155,18 @@ function preFill() {
   if (latest.value > 50 && baseStore.recents.length >= 49) return;
   // preload 50 blocks if recent blocks are not enough
   let promise = Promise.resolve();
-  for (let i = latest.value - baseStore.recents.length; i > latest.value - 50 && i > 1; i -= 1) {
+  for (
+    let i = latest.value - baseStore.recents.length;
+    i > latest.value - 50 && i > 1;
+    i -= 1
+  ) {
     promise = promise.then(
       () =>
         new Promise((resolve) => {
           if (live.value) {
             // continue only if the page is living
             if (i > latest.value - 50)
-              baseStore.fetchBlock(i).then((x) => {
+              void baseStore.fetchBlock(i).then((x) => {
                 fillblock(x, 'start');
                 resolve();
               });
@@ -156,33 +175,13 @@ function preFill() {
     );
   }
 }
-function fillblock(b: Block, direction: string = 'end') {
-  validatorSet.value.forEach((v) => {
-    const sig = b.block.last_commit?.signatures.find((s) => s.validator_address === v.base64);
-    const block = blockColors.value[v.base64] || [];
-    let color = {
-      height: b.block.header.height,
-      color: 'bg-red-500',
-    };
-    if (sig) {
-      color = {
-        height: b.block.header.height,
-        color: sig.block_id_flag === 'BLOCK_ID_FLAG_COMMIT' ? 'bg-green-500' : 'bg-yellow-500',
-      };
-    }
-    if (direction === 'end') {
-      block.push(color);
-    } else {
-      block.unshift(color);
-    }
-    if (block.length > 50) block.shift();
-    blockColors.value[v.base64] = block;
-  });
+function fillblock(b: UptimeBlock, direction = 'end') {
+  fillBlock(blockColors.value, validatorSet.value, b, direction);
 }
 
 function updateTotalSigningInfo() {
-  chainStore.rpc.getSlashingSigningInfos().then((x) => {
-    x.info?.forEach((i) => {
+  void chainStore.rpc.getSlashingSigningInfos().then((x) => {
+    (x.info as SigningInfo[] | undefined)?.forEach((i) => {
       signingInfo.value[valconsToBase64(i.address)] = i;
     });
   });
@@ -202,12 +201,18 @@ function changeTab(v: string) {
 <template>
   <div>
     <div class="tabs tabs-boxed bg-transparent mb-4">
-      <a class="tab text-gray-400 capitalize" :class="{ 'tab-active': tab === '3' }" @click="changeTab('3')">{{
-        $t('uptime.overall')
-      }}</a>
-      <a class="tab text-gray-400 capitalize" :class="{ 'tab-active': tab === '2' }" @click="changeTab('2')">{{
-        $t('module.blocks')
-      }}</a>
+      <a
+        class="tab text-gray-400 capitalize"
+        :class="{ 'tab-active': tab === '3' }"
+        @click="changeTab('3')"
+        >{{ $t('uptime.overall') }}</a
+      >
+      <a
+        class="tab text-gray-400 capitalize"
+        :class="{ 'tab-active': tab === '2' }"
+        @click="changeTab('2')"
+        >{{ $t('module.blocks') }}</a
+      >
       <RouterLink :to="`/${chain}/uptime/customize`">
         <a class="tab text-gray-400 capitalize">{{ $t('uptime.customize') }}</a>
       </RouterLink>
@@ -215,8 +220,8 @@ function changeTab(v: string) {
     <div class="bg-base-100 px-5 pt-5">
       <div class="flex items-center gap-x-4">
         <input
-          type="text"
           v-model="keyword"
+          type="text"
           placeholder="Keywords to filter validators"
           class="input input-sm w-full flex-1 border border-gray-200 dark:border-gray-600"
         />
@@ -269,13 +274,22 @@ function changeTab(v: string) {
               <td>{{ $t('uptime.tombstoned') }}</td>
             </tr>
           </thead>
-          <tr v-for="(v, i) in grid" class="hover">
+          <tr v-for="(v, i) in grid" :key="v.base64" class="hover">
             <td>
               <div class="truncate max-w-sm">{{ i + 1 }}. {{ v.moniker }}</div>
             </td>
             <td class="text-right">
-              <span :class="v.uptime && v.uptime > 0.95 ? 'text-green-500' : 'text-red-500'">
-                <div class="tooltip" :data-tip="`${v.missed_blocks_counter} missing blocks`">
+              <span
+                :class="
+                  v.uptime && v.uptime > 0.95
+                    ? 'text-green-500'
+                    : 'text-red-500'
+                "
+              >
+                <div
+                  class="tooltip"
+                  :data-tip="`${v.missed_blocks_counter} missing blocks`"
+                >
                   {{ format.percent(v.uptime) }}
                 </div>
               </span>
@@ -295,9 +309,16 @@ function changeTab(v: string) {
               </span>
             </td>
             <td class="text-xs text-right">
-              <span v-if="v.signing && v.signing.jailed_until.startsWith('1970')" class="text-right">{{
-                format.percent(Number(v.signing.index_offset) / (latest - Number(v.signing.start_height)))
-              }}</span>
+              <span
+                v-if="v.signing && v.signing.jailed_until.startsWith('1970')"
+                class="text-right"
+                >{{
+                  format.percent(
+                    Number(v.signing.index_offset) /
+                      (latest - Number(v.signing.start_height))
+                  )
+                }}</span
+              >
               {{ v.signing?.index_offset }}
             </td>
             <td class="text-right">{{ v.signing?.start_height }}</td>
@@ -307,19 +328,21 @@ function changeTab(v: string) {
             <tr>
               <td colspan="2" class="text-right">
                 {{ $t('uptime.minimum_uptime') }}:
-                <span class="lowercase tooltip" :data-tip="`Window size: ${slashingParam.signed_blocks_window}`"
+                <span
+                  class="lowercase tooltip"
+                  :data-tip="`Window size: ${slashingParam.signed_blocks_window}`"
                   ><span class="ml-2 btn btn-error btn-xs">{{
                     format.percent(slashingParam.min_signed_per_window)
                   }}</span>
                 </span>
               </td>
-              <td colspan="8"></td>
+              <td colspan="8" />
             </tr>
           </tfoot>
         </table>
       </div>
 
-      <div class="h-6"></div>
+      <div class="h-6" />
     </div>
   </div>
 </template>

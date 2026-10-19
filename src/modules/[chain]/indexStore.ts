@@ -10,6 +10,7 @@ import {
   useStakingStore,
 } from '@/stores';
 import type { Coin, Tally } from '@/types';
+import type { CoinInfo, MarketChart } from '@/stores/useCoinGecko';
 import numeral from 'numeral';
 import { defineStore } from 'pinia';
 
@@ -24,14 +25,32 @@ export function colorMap(color: string) {
   }
 }
 
-const CODEMAP: Record<string, string[]> = {
+const CODEMAP: Record<string, [string, string]> = {
   'binance.com': ['ref', 'CPA_004JZGRX6A'],
   'gate.com': ['ref', 'U1gVBl9a'],
   bybit: ['affiliate_id', 'JKRRZX9'],
 };
 
+interface Stat {
+  title: string;
+  color: string;
+  icon: string;
+  stats: string;
+  change: number;
+}
+
+interface IndexState {
+  days: number;
+  tickerIndex: number;
+  coinInfo: CoinInfo;
+  marketData: MarketChart;
+  // undefined when the pool was fetched with no endpoint set
+  communityPool: Coin[] | undefined;
+  tally: Record<string, Tally>;
+}
+
 export const useIndexModule = defineStore('module-index', {
-  state: () => {
+  state: (): IndexState => {
     return {
       days: 14,
       tickerIndex: 0,
@@ -41,11 +60,11 @@ export const useIndexModule = defineStore('module-index', {
         description: {
           en: '',
         },
-        categories: [] as string[],
+        categories: [],
         market_cap_rank: 0,
         links: {
           twitter_screen_name: '',
-          homepage: [] as string[],
+          homepage: [],
           repos_url: {
             github: [],
           },
@@ -54,31 +73,15 @@ export const useIndexModule = defineStore('module-index', {
         market_data: {
           price_change_percentage_24h: 0,
         },
-        tickers: [] as {
-          market: {
-            name: string;
-            identifier: string;
-          };
-          coin_id: string;
-          target_coin_id: string;
-          trust_score: string;
-          trade_url: string;
-          converted_last: {
-            btc: number;
-            eth: number;
-            usd: number;
-          };
-          base: string;
-          target: string;
-        }[],
+        tickers: [],
       },
       marketData: {
         market_caps: [],
-        prices: [] as number[],
-        total_volumes: [] as number[],
+        prices: [],
+        total_volumes: [],
       },
-      communityPool: [] as { amount: string; denom: string }[],
-      tally: {} as Record<string, Tally>,
+      communityPool: [],
+      tally: {},
     };
   },
   getters: {
@@ -93,33 +96,33 @@ export const useIndexModule = defineStore('module-index', {
       return useBankStore();
     },
     twitter(): string {
-      if (!this.coinInfo?.links?.twitter_screen_name) return '';
-      return `https://twitter.com/${this.coinInfo?.links.twitter_screen_name}`;
+      if (!this.coinInfo.links?.twitter_screen_name) return '';
+      return `https://twitter.com/${this.coinInfo.links.twitter_screen_name}`;
     },
-    homepage(): string {
-      if (!this.coinInfo?.links?.homepage) return '';
-      const [page1, page2, page3] = this.coinInfo?.links?.homepage;
+    homepage(): string | undefined {
+      if (!this.coinInfo.links?.homepage) return '';
+      const [page1, page2, page3] = this.coinInfo.links.homepage;
       return page1 || page2 || page3;
     },
-    github(): string {
-      if (!this.coinInfo?.links?.repos_url) return '';
-      const [page1, page2, page3] = this.coinInfo?.links?.repos_url?.github;
+    github(): string | undefined {
+      if (!this.coinInfo.links?.repos_url) return '';
+      const [page1, page2, page3] = this.coinInfo.links.repos_url.github ?? [];
       return page1 || page2 || page3;
     },
     telegram(): string {
-      if (!this.coinInfo?.links?.homepage) return '';
-      return `https://t.me/${this.coinInfo?.links.telegram_channel_identifier}`;
+      if (!this.coinInfo.links?.homepage) return '';
+      return `https://t.me/${String(this.coinInfo.links.telegram_channel_identifier)}`;
     },
 
     priceChange(): string {
-      if (!this.coinInfo?.market_data?.price_change_percentage_24h) return '';
-      const change = this.coinInfo?.market_data?.price_change_percentage_24h || 0;
+      if (!this.coinInfo.market_data?.price_change_percentage_24h) return '';
+      const change = this.coinInfo.market_data.price_change_percentage_24h;
       return numeral(change).format('+0.[00]');
     },
 
     priceColor(): string {
-      if (!this.coinInfo?.market_data?.price_change_percentage_24h) return '';
-      const change = this.coinInfo?.market_data?.price_change_percentage_24h || 0;
+      if (!this.coinInfo.market_data?.price_change_percentage_24h) return '';
+      const change = this.coinInfo.market_data.price_change_percentage_24h;
       switch (true) {
         case change > 0:
           return 'text-success';
@@ -129,13 +132,13 @@ export const useIndexModule = defineStore('module-index', {
           return '';
       }
     },
-    trustColor(): string {
-      if (!this.coinInfo?.tickers) return '';
-      const change = this.coinInfo?.tickers[this.tickerIndex]?.trust_score;
+    trustColor(): string | undefined {
+      if (!this.coinInfo.tickers) return '';
+      const change = this.coinInfo.tickers[this.tickerIndex]?.trust_score;
       return change;
     },
 
-    pool() {
+    pool(): { bonded_tokens: string; not_bonded_tokens: string } {
       const staking = useStakingStore();
       return staking.pool;
     },
@@ -145,7 +148,7 @@ export const useIndexModule = defineStore('module-index', {
       return gov.proposals['2'];
     },
 
-    stats() {
+    stats(): Stat[] {
       const base = useBaseStore();
       const bank = useBankStore();
       const staking = useStakingStore();
@@ -157,14 +160,14 @@ export const useIndexModule = defineStore('module-index', {
           title: 'Height',
           color: 'primary',
           icon: 'mdi-pound',
-          stats: String(base?.latest?.block?.header?.height || 0),
+          stats: String(base.latest.block?.header.height || 0),
           change: 0,
         },
         {
           title: 'Validators',
           color: 'error',
           icon: 'mdi-human-queue',
-          stats: String(base?.latest?.block?.last_commit?.signatures.length || 0),
+          stats: String(base.latest.block?.last_commit.signatures.length || 0),
           change: 0,
         },
         {
@@ -179,7 +182,6 @@ export const useIndexModule = defineStore('module-index', {
           color: 'warning',
           icon: 'mdi-lock',
           stats: formatter.formatTokenAmount({
-            // @ts-ignore
             amount: this.pool.bonded_tokens,
             denom: staking.params.bond_denom,
           }),
@@ -196,33 +198,30 @@ export const useIndexModule = defineStore('module-index', {
           title: 'Community Pool',
           color: 'primary',
           icon: 'mdi-bank',
-          stats: formatter.formatTokens(
-            // @ts-ignore
-            this.communityPool?.filter((x: Coin) => x.denom === staking.params.bond_denom)
-          ),
+          stats: formatter.formatTokens(this.communityPool?.filter((x) => x.denom === staking.params.bond_denom)),
           change: 0,
         },
       ];
     },
 
-    coingeckoId() {
+    coingeckoId(): string | undefined {
       this.tickerIndex = 0;
-      // @ts-ignore
-      const [firstAsset] = this.blockchain?.assets || [];
+      const [firstAsset] = this.blockchain?.assets ?? [];
+      if (!firstAsset) throw new TypeError('The chain has no asset');
       return firstAsset.coingecko_id;
     },
   },
   actions: {
-    async loadDashboard() {
+    loadDashboard() {
       this.$reset();
       this.initCoingecko();
-      useMintStore().fetchInflation();
-      useDistributionStore()
+      void useMintStore().fetchInflation();
+      void useDistributionStore()
         .fetchCommunityPool()
         .then((x) => {
           this.communityPool = x?.pool
-            ?.filter((t) => t.denom.length < 10)
-            ?.map((t) => ({
+            .filter((t) => t.denom.length < 10)
+            .map((t) => ({
               amount: String(parseInt(t.amount)),
               denom: t.denom,
             }));
@@ -237,13 +236,13 @@ export const useIndexModule = defineStore('module-index', {
     },
     initCoingecko() {
       this.tickerIndex = 0;
-      const [firstAsset] = this.blockchain?.assets || [];
+      const [firstAsset] = this.blockchain?.assets ?? [];
       if (firstAsset?.coingecko_id) {
-        this.coingecko.getCoinInfo(firstAsset.coingecko_id).then((x) => {
+        void this.coingecko.getCoinInfo(firstAsset.coingecko_id).then((x) => {
           this.coinInfo = x;
           // this.coinInfo.tickers.sort((a, b) => a.converted_last.usd - b.converted_last.usd)
         });
-        this.coingecko.getMarketChart(this.days, firstAsset.coingecko_id).then((x) => {
+        void this.coingecko.getMarketChart(this.days, firstAsset.coingecko_id).then((x) => {
           this.marketData = x;
         });
       }
@@ -273,10 +272,9 @@ export function addOrReplaceUrlParam(url: string, param: string, value: string):
 }
 
 export function tickerUrl(url: string) {
-  for (const domain of Object.keys(CODEMAP)) {
+  for (const [domain, [param, value]] of Object.entries(CODEMAP)) {
     if (url.includes(domain)) {
-      const v = CODEMAP[domain];
-      return addOrReplaceUrlParam(url, v[0], v[1]);
+      return addOrReplaceUrlParam(url, param, value);
     }
   }
   return url;

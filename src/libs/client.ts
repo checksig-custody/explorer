@@ -11,7 +11,7 @@ import {
   registryVersionProfile,
   withCustomRequest,
 } from './api/registry';
-import { PageRequest } from '@/types';
+import { PageRequest, type Coin, type Tally } from '@/types';
 import type { ChainConfig } from '@/types/chaindata';
 import semver from 'semver';
 
@@ -79,7 +79,8 @@ export class CosmosRestClient extends BaseRestClient<RequestRegistry> {
     return new CosmosRestClient(endpoint, DEFAULT);
   }
 
-  static newStrategy(endpoint: string, chain: ChainConfig) {
+  static newStrategy(endpoint: string, chain: ChainConfig | undefined) {
+    if (!chain) throw new TypeError('No chain is selected');
     // sdk version of current chain
     const sdkVersion = chain.versions.cosmosSdk;
     const ver = localStorage.getItem(`sdk_version_${chain.chainName}`) || sdkVersion;
@@ -122,7 +123,10 @@ export class CosmosRestClient extends BaseRestClient<RequestRegistry> {
       supply = await this.request(this.registry.bank_supply_by_denom, { denom });
     } catch {
       // will move this to sdk version profile later
-      supply = await this.request({ url: '/cosmos/bank/v1beta1/supply/by_denom?denom={denom}', adapter }, { denom });
+      supply = await this.request<{ amount?: Coin }>(
+        { url: '/cosmos/bank/v1beta1/supply/by_denom?denom={denom}', adapter },
+        { denom }
+      );
     }
     return supply;
   }
@@ -197,7 +201,7 @@ export class CosmosRestClient extends BaseRestClient<RequestRegistry> {
           no: tally.no || tally.no_count,
           no_with_veto: tally.no_with_veto || tally.no_with_veto_count,
         },
-      });
+      } as { tally: Tally });
     });
   }
   async getGovProposalVotes(proposal_id: string, page?: PageRequest) {

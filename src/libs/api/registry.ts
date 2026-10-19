@@ -56,7 +56,7 @@ export interface RequestRegistry extends AbstractRegistry {
   bank_balances_address: Request<PaginatedBalances>;
   bank_denoms_metadata: Request<PaginatedDenomMetadata>;
   bank_supply: Request<PaginatedSupply>;
-  bank_supply_by_denom: Request<{ amount: Coin }>;
+  bank_supply_by_denom: Request<{ amount?: Coin }>;
 
   distribution_params: Request<DistributionParams>;
   distribution_validator_commission: Request<{

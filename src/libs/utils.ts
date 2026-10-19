@@ -43,8 +43,8 @@ export function formatNumber(count: number, withAbbr = false, decimals = 2) {
 }
 
 export function formatTokenAmount(
-  assets: { base: string; exponent: number }[],
-  tokenAmount: string | number,
+  assets: { base: string; exponent?: string | number }[],
+  tokenAmount: string | number | undefined,
   decimals = 2,
   tokenDenom: string | { denom_trace?: { base_denom?: string } } = 'uatom',
   format = true
@@ -53,14 +53,14 @@ export function formatTokenAmount(
   const asset = assets.find((a) => a.base === denom);
   const exp = asset ? asset.exponent : String(denom).startsWith('gravity') ? 18 : 6;
 
-  const amount = Number(tokenAmount) / 10 ** exp;
+  const amount = Number(tokenAmount) / 10 ** Number(exp);
   if (amount > 10) {
     if (format) {
       return numberWithCommas(parseFloat(amount.toFixed(decimals)));
     }
     return parseFloat(amount.toFixed(decimals));
   }
-  return parseFloat(amount.toFixed(exp));
+  return parseFloat(amount.toFixed(Number(exp)));
 }
 
 export function numberWithCommas(x: number | string) {

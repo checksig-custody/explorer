@@ -35,12 +35,18 @@ dayjs.updateLocale('en', {
   },
 });
 
+interface FormatterState {
+  ibcDenoms: Record<string, DenomTrace>;
+  ibcMetadata: Record<string, Asset>;
+  loading: string[];
+}
+
 export const useFormatter = defineStore('formatter', {
-  state: () => {
+  state: (): FormatterState => {
     return {
-      ibcDenoms: {} as Record<string, DenomTrace>,
-      ibcMetadata: {} as Record<string, Asset>,
-      loading: [] as string[],
+      ibcDenoms: {},
+      ibcMetadata: {},
+      loading: [],
     };
   },
   getters: {
@@ -128,7 +134,7 @@ export const useFormatter = defineStore('formatter', {
       // find the symbol
       const symbol = this.dashboard.coingecko[token.denom]?.symbol || token.denom;
       // convert denomination to symbol
-      const exponent = this.dashboard.coingecko[symbol?.toLowerCase()]?.exponent || this.specialDenom(token.denom);
+      const exponent = this.dashboard.coingecko[symbol.toLowerCase()]?.exponent || this.specialDenom(token.denom);
       // caculate amount of symbol
       const amount = Number(token.amount) / 10 ** exponent;
       return amount;
@@ -143,14 +149,14 @@ export const useFormatter = defineStore('formatter', {
     formatTokenAmount(token: { denom: string; amount: string }) {
       return this.formatToken(token, false);
     },
-    formatToken2(token: { denom: string; amount: string }, withDenom = true) {
+    formatToken2(token: { denom: string; amount: string }) {
       return this.formatToken(token, true, '0,0.[00]');
     },
 
     findGlobalAssetConfig(denom: string) {
       const chains = Object.values(this.dashboard.chains);
-      for (let i = 0; i < chains.length; i++) {
-        const assets = chains[i].assets;
+      for (const chain of chains) {
+        const assets = chain.assets;
         const conf = assets.find((a) => a.base === denom);
         if (conf) {
           return conf;
@@ -175,12 +181,12 @@ export const useFormatter = defineStore('formatter', {
     tokenDisplayDenom(denom?: string) {
       if (denom) {
         let asset: Asset | undefined;
-        if (denom && denom.startsWith('ibc/')) {
+        if (denom.startsWith('ibc/')) {
           const ibcDenom = denom.replace('ibc/', '');
           asset = this.ibcMetadata[ibcDenom];
           if (!asset) {
             // update ibc metadata if not exits in local cache
-            this.fetchDenomMetadata(ibcDenom);
+            void this.fetchDenomMetadata(ibcDenom);
           } else {
             console.log('ibc metadata', asset);
           }
@@ -200,24 +206,22 @@ export const useFormatter = defineStore('formatter', {
         }
         return denom;
       }
+      return undefined;
     },
     tokenDisplayNumber(token?: { denom: string; amount: string }, mode = 'all') {
-      if (token?.amount && token?.denom) {
+      if (token?.amount && token.denom) {
         let amount = Number(token.amount);
         const denom = token.denom;
 
         let conf =
           mode === 'local'
-            ? this.blockchain.current?.assets?.find(
-                // @ts-ignore
-                (x) => x.base === token.denom || x.base.denom === token.denom
-              )
+            ? this.blockchain.current?.assets.find((x) => x.base === token.denom)
             : this.findGlobalAssetConfig(token.denom);
 
-        if (denom && denom.startsWith('ibc/')) {
+        if (denom.startsWith('ibc/')) {
           conf = this.ibcMetadata[denom.replace('ibc/', '')];
           if (!conf) {
-            this.fetchDenomMetadata(denom.replace('ibc/', ''));
+            void this.fetchDenomMetadata(denom.replace('ibc/', ''));
           }
         }
 
@@ -229,7 +233,7 @@ export const useFormatter = defineStore('formatter', {
               unit = x;
             }
           });
-          if (unit && unit.exponent > 0) {
+          if (unit.exponent > 0) {
             amount = amount / Math.pow(10, unit.exponent || 6);
           }
         }
@@ -238,22 +242,19 @@ export const useFormatter = defineStore('formatter', {
       return 0;
     },
     formatToken(token?: { denom: string; amount: string }, withDenom = true, fmt = '0,0.[0]', mode = 'local'): string {
-      if (token?.amount && token?.denom) {
+      if (token?.amount && token.denom) {
         let amount = Number(token.amount);
         let denom = token.denom;
 
         let conf =
           mode === 'local'
-            ? this.blockchain.current?.assets?.find(
-                // @ts-ignore
-                (x) => x.base === token.denom || x.base.denom === token.denom
-              )
+            ? this.blockchain.current?.assets.find((x) => x.base === token.denom)
             : this.findGlobalAssetConfig(token.denom);
 
-        if (denom && denom.startsWith('ibc/')) {
+        if (denom.startsWith('ibc/')) {
           conf = this.ibcMetadata[denom.replace('ibc/', '')];
           if (!conf) {
-            this.fetchDenomMetadata(denom.replace('ibc/', ''));
+            void this.fetchDenomMetadata(denom.replace('ibc/', ''));
           }
         }
 
@@ -265,7 +266,7 @@ export const useFormatter = defineStore('formatter', {
               unit = x;
             }
           });
-          if (unit && unit.exponent > 0) {
+          if (unit.exponent > 0) {
             amount = amount / Math.pow(10, unit.exponent || 6);
             denom = unit.denom.toUpperCase();
           }
@@ -298,13 +299,13 @@ export const useFormatter = defineStore('formatter', {
 
       const txt = toHex(fromBase64(address)).toUpperCase();
       const validator = this.staking.validators.find((x) => consensusPubkeyToHexAddress(x.consensus_pubkey) === txt);
-      return validator?.description?.moniker;
+      return validator?.description.moniker;
     },
     // find validator by operator address
     validatorFromBech32(address: string) {
       if (!address) return address;
       const validator = this.staking.validators.find((x) => x.operator_address === address);
-      return validator?.description?.moniker;
+      return validator?.description.moniker;
     },
     calculatePercent(input?: string | number, total?: string | number) {
       if (!input || !total) return '0';
@@ -351,7 +352,7 @@ export const useFormatter = defineStore('formatter', {
       }
       return dayjs(time).format('YYYY-MM-DD HH:mm:ss');
     },
-    messages(msgs: { '@type'?: string; typeUrl?: string }[]) {
+    messages(msgs: { '@type'?: string; typeUrl?: string }[] | undefined) {
       if (msgs) {
         const sum: Record<string, number> = msgs
           .map((msg) => {
@@ -360,19 +361,16 @@ export const useFormatter = defineStore('formatter', {
           })
           .reduce((s, c) => {
             const sh: Record<string, number> = s;
-            if (sh[c]) {
-              sh[c] += 1;
-            } else {
-              sh[c] = 1;
-            }
+            sh[c] = (sh[c] ?? 0) + 1;
             return sh;
           }, {});
         const output: string[] = [];
-        Object.keys(sum).forEach((k) => {
-          output.push(sum[k] > 1 ? `${k}×${sum[k]}` : k);
+        Object.entries(sum).forEach(([k, n]) => {
+          output.push(n > 1 ? `${k}×${String(n)}` : k);
         });
         return output.join(', ');
       }
+      return undefined;
     },
     multiLine(v: string) {
       return v ? v.replace(/\\n|\\r/g, '\n') : '';

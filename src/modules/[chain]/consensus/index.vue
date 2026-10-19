@@ -3,30 +3,46 @@ import fetch from 'cross-fetch';
 import { onMounted, ref, computed, onUnmounted } from 'vue';
 import { useBlockchain, useFormatter, useStakingStore, useBaseStore } from '@/stores';
 import { consensusPubkeyToHexAddress } from '@/libs';
+import type { Validator } from '@/types';
+
+interface HeightVoteSet {
+  round: number;
+  prevotes_bit_array: string;
+  prevotes: string[];
+  precommits: string[];
+}
+
+// The consensus state as the node reports it.
+interface RoundState {
+  'height/round/step'?: string;
+  proposer?: { index?: number };
+  height_vote_set?: HeightVoteSet[];
+}
 
 const format = useFormatter();
 const chainStore = useBlockchain();
 const stakingStore = useStakingStore();
 const baseStore = useBaseStore();
-const rpcList = ref(chainStore.current?.endpoints?.rpc || [{ address: '', provider: '' }]);
-let rpc = ref('');
-const validators = ref(stakingStore.validators);
+const rpcList = ref(chainStore.current?.endpoints.rpc ?? [{ address: '', provider: '' }]);
+const rpc = ref('');
 
-let httpstatus = ref(200);
-let httpStatusText = ref('');
-let roundState = ref({} as any);
-let rate = ref('');
-let height = ref('');
-let round = ref('');
-let step = ref('');
-let timer = null as any;
-let updatetime = ref(new Date());
-let positions = ref([]);
-let validatorsData = ref([] as any);
+const httpstatus = ref(200);
+const httpStatusText = ref('');
+const roundState = ref<RoundState>({});
+const rate = ref('');
+const height = ref('');
+const round = ref('');
+const step = ref('');
+let timer: ReturnType<typeof setInterval> | undefined;
+const updatetime = ref(new Date());
+const positions = ref<{ address?: string }[]>([]);
+const validatorsData = ref<Validator[]>([]);
 onMounted(async () => {
   // stakingStore.init();
-  validatorsData.value = await stakingStore.fetchAcitveValdiators();
-  rpc.value = rpcList.value[0].address + '/consensus_state';
+  validatorsData.value = (await stakingStore.fetchAcitveValdiators()) ?? [];
+  const first = rpcList.value[0];
+  if (!first) return;
+  rpc.value = first.address + '/consensus_state';
   await fetchPosition();
   update();
   clearTime();
@@ -40,44 +56,26 @@ onUnmounted(() => {
 
 function clearTime() {
   clearInterval(timer);
-  timer = null;
+  timer = undefined;
 }
 const newTime = computed(() => {
   return format.toDay(updatetime.value, 'time');
 });
 
 const vals = computed(() => {
-  return validatorsData.value.map((x: any) => {
-    const x2 = x;
-    // @ts-ignore
-    x2.hex = consensusPubkeyToHexAddress(x.consensus_pubkey);
-    return x2;
-  });
+  return validatorsData.value.map((x) => ({ ...x, hex: consensusPubkeyToHexAddress(x.consensus_pubkey) }));
 });
 
 function showName(i: number, text: string) {
   if (text === 'nil-Vote') {
-    // @ts-ignore
-    if (positions.value?.[i]?.address) {
-      const val = vals.value.find(
-        // @ts-ignore
-        (x) => x.hex === positions.value?.[i]?.address
-      );
-      return val?.description?.moniker || i;
+    const address = positions.value[i]?.address;
+    if (address) {
+      const val = vals.value.find((x) => x.hex === address);
+      return val?.description.moniker || i;
     }
     return i;
   }
-  // const txt = text.substring(text.indexOf(':') + 1, text.indexOf(' '));
-  // const sig = text.split(' ');
-  // // @ts-ignore
-  // const val = validators.value.find((x) => x?.hex?.startsWith(txt));
-  // return `${val?.description?.moniker || txt} - ${sig[2]}`;
-}
-function color(i: number, txt: string) {
-  if (i === roundState.value?.proposer?.index) {
-    return txt === 'nil-Vote' ? 'warning' : 'primary';
-  }
-  return txt === 'nil-Vote' ? 'gray-700' : 'success';
+  return undefined;
 }
 async function onChange() {
   httpstatus.value = 200;
@@ -92,27 +90,28 @@ async function onChange() {
 }
 
 async function fetchPosition() {
-  let dumpurl = rpc.value.replace('consensus_state', 'dump_consensus_state');
+  const dumpurl = rpc.value.replace('consensus_state', 'dump_consensus_state');
   try {
     const response = await fetch(dumpurl);
     if (!response.ok) {
-      throw new Error(`HTTP error: ${response.status}`);
+      throw new Error(`HTTP error: ${String(response.status)}`);
     }
 
     httpstatus.value = response.status;
     httpStatusText.value = response.statusText;
 
-    const data = await response.json();
+    const data = (await response.json()) as {
+      result: { round_state: { validators: { validators: { address?: string }[] } } };
+    };
     positions.value = data.result.round_state.validators.validators;
   } catch (error) {
-    // @ts-ignore
-    httpstatus.value = error?.status || 500;
-    // @ts-ignore
-    httpStatusText.value = error?.message || 'Error';
+    const err = error as { status?: number; message?: string };
+    httpstatus.value = err.status || 500;
+    httpStatusText.value = err.message || 'Error';
   }
 }
 
-async function update() {
+function update() {
   rate.value = '0%';
   updatetime.value = new Date();
   if (httpstatus.value === 200) {
@@ -120,31 +119,31 @@ async function update() {
       .then((data) => {
         httpstatus.value = data.status;
         httpStatusText.value = data.statusText;
-        return data.json();
+        return data.json() as Promise<{ result: { round_state: RoundState } }>;
       })
       .then((res) => {
         roundState.value = res.result.round_state;
-        const raw = roundState?.value?.['height/round/step']?.split('/');
-        height.value = raw[0];
-        round.value = raw[1];
-        step.value = raw[2];
+        const raw = roundState.value['height/round/step']?.split('/');
+        if (!raw) throw new Error('The consensus state has no height/round/step');
+        height.value = raw[0] ?? '';
+        round.value = raw[1] ?? '';
+        step.value = raw[2] ?? '';
 
         // find the highest onboard rate
-        roundState.value?.height_vote_set?.forEach((element: any) => {
+        roundState.value.height_vote_set?.forEach((element) => {
           const rates = Number(element.prevotes_bit_array.substring(element.prevotes_bit_array.length - 4));
           if (rates > 0) {
             rate.value = `${(rates * 100).toFixed()}%`;
           }
         });
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         httpstatus.value = 500;
-        httpStatusText.value = err;
+        httpStatusText.value = String(err);
       });
   }
 }
 </script>
-
 <template>
   <div>
     <!--  -->

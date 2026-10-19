@@ -3,7 +3,7 @@ import { computed, ref } from 'vue';
 import { useBaseStore, useFormatter } from '@/stores';
 import TxsInBlocksChart from '@/components/charts/TxsInBlocksChart.vue';
 
-const props = defineProps(['chain']);
+defineProps({ chain: { type: String, default: undefined } });
 
 const tab = ref('blocks');
 
@@ -36,6 +36,7 @@ const list = computed(() => {
       <div class="grid xl:!grid-cols-6 md:!grid-cols-4 grid-cols-1 gap-3">
         <RouterLink
           v-for="item in list"
+          :key="item.block.header.height"
           class="flex flex-col justify-between rounded p-4 shadow bg-base-100"
           :to="`/${chain}/block/${item.block.header.height}`"
         >

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { onMounted, ref, watchEffect } from 'vue';
+import { ref } from 'vue';
 import { Icon } from '@iconify/vue';
 import TxsElement from '@/components/dynamic/TxsElement.vue';
 import DynamicComponent from '@/components/dynamic/DynamicComponent.vue';
@@ -9,22 +9,26 @@ import { useBaseStore, useFormatter } from '@/stores';
 import type { Block } from '@/types';
 import Countdown from '@/components/Countdown.vue';
 
-const props = defineProps(['height', 'chain']);
+const props = defineProps({
+  height: { type: String, default: undefined },
+  chain: { type: String, default: undefined },
+});
 
 const store = useBaseStore();
 const format = useFormatter();
-const current = ref({} as Block);
+const current = ref<Partial<Block>>({});
 const target = ref(Number(props.height || 0));
 
 const height = computed(() => {
-  return Number(current.value.block?.header?.height || props.height || 0);
+  return Number(current.value.block?.header.height || props.height || 0);
 });
 
 const isFutureBlock = computed({
   get: () => {
-    const latest = store.latest?.block?.header.height;
+    const latest = store.latest.block?.header.height;
     const isFuture = latest ? target.value > Number(latest) : true;
-    if (!isFuture && !current.value.block_id) store.fetchBlock(target.value).then((x) => (current.value = x));
+    // eslint-disable-next-line vue/no-async-in-computed-properties -- existing behaviour: a watcher would refetch after every failed fetch
+    if (!isFuture && !current.value.block_id) void store.fetchBlock(target.value).then((x) => (current.value = x));
     return isFuture;
   },
   set: (val) => {
@@ -33,8 +37,8 @@ const isFutureBlock = computed({
 });
 
 const remainingBlocks = computed(() => {
-  const latest = store.latest?.block?.header.height;
-  return latest ? Number(target.value) - Number(latest) : 0;
+  const latest = store.latest.block?.header.height;
+  return latest ? target.value - Number(latest) : 0;
 });
 
 const estimateTime = computed(() => {
@@ -47,15 +51,15 @@ const estimateDate = computed(() => {
 });
 
 const edit = ref(false);
-const newHeight = ref(props.height);
+const newHeight = ref<string | number | undefined>(props.height);
 function updateTarget() {
   target.value = Number(newHeight.value);
   console.log(target.value);
 }
 
-onBeforeRouteUpdate(async (to, from, next) => {
+onBeforeRouteUpdate((to, from, next) => {
   if (from.path !== to.path) {
-    store.fetchBlock(String(to.params.height)).then((x) => (current.value = x));
+    void store.fetchBlock(String(to.params['height'])).then((x) => (current.value = x));
     next();
   }
 });
@@ -116,7 +120,7 @@ onBeforeRouteUpdate(async (to, from, next) => {
     <div v-else>
       <div class="bg-base-100 px-4 pt-3 pb-4 rounded mb-4 shadow">
         <h2 class="card-title flex flex-row justify-between">
-          <p class="">#{{ current.block?.header?.height }}</p>
+          <p class="">#{{ current.block?.header.height }}</p>
           <div v-if="props.height" class="flex">
             <RouterLink
               :to="`/${store.blockchain.chainName}/block/${height - 1}`"

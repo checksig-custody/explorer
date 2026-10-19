@@ -1,16 +1,16 @@
 <script lang="ts" setup>
-import { computed, ref } from 'vue';
-import { useBaseStore, useBlockchain, useFormatter } from '@/stores';
+import { ref } from 'vue';
+import { useBlockchain } from '@/stores';
 import { PageRequest, type AuthAccount, type Pagination } from '@/types';
 import { onMounted } from 'vue';
 import PaginationBar from '@/components/PaginationBar.vue';
-const props = defineProps(['chain']);
+defineProps({ chain: { type: String, default: undefined } });
 
 const chainStore = useBlockchain();
 
 const accounts = ref([] as AuthAccount[]);
 const pageRequest = ref(new PageRequest());
-const pageResponse = ref({} as Pagination);
+const pageResponse = ref<Partial<Pagination>>({});
 
 onMounted(() => {
   pageload(1);
@@ -18,7 +18,7 @@ onMounted(() => {
 
 function pageload(p: number) {
   pageRequest.value.setPage(p);
-  chainStore.rpc.getAuthAccounts(pageRequest.value).then((x) => {
+  void chainStore.rpc.getAuthAccounts(pageRequest.value).then((x) => {
     accounts.value = x.accounts;
     pageResponse.value = x.pagination;
   });
@@ -27,27 +27,29 @@ function pageload(p: number) {
 function showType(v: string) {
   return v.replace('/cosmos.auth.v1beta1.', '');
 }
-function findField(v: any, field: string) {
-  if (!v || Array.isArray(v) || typeof v === 'string') return null;
-  const fields = Object.keys(v);
+function findField(v: unknown, field: string): unknown {
+  if (!v || Array.isArray(v) || typeof v !== 'object') return null;
+  const obj = v as Record<string, unknown>;
+  const fields = Object.keys(obj);
   if (fields.includes(field)) {
-    return v[field];
+    return obj[field];
   }
-  for (let i = 0; i < fields.length; i++) {
-    const re: any = findField(v[fields[i]], field);
+  for (const f of fields) {
+    const re = findField(obj[f], field);
     if (re) return re;
   }
+  return undefined;
 }
-function showAddress(v: any) {
+function showAddress(v: unknown) {
   return findField(v, 'address');
 }
-function showAccountNumber(v: any) {
+function showAccountNumber(v: unknown) {
   return findField(v, 'account_number');
 }
-function showSequence(v: any) {
+function showSequence(v: unknown) {
   return findField(v, 'sequence');
 }
-function showPubkey(v: any) {
+function showPubkey(v: unknown) {
   return findField(v, 'pub_key');
 }
 </script>
@@ -63,7 +65,7 @@ function showPubkey(v: any) {
           <td>{{ $t('account.pub_key') }}</td>
         </tr>
       </thead>
-      <tr v-for="acc in accounts">
+      <tr v-for="(acc, i) in accounts" :key="i">
         <td>{{ showType(acc['@type']) }}</td>
         <td>
           <RouterLink :to="`/${chain}/account/${showAddress(acc)}`">{{ showAddress(acc) }}</RouterLink>

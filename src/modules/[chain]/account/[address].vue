@@ -11,7 +11,10 @@ import type { Coin } from '@cosmjs/amino';
 import Countdown from '@/components/Countdown.vue';
 import { fromBase64 } from '@cosmjs/encoding';
 
-const props = defineProps(['address', 'chain']);
+const props = defineProps({
+  address: { type: String, required: true },
+  chain: { type: String, default: undefined },
+});
 
 const blockchain = useBlockchain();
 const stakingStore = useStakingStore();
@@ -20,31 +23,30 @@ const format = useFormatter();
 const account = ref({} as AuthAccount);
 const txs = ref({} as TxResponse[]);
 const delegations = ref([] as Delegation[]);
-const rewards = ref({} as DelegatorRewards);
+const rewards = ref<Partial<DelegatorRewards>>({});
 const balances = ref([] as Coin[]);
 const recentReceived = ref([] as TxResponse[]);
 const unbonding = ref([] as UnbondingResponses[]);
 const unbondingTotal = ref(0);
-const chart = {};
 onMounted(() => {
   loadAccount(props.address);
 });
 const totalAmountByCategory = computed(() => {
   let sumDel = 0;
-  delegations.value?.forEach((x) => {
+  delegations.value.forEach((x) => {
     sumDel += Number(x.balance.amount);
   });
   let sumRew = 0;
-  rewards.value?.total?.forEach((x) => {
+  rewards.value.total?.forEach((x) => {
     sumRew += Number(x.amount);
   });
   let sumBal = 0;
-  balances.value?.forEach((x) => {
+  balances.value.forEach((x) => {
     sumBal += Number(x.amount);
   });
   let sumUn = 0;
-  unbonding.value?.forEach((x) => {
-    x.entries?.forEach((y) => {
+  unbonding.value.forEach((x) => {
+    x.entries.forEach((y) => {
       sumUn += Number(y.balance);
     });
   });
@@ -59,17 +61,17 @@ const totalAmount = computed(() => {
 
 const totalValue = computed(() => {
   let value = 0;
-  delegations.value?.forEach((x) => {
+  delegations.value.forEach((x) => {
     value += format.tokenValueNumber(x.balance);
   });
-  rewards.value?.total?.forEach((x) => {
+  rewards.value.total?.forEach((x) => {
     value += format.tokenValueNumber(x);
   });
-  balances.value?.forEach((x) => {
+  balances.value.forEach((x) => {
     value += format.tokenValueNumber(x);
   });
-  unbonding.value?.forEach((x) => {
-    x.entries?.forEach((y) => {
+  unbonding.value.forEach((x) => {
+    x.entries.forEach((y) => {
       value += format.tokenValueNumber({ amount: y.balance, denom: stakingStore.params.bond_denom });
     });
   });
@@ -77,24 +79,24 @@ const totalValue = computed(() => {
 });
 
 function loadAccount(address: string) {
-  blockchain.rpc.getAuthAccount(address).then((x) => {
+  void blockchain.rpc.getAuthAccount(address).then((x) => {
     account.value = x.account;
   });
-  blockchain.rpc.getTxsBySender(address).then((x) => {
+  void blockchain.rpc.getTxsBySender(address).then((x) => {
     txs.value = x.tx_responses;
   });
-  blockchain.rpc.getDistributionDelegatorRewards(address).then((x) => {
+  void blockchain.rpc.getDistributionDelegatorRewards(address).then((x) => {
     rewards.value = x;
   });
-  blockchain.rpc.getStakingDelegations(address).then((x) => {
+  void blockchain.rpc.getStakingDelegations(address).then((x) => {
     delegations.value = x.delegation_responses;
   });
-  blockchain.rpc.getBankBalances(address).then((x) => {
+  void blockchain.rpc.getBankBalances(address).then((x) => {
     balances.value = x.balances;
   });
-  blockchain.rpc.getStakingDelegatorUnbonding(address).then((x) => {
+  void blockchain.rpc.getStakingDelegatorUnbonding(address).then((x) => {
     unbonding.value = x.unbonding_responses;
-    x.unbonding_responses?.forEach((y) => {
+    x.unbonding_responses.forEach((y) => {
       y.entries.forEach((z) => {
         unbondingTotal.value += Number(z.balance);
       });
@@ -102,7 +104,7 @@ function loadAccount(address: string) {
   });
 
   const receivedQuery = `?&pagination.reverse=true&events=coin_received.receiver='${address}'&pagination.limit=5`;
-  blockchain.rpc.getTxs(receivedQuery, {}).then((x) => {
+  void blockchain.rpc.getTxs(receivedQuery, {}).then((x) => {
     recentReceived.value = x.tx_responses;
   });
 }
@@ -111,7 +113,7 @@ function updateEvent() {
   loadAccount(props.address);
 }
 
-function mapAmount(events: { type: string; attributes: { key: string; value: string }[] }[]) {
+function mapAmount(events: { type: string; attributes: { key: string; value: string }[] }[] | undefined) {
   if (!events) return [];
   return events
     .find((x) => x.type === 'coin_received')
@@ -384,7 +386,7 @@ function mapAmount(events: { type: string; attributes: { key: string; value: str
                 <RouterLink :to="`/${chain}/staking/${v.validator_address}`">{{ v.validator_address }}</RouterLink>
               </td>
             </tr>
-            <tr v-for="entry in v.entries">
+            <tr v-for="(entry, ei) in v.entries" :key="ei">
               <td class="py-3">{{ entry.creation_height }}</td>
               <td class="py-3">
                 {{

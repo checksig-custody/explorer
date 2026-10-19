@@ -14,7 +14,7 @@ export interface DelegatorRewards {
     validator_address: string;
     reward: Coin[];
   }[];
-  total: Coin[];
+  total?: Coin[];
 }
 
 export interface PaginatedSlashes extends PaginatedResponse {

@@ -10,6 +10,7 @@ import DonutChart from '@/components/charts/DonutChart.vue';
 import { computed, ref } from 'vue';
 import { onMounted } from 'vue';
 import { Icon } from '@iconify/vue';
+import { maybe } from '@/libs/utils';
 
 import type {
   AuthAccount,
@@ -44,7 +45,7 @@ onMounted(() => {
 });
 const totalAmountByCategory = computed(() => {
   let sumDel = 0;
-  delegations.value.forEach((x) => {
+  maybe(delegations.value)?.forEach((x) => {
     sumDel += Number(x.balance.amount);
   });
   let sumRew = 0;
@@ -52,12 +53,12 @@ const totalAmountByCategory = computed(() => {
     sumRew += Number(x.amount);
   });
   let sumBal = 0;
-  balances.value.forEach((x) => {
+  maybe(balances.value)?.forEach((x) => {
     sumBal += Number(x.amount);
   });
   let sumUn = 0;
-  unbonding.value.forEach((x) => {
-    x.entries.forEach((y) => {
+  maybe(unbonding.value)?.forEach((x) => {
+    maybe(x.entries)?.forEach((y) => {
       sumUn += Number(y.balance);
     });
   });
@@ -72,17 +73,17 @@ const totalAmount = computed(() => {
 
 const totalValue = computed(() => {
   let value = 0;
-  delegations.value.forEach((x) => {
+  maybe(delegations.value)?.forEach((x) => {
     value += format.tokenValueNumber(x.balance);
   });
   rewards.value.total?.forEach((x) => {
     value += format.tokenValueNumber(x);
   });
-  balances.value.forEach((x) => {
+  maybe(balances.value)?.forEach((x) => {
     value += format.tokenValueNumber(x);
   });
-  unbonding.value.forEach((x) => {
-    x.entries.forEach((y) => {
+  maybe(unbonding.value)?.forEach((x) => {
+    maybe(x.entries)?.forEach((y) => {
       value += format.tokenValueNumber({
         amount: y.balance,
         denom: stakingStore.params.bond_denom,
@@ -110,7 +111,7 @@ function loadAccount(address: string) {
   });
   void blockchain.rpc.getStakingDelegatorUnbonding(address).then((x) => {
     unbonding.value = x.unbonding_responses;
-    x.unbonding_responses.forEach((y) => {
+    maybe(x.unbonding_responses)?.forEach((y) => {
       y.entries.forEach((z) => {
         unbondingTotal.value += Number(z.balance);
       });

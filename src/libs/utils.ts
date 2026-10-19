@@ -199,3 +199,21 @@ export function rgbToHsl(color: string) {
     l,
   };
 }
+
+// Returns value, or throws the TypeError that reading `property` of undefined
+// raises. It keeps the old failure where the types now say a value may be
+// missing.
+export function defined<T>(value: T | null | undefined, property: string): T {
+  if (value === undefined || value === null) {
+    throw new TypeError(
+      `Cannot read properties of ${String(value)} (reading '${property}')`
+    );
+  }
+  return value;
+}
+
+// Says that value may be missing. It is for a reply that can lack a field the
+// types call required, where the code keeps its `?.`.
+export function maybe<T>(value: T): T | undefined {
+  return value;
+}

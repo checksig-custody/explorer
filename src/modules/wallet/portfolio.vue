@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { defined } from '@/libs/utils';
 import { CosmosRestClient } from '@/libs/client';
 import type { Coin, Delegation } from '@/types';
 import { ref, watchEffect } from 'vue';
@@ -54,7 +55,7 @@ interface MarketRow {
   atl_date: string;
   roi: string;
   last_updated: string;
-  sparkline_in_7d?: { price: number[] };
+  sparkline_in_7d: { price: number[] };
 }
 
 const prices = ref<MarketRow[]>([]);
@@ -92,8 +93,10 @@ Object.values(conf.value).forEach((imported) => {
             loaded.value += 1;
           });
         void client.getStakingDelegations(x.address).then((res) => {
-          delegations.value[x.address] = res.delegation_responses;
-          res.delegation_responses.forEach((del) => {
+          const responses = res.delegation_responses as
+            typeof res.delegation_responses | undefined;
+          if (responses) delegations.value[x.address] = responses;
+          defined(responses, 'forEach').forEach((del) => {
             tokenMeta.value[del.balance.denom] = x;
           });
         });
@@ -203,9 +206,7 @@ const changeData = computed(() => {
       const marketData =
         token && prices.value.find((x) => x.id === token.coinId);
       if (token && marketData) {
-        return (marketData.sparkline_in_7d?.price ?? []).map(
-          (p) => p * token.qty
-        );
+        return marketData.sparkline_in_7d.price.map((p) => p * token.qty);
       }
       return [];
     })

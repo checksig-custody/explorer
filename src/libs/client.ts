@@ -1,4 +1,5 @@
 import { fetchData, get } from '@/libs';
+import { defined } from '@/libs/utils';
 import { DEFAULT } from '@/libs';
 import {
   adapter,
@@ -88,13 +89,13 @@ export class CosmosRestClient extends BaseRestClient<RequestRegistry> {
   }
 
   static newStrategy(endpoint: string, chain: ChainConfig | undefined) {
-    if (!chain) throw new TypeError('No chain is selected');
+    const config = defined(chain, 'chainName');
     // sdk version of current chain
-    const sdkVersion = chain.versions.cosmosSdk;
+    const sdkVersion = config.versions.cosmosSdk;
     const ver =
-      localStorage.getItem(`sdk_version_${chain.chainName}`) || sdkVersion;
+      localStorage.getItem(`sdk_version_${config.chainName}`) || sdkVersion;
     // find by name first
-    let profile = findApiProfileByChain(chain.chainName);
+    let profile = findApiProfileByChain(config.chainName);
     // if not found. try sdk version
     if (!profile && sdkVersion) {
       profile = findApiProfileBySDKVersion(ver ?? sdkVersion);

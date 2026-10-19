@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { useDashboard, useBlockchain } from '@/stores';
 import type { ChainConfig } from '@/types/chaindata';
 import { CosmosRestClient } from '@/libs/client';
+import { defined } from '@/libs/utils';
 import { onMounted } from 'vue';
 import AdBanner from '@/components/ad/AdBanner.vue';
 
@@ -28,8 +29,7 @@ async function initParamsForKeplr() {
     average: 0.025,
     high: 0.03,
   };
-  const asset = chain.assets[0];
-  if (!asset) throw new Error('The chain has no assets');
+  const asset = defined(chain.assets[0], 'denom_units');
   const coinDecimals =
     asset.denom_units.find((x) => x.denom === asset.symbol.toLowerCase())
       ?.exponent || 6;

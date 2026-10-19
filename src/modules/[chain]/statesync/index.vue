@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { defined } from '@/libs/utils';
 import { useBaseStore, useBlockchain } from '@/stores';
 import type { NodeInfo } from '@/types';
 import { fromBase64, toHex } from '@cosmjs/encoding';
@@ -19,8 +20,9 @@ base.$subscribe((m, { latest }) => {
   if (h > height.value) {
     height.value = h;
     void base.fetchBlock(h).then((res) => {
-      if (res.block_id)
-        hash.value = toHex(fromBase64(res.block_id.hash)).toUpperCase();
+      hash.value = toHex(
+        fromBase64(defined(res.block_id, 'hash').hash)
+      ).toUpperCase();
     });
   }
 });

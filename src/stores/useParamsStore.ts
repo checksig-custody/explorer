@@ -224,7 +224,7 @@ export const useParamStore = defineStore('paramstore', {
 
       localStorage.setItem(
         `sdk_version_${this.blockchain.chainName}`,
-        res.application_version.cosmos_sdk_version
+        String(res.application_version.cosmos_sdk_version)
       );
 
       this.appVersion.items = paramItems(res.application_version);

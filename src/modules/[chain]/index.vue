@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { MdPreview } from 'md-editor-v3';
 import { sanitizeMarkdownHtml } from '@/libs/sanitize';
+import { defined } from '@/libs/utils';
 import 'md-editor-v3/lib/preview.css';
 import PriceMarketChart from '@/components/charts/PriceMarketChart.vue';
 
@@ -39,7 +40,12 @@ onMounted(() => {
   // if(!(coinInfo.value && coinInfo.value.name)) {
   // }
 });
-const ticker = computed(() => store.coinInfo.tickers?.[store.tickerIndex]);
+const ticker = computed(
+  () =>
+    defined(store.coinInfo.tickers, String(store.tickerIndex))[
+      store.tickerIndex
+    ]
+);
 
 const currName = ref('');
 blockchain.$subscribe((m, s) => {
@@ -50,11 +56,9 @@ blockchain.$subscribe((m, s) => {
     void paramStore.handleAbciInfo();
   }
 });
-function shortName(name: string, id: string) {
-  return name.toLowerCase().startsWith('ibc/') ||
-    name.toLowerCase().startsWith('0x')
-    ? id
-    : name;
+function shortName(name: string | undefined, id: string | undefined) {
+  const lower = defined(name, 'toLowerCase').toLowerCase();
+  return lower.startsWith('ibc/') || lower.startsWith('0x') ? id : name;
 }
 
 const comLinks = computed(() => {
@@ -119,12 +123,14 @@ const qty = computed({
 });
 const amount = computed({
   get: () => {
-    const usd = ticker.value?.converted_last.usd;
-    return usd === undefined ? 0 : quantity.value * usd || 0;
+    return (
+      quantity.value *
+        defined(ticker.value, 'converted_last').converted_last.usd || 0
+    );
   },
   set: (val) => {
-    const usd = ticker.value?.converted_last.usd;
-    quantity.value = usd === undefined ? 0 : val / usd || 0;
+    quantity.value =
+      val / defined(ticker.value, 'converted_last').converted_last.usd || 0;
   },
 });
 </script>
@@ -312,7 +318,7 @@ const amount = computed({
                   '!btn-success': store.trustColor === 'green',
                   '!btn-warning': store.trustColor === 'yellow',
                 }"
-                :href="tickerUrl(ticker.trade_url)"
+                :href="tickerUrl(defined(ticker, 'trade_url').trade_url)"
                 target="_blank"
               >
                 {{ $t('index.buy') }} {{ coinInfo.symbol || '' }}
@@ -329,7 +335,7 @@ const amount = computed({
       <div class="max-h-[250px] overflow-auto p-4 text-sm">
         <!-- Chain text is untrusted: mermaid and echarts run code outside sanitize. -->
         <MdPreview
-          :model-value="coinInfo.description?.en"
+          :model-value="coinInfo.description?.en ?? ''"
           :sanitize="sanitizeMarkdownHtml"
           :no-mermaid="true"
           :no-echarts="true"

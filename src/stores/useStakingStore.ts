@@ -110,7 +110,7 @@ export const useStakingStore = defineStore('stakingStore', {
         const [providerApi] = this.blockchain.current?.providerChain?.api ?? [];
         if (providerApi) {
           const signatures =
-            useBaseStore().latest.block?.last_commit.signatures;
+            useBaseStore().latest.block?.last_commit?.signatures;
           if (signatures) {
             // console.log(signatures)
             const key = toBase64(fromHex(valconsToBase64(validatorAddr)));

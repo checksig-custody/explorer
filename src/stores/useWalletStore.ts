@@ -66,7 +66,7 @@ export const useWalletStore = defineStore('walletStore', {
     },
     rewardAmount(): Coin {
       const stakingStore = useStakingStore();
-      const reward = this.rewards.total.find(
+      const reward = this.rewards.total?.find(
         (x) => x.denom === stakingStore.params.bond_denom
       );
       return reward ?? { amount: '0', denom: stakingStore.params.bond_denom };

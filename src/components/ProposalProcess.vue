@@ -5,7 +5,7 @@ import { computed } from 'vue';
 import type { PropType } from 'vue';
 
 const props = defineProps({
-  tally: { type: Object as PropType<Tally>, default: undefined },
+  tally: { type: Object as PropType<Tally | undefined>, default: undefined },
   pool: {
     type: Object as PropType<{
       not_bonded_tokens: string;

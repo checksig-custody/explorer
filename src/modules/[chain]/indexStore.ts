@@ -11,6 +11,7 @@ import {
 } from '@/stores';
 import type { Coin, Tally } from '@/types';
 import type { CoinInfo, MarketChart } from '@/stores/useCoinGecko';
+import { defined } from '@/libs/utils';
 import numeral from 'numeral';
 import { defineStore } from 'pinia';
 
@@ -167,7 +168,7 @@ export const useIndexModule = defineStore('module-index', {
           title: 'Validators',
           color: 'error',
           icon: 'mdi-human-queue',
-          stats: String(base.latest.block?.last_commit.signatures.length || 0),
+          stats: String(base.latest.block?.last_commit?.signatures.length || 0),
           change: 0,
         },
         {
@@ -211,8 +212,7 @@ export const useIndexModule = defineStore('module-index', {
     coingeckoId(): string | undefined {
       this.tickerIndex = 0;
       const [firstAsset] = this.blockchain?.assets ?? [];
-      if (!firstAsset) throw new TypeError('The chain has no asset');
-      return firstAsset.coingecko_id;
+      return defined(firstAsset, 'coingecko_id').coingecko_id;
     },
   },
   actions: {

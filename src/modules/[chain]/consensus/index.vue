@@ -8,6 +8,7 @@ import {
   useBaseStore,
 } from '@/stores';
 import { consensusPubkeyToHexAddress } from '@/libs';
+import { defined } from '@/libs/utils';
 import type { Validator } from '@/types';
 
 interface HeightVoteSet {
@@ -123,9 +124,9 @@ async function fetchPosition() {
     };
     positions.value = data.result.round_state.validators.validators;
   } catch (error) {
-    const err = error as { status?: number; message?: string };
-    httpstatus.value = err.status || 500;
-    httpStatusText.value = err.message || 'Error';
+    const err = error as { status?: number; message?: string } | undefined;
+    httpstatus.value = err?.status || 500;
+    httpStatusText.value = err?.message || 'Error';
   }
 }
 
@@ -141,9 +142,10 @@ function update() {
       })
       .then((res) => {
         roundState.value = res.result.round_state;
-        const raw = roundState.value['height/round/step']?.split('/');
-        if (!raw)
-          throw new Error('The consensus state has no height/round/step');
+        const raw = defined(
+          roundState.value['height/round/step']?.split('/'),
+          '0'
+        );
         height.value = raw[0] ?? '';
         round.value = raw[1] ?? '';
         step.value = raw[2] ?? '';

@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { MdPreview } from 'md-editor-v3';
 import { sanitizeMarkdownHtml } from '@/libs/sanitize';
+import { maybe } from '@/libs/utils';
 import 'md-editor-v3/lib/preview.css';
 import ObjectElement from '@/components/dynamic/ObjectElement.vue';
 import {
@@ -38,9 +39,9 @@ const chainStore = useBlockchain();
 void store.fetchProposal(props.proposal_id).then((res) => {
   const proposalDetail = reactive(res.proposal);
   // when status under the voting, final_tally_result are no data, should request fetchTally
-  if (res.proposal.status === 'PROPOSAL_STATUS_VOTING_PERIOD') {
+  if (maybe(res.proposal)?.status === 'PROPOSAL_STATUS_VOTING_PERIOD') {
     void store.fetchTally(props.proposal_id).then((tallRes) => {
-      proposalDetail.final_tally_result = tallRes.tally;
+      proposalDetail.final_tally_result = maybe(tallRes)?.tally;
     });
   }
   proposal.value = proposalDetail;

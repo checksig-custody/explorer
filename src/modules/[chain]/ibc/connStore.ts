@@ -115,9 +115,9 @@ export const useIBCModule = defineStore('module-ibc', {
       return entries;
     },
     fetchConnection(index: number) {
-      const conf = this.info[index];
-      if (!conf) return;
-      this.registryConf = conf;
+      // An index with no entry sets registryConf to undefined, and the next
+      // line throws a TypeError, as before.
+      this.registryConf = this.info[index] as unknown as IBCData;
       const connId = this.isFirstChain
         ? this.registryConf.chain_1.connection_id
         : this.registryConf.chain_2.connection_id;

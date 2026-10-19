@@ -1,11 +1,12 @@
 import DOMPurify from 'dompurify';
 
-DOMPurify.addHook('afterSanitizeAttributes', (node) => {
-  node.classList.remove('md-editor-echarts');
-  const href = node.getAttribute('href');
-  if (node.tagName.toLowerCase() === 'a' && href && !href.startsWith('#')) {
-    node.setAttribute('target', '_blank');
-    node.setAttribute('rel', 'noopener noreferrer');
+// Not every node the hook sees is an element, so the members are optional.
+DOMPurify.addHook('afterSanitizeAttributes', (node: Partial<Element>) => {
+  node.classList?.remove('md-editor-echarts');
+  const href = node.getAttribute?.('href');
+  if (node.tagName?.toLowerCase() === 'a' && href && !href.startsWith('#')) {
+    node.setAttribute?.('target', '_blank');
+    node.setAttribute?.('rel', 'noopener noreferrer');
   }
 });
 

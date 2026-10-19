@@ -39,12 +39,14 @@ export interface GovProposal {
     };
   };
   status: string;
-  final_tally_result: {
-    yes: string;
-    abstain: string;
-    no: string;
-    no_with_veto: string;
-  };
+  final_tally_result?:
+    | {
+        yes: string;
+        abstain: string;
+        no: string;
+        no_with_veto: string;
+      }
+    | undefined;
   submit_time: string;
   deposit_end_time: string;
   total_deposit: Coin[];

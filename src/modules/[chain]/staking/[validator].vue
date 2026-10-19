@@ -142,7 +142,9 @@ onMounted(() => {
   if (validator) {
     void staking.fetchValidator(validator).then((res) => {
       v.value = res.validator;
-      identity.value = res.validator.description.identity || '';
+      identity.value =
+        (res.validator as Partial<Validator> | undefined)?.description
+          ?.identity || '';
       if (identity.value && !avatars.value[identity.value])
         loadAvatar(identity.value);
 

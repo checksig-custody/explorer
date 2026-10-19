@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import { useBlockchain } from './useBlockchain';
+import { maybe } from '@/libs/utils';
 import type { PageRequest, PaginatedProposals } from '@/types';
 import { LoadingStatus } from './useDashboard';
 import { useWalletStore } from './useWalletStore';
@@ -55,9 +56,9 @@ export const useGovStore = defineStore('govStore', {
       // }
 
       if (status === '2') {
-        proposals?.proposals.forEach((item) => {
+        maybe(proposals?.proposals)?.forEach((item) => {
           void this.fetchTally(item.proposal_id).then((res) => {
-            item.final_tally_result = res.tally;
+            item.final_tally_result = maybe(res)?.tally;
           });
           if (this.walletstore.currentAddress) {
             try {

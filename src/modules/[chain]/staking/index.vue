@@ -210,7 +210,7 @@ const loadAvatar = (identity: string) => {
 const loadAvatars = () => {
   // fetches all avatars from keybase and stores it in localStorage
   const promises = staking.validators.map((validator) => {
-    const identity = validator.description.identity;
+    const identity = (validator as Partial<Validator>).description?.identity;
 
     // Here we also check whether we haven't already fetched the avatar
     if (identity && !avatars.value[identity]) {

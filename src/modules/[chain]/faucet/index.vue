@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import AdBanner from '@/components/ad/AdBanner.vue';
 import { get } from '@/libs';
+import { defined } from '@/libs/utils';
 import { useBlockchain, useFormatter } from '@/stores';
 import { ref, onMounted, computed } from 'vue';
 
@@ -8,30 +9,30 @@ const chainStore = useBlockchain();
 const format = useFormatter();
 interface FaucetResponse {
   status: string;
-  result?: {
+  result: {
     balance?: { amount: string; denom: string }[];
     address?: string;
-    txhash?: string;
+    txhash: string;
   };
   message: string;
 }
 
 const address = ref('');
 const faucet = ref<string | undefined>('');
-const balances = ref<{ amount: string; denom: string }[]>([]);
+const balances = ref<{ amount: string; denom: string }[] | undefined>([]);
 const faucetModal = ref(false);
 const ret = ref({} as FaucetResponse);
 const configChecker = ref('');
 
 const checklist = computed(() => {
-  const first = chainStore.current?.endpoints.rest?.[0];
+  const rest = chainStore.current?.endpoints.rest;
+  const list = defined(balances.value, 'length');
   const bs =
-    balances.value.length > 0 &&
-    balances.value.findIndex((v) => Number(v.amount) <= 10) === -1;
+    list.length > 0 && list.findIndex((v) => Number(v.amount) <= 10) === -1;
   return [
     {
       title: 'Rest Endpoint',
-      status: first !== undefined && first.address !== '',
+      status: rest && defined(rest[0], 'address').address !== '',
     },
     {
       title: 'Faucet Configured',
@@ -76,8 +77,10 @@ function balance() {
       configChecker.value = res.message;
       return;
     }
-    balances.value = res.result?.balance ?? [];
-    faucet.value = res.result?.address;
+    // the node's reply may have no result
+    const result = (res as Partial<FaucetResponse>).result;
+    balances.value = result?.balance;
+    faucet.value = result?.address;
   });
 }
 
@@ -200,8 +203,7 @@ onMounted(() => {
         <div v-else-if="ret.status === 'ok'">
           <h3 class="font-bold text-green-500">Token Sent!</h3>
           <div class="text-center mt-4">
-            <RouterLink
-              :to="`/${chainStore.chainName}/tx/${String(ret.result?.txhash)}`"
+            <RouterLink :to="`/${chainStore.chainName}/tx/${ret.result.txhash}`"
               >View Transaction</RouterLink
             >
           </div>

@@ -1,5 +1,3 @@
-import type { Coin } from '@/types';
-
 // The parts of an asset or denom metadata that a supply row reads.
 export interface SupplyAssetInfo {
   symbol?: string | undefined;
@@ -18,7 +16,9 @@ export interface SupplyRow {
 
 // A denom with neither asset config nor metadata (asset is undefined) falls
 // back to the coin's own denom.
-export function supplyRow(coin: Coin, asset: SupplyAssetInfo | undefined, amountOf: (denom: string) => string): SupplyRow {
+export function supplyRow(
+  coin: { denom: string; amount: string },
+  asset: SupplyAssetInfo | undefined, amountOf: (denom: string) => string): SupplyRow {
   const denom = asset?.symbol || coin.denom;
   const parts = denom.split('/');
   return {

@@ -8,19 +8,24 @@ Fork of [ping.pub explorer](https://github.com/ping-pub/explorer) — a "light" 
 
 ## Commands
 
-Package manager is **yarn** (pinned via `packageManager`). Node engine checks are typically bypassed (see `installation.md`).
+Package manager is **yarn** (pinned via `packageManager`). Node is 24 (`.nvmrc`, `engines.node`); use `nvm use`.
 
 ```sh
-yarn --ignore-engines        # install
+yarn install --frozen-lockfile  # install
 yarn dev                     # vite dev server
-yarn build                   # type-check + vite build (run-p)
-yarn build-only              # skip type-check
-yarn type-check              # vue-tsc --noEmit
+yarn build                   # typecheck + vite build (run-p)
+yarn build-only              # skip the typecheck
+yarn typecheck               # vue-tsc --noEmit, app and config projects
+yarn lint                    # eslint . --max-warnings 0
+yarn format:check            # prettier --check .
 yarn format                  # prettier --write .
 yarn preview                 # preview the production build
 ```
 
-Tests: `yarn test` runs `node --test tests/` (jsdom, helper in `src/libs/sanitize.ts`). It needs Node >= 22.18 to strip the `.ts` types.
+Tests: `yarn test` runs `node --test "tests/**/*.test.ts"` (jsdom for the sanitizer in `src/libs/sanitize.ts`, plain functions such as `src/libs/supply.ts`). Node strips the `.ts` types, so a tested module may import only types from other files.
+
+### Strict checks
+The code is held to strict TypeScript (`tsconfig.json`: `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `noPropertyAccessFromIndexSignature`, and more) and to typescript-eslint's `strictTypeChecked` and `stylisticTypeChecked` plus `eslint-plugin-vue` (`eslint.config.mjs`). An exception is `// eslint-disable-next-line <rule> -- <reason>` with a reason; a rule that is off in the config carries its reason there. `any`, `@ts-ignore` and file-wide disables are not accepted. Wire data enters as `unknown` and is asserted once, where it is read.
 
 ## High-level architecture
 
@@ -66,8 +71,9 @@ This is the trickiest part of the codebase.
 See `.env.example`. Notable: `VITE_REFRESH_INTERVAL`, `VITE_FETCH_ALL_BLOCKS`, `VITE_RECENT_BLOCK_LIMIT`, `VITE_COINGECKO_URL`, `VITE_PINGPUB_API_URL`, `VITE_GITHUB_API_URL`, `VITE_IBC_USE_GITHUB_API`.
 
 ## CI / deploys
-- `.github/workflows/testnet-deploy.yaml` deploys on pushes to the `testnet` branch via a self-hosted runner labeled `testnet`. It runs `yarn run vue-cli-service build` (note: stale — this project uses Vite, not vue-cli — the command likely fails; fix if you rely on this).
-- `.github/workflows/mainnet-deploy.yaml.disabled` is intentionally disabled.
+- `.github/workflows/checks.yaml` runs on every pull request to `master`: install with the frozen lockfile, `yarn typecheck`, `yarn lint`, `yarn format:check`, `yarn test`, `yarn build-only`, and shellcheck, shfmt, actionlint and zizmor on `scripts/*.sh` and `.github/workflows/`.
+- `.github/workflows/testnet-deploy.yaml.disabled` and `mainnet-deploy.yaml.disabled` are intentionally disabled, so no push deploys. `scripts/deploy.sh` is the manual testnet deploy.
+- `.github/workflows/docker.yaml` runs only on pushes to `master-backup`; it is stale (it calls `vue-cli-service`).
 - `.github/workflows/config-check.yaml` runs `ping-pub/ping-dashboard-config-checker` on PRs that touch `chains/mainnet/**` or `chains/testnet/**`.
 
 ## Conventions worth knowing

@@ -36,13 +36,13 @@ const i18nLangs: { label: string; i18nLang: string }[] = [
 
 let locale = ref(useI18n({ useScope: 'global' }).locale);
 watch(locale, (val) => {
-  document.documentElement.setAttribute('lang', val as string);
+  document.documentElement.setAttribute('lang', val);
 });
 
 let currentLang = ref(localStorage.getItem('lang') || 'en');
 
 watch(currentLang, (val: string) => {
-  document.documentElement.setAttribute('lang', val as string);
+  document.documentElement.setAttribute('lang', val);
 });
 
 const handleLangChange = (lang: string) => {

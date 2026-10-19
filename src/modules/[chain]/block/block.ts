@@ -27,7 +27,7 @@ export const useBlockModule = defineStore('blockModule', {
   },
   actions: {
     initial() {
-      this.clearRecentBlocks();
+      void this.clearRecentBlocks();
     },
     async clearRecentBlocks() {
       return this.baseStore.clearRecentBlocks()

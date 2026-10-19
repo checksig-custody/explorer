@@ -1,3 +1,6 @@
+<script setup lang="ts">
+defineOptions({ name: 'SponsorList' });
+</script>
 <template>
   <div>
     <a

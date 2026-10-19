@@ -3,7 +3,7 @@ import { Icon } from '@iconify/vue';
 import { onMounted, computed } from 'vue';
 import { useBaseStore } from '@/stores';
 
-const themeMap: Record<string, string> = {
+const themeMap: Record<'system' | 'light' | 'dark', string> = {
   system: 'mdi-laptop',
   light: 'mdi-weather-sunny',
   dark: 'mdi-weather-night',

@@ -1,5 +1,4 @@
 import { useDashboard } from '@/stores';
-import type { Coin } from '@/types';
 import { fromBech32, toBech32 } from '@cosmjs/encoding';
 
 export interface AccountEntry {
@@ -7,7 +6,7 @@ export interface AccountEntry {
   logo: string;
   address: string;
   coinType: string;
-  endpoint?: string;
+  endpoint?: string | undefined;
   compatiable?: boolean;
 }
 
@@ -21,7 +20,7 @@ export function scanLocalKeys() {
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
     if (key?.startsWith('m/44')) {
-      const wallet = JSON.parse(localStorage.getItem(key) || '');
+      const wallet = JSON.parse(localStorage.getItem(key) || '') as LocalKey | null;
       if (wallet) {
         connected.push(wallet);
       }

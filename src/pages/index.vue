@@ -3,9 +3,8 @@ import { Icon } from '@iconify/vue';
 import { useDashboard, LoadingStatus } from '@/stores';
 import type { ChainConfig } from '@/types/chaindata';
 import ChainSummary from '@/components/ChainSummary.vue';
-import AdBanner from '@/components/ad/AdBanner.vue';
 
-import { computed, onMounted, ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useBlockchain } from '@/stores';
 
 const dashboard = useDashboard();

@@ -1,4 +1,18 @@
 /// <reference types="vite/client" />
+/// <reference types="vite-plugin-pages/client" />
+
+// vite-plugin-vue-layouts/client is not reachable through its package exports.
+declare module 'virtual:generated-layouts' {
+  import type { RouteRecordRaw } from 'vue-router';
+  export function setupLayouts(routes: RouteRecordRaw[]): RouteRecordRaw[];
+}
+
+// typescript-eslint does not read .vue files; vue-tsc does and ignores this.
+declare module '*.vue' {
+  import type { DefineComponent } from 'vue';
+  const component: DefineComponent<object, object, unknown>;
+  export default component;
+}
 
 declare module '@personaxyz/ad-sdk';
 interface ImportMetaEnv {

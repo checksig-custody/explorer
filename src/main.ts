@@ -28,6 +28,6 @@ setInterval(() => {
   requestCounter.value += 1;
   if (requestCounter.value < 5) {
     // max allowed request
-    blockStore.fetchLatest().finally(() => (requestCounter.value -= 1));
+    void blockStore.fetchLatest().finally(() => (requestCounter.value -= 1));
   }
 }, REFRESH_INTERVAL);

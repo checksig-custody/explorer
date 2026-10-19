@@ -36,14 +36,13 @@ export default defineConfig(
       parserOptions: {
         parser: tseslint.parser,
         projectService: {
-          // Root config files and tests sit outside the app project and are
-          // checked with the Node one.
+          // Root config files sit outside the app project and are checked with
+          // the Node one. The tests have their own tests/tsconfig.json.
           allowDefaultProject: [
             'vite.config.ts',
             'eslint.config.mjs',
             'postcss.config.js',
             'tailwind.config.ts',
-            'tests/*.test.ts',
             'daisyui-themes.d.ts',
           ],
           defaultProject: 'tsconfig.config.json',

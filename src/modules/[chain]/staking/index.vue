@@ -12,6 +12,7 @@ import { onMounted, ref } from 'vue';
 import { Icon } from '@iconify/vue';
 import type { Key, SlashingParam, Validator } from '@/types';
 import { formatSeconds, orDefault } from '@/libs/utils';
+import { isFeatured } from '@/libs/featured';
 
 const staking = useStakingStore();
 const base = useBaseStore();
@@ -131,21 +132,6 @@ const calculateRank = function (position: number) {
       return 'primary';
   }
 };
-
-function isFeatured(
-  endpoints: string[],
-  who?: { website?: string; moniker: string }
-) {
-  if (!who) return false;
-  return (
-    endpoints.findIndex((x) =>
-      orDefault(
-        who.website?.substring(0, who.website.lastIndexOf('.')).endsWith(x),
-        who.moniker.toLowerCase().search(x.toLowerCase()) > -1
-      )
-    ) > -1
-  );
-}
 
 const list = computed(() => {
   if (tab.value === 'active') {

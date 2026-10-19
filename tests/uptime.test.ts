@@ -42,7 +42,8 @@ test('an older block goes first and a row keeps at most 50 blocks', () => {
   fillBlock(colors, validators, block('BLOCK_ID_FLAG_COMMIT'), 'start');
   assert.equal(colors['a']?.[0]?.color, 'bg-green-500');
   for (let i = 0; i < 60; i += 1) fillBlock(colors, validators, block());
-  assert.equal(colors['a']?.length, 50);
+  const row = Object.values(colors)[0] ?? [];
+  assert.equal(row.length, 50);
 });
 
 test('a block with no last commit counts as not signed', () => {

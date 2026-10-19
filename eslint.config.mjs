@@ -71,23 +71,6 @@ export default defineConfig(
     },
   },
   {
-    // `||` and `??` differ for '', 0 and false. The rule stays on for
-    // objects; it is off for primitives because the swap changes behaviour.
-    rules: {
-      '@typescript-eslint/prefer-nullish-coalescing': [
-        'error',
-        {
-          ignorePrimitives: {
-            string: true,
-            number: true,
-            boolean: true,
-            bigint: true,
-          },
-        },
-      ],
-    },
-  },
-  {
     // Template layout is Prettier's job; these rules would fight it.
     files: ['**/*.vue'],
     rules: {
@@ -99,7 +82,7 @@ export default defineConfig(
       'vue/mustache-interpolation-spacing': 'off',
       'vue/no-multi-spaces': 'off',
       // Prettier prints void elements self-closed (<img />).
-      'vue/html-self-closing': ['error', { html: { void: 'any' } }],
+      'vue/html-self-closing': ['error', { html: { void: 'always' } }],
     },
   },
   {
@@ -124,7 +107,20 @@ export default defineConfig(
     // node:test registers a test when test() is called; the promise it returns
     // settles when the run ends and is not meant to be awaited.
     files: ['tests/**/*.ts'],
-    rules: { '@typescript-eslint/no-floating-promises': 'off' },
+    rules: {
+      '@typescript-eslint/no-floating-promises': [
+        'error',
+        {
+          allowForKnownSafeCalls: [
+            {
+              from: 'package',
+              package: 'node:test',
+              name: ['test', 'describe', 'it'],
+            },
+          ],
+        },
+      ],
+    },
   },
   {
     files: ['**/*.{js,mjs,cjs}'],

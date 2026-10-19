@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 import { ref, onMounted, computed, onUnmounted } from 'vue';
-import { fromHex, toBase64, fromBase64, toHex } from '@cosmjs/encoding';
+import { fromHex, toBase64 } from '@cosmjs/encoding';
 import { useStakingStore, useBaseStore, useBlockchain, useFormatter } from '@/stores';
 import UptimeBar from '@/components/UptimeBar.vue';
 import type { SlashingParam, SigningInfo, Block } from '@/types';
 import { consensusPubkeyToHexAddress, valconsToBase64 } from '@/libs';
 
-const props = defineProps(['chain']);
+defineProps({ chain: { type: String, default: undefined } });
 
 const stakingStore = useStakingStore();
 const format = useFormatter();
@@ -34,9 +34,7 @@ interface ValidatorUnit {
 }
 
 function padding(blocks: BlockColor[] = []) {
-  const raw = Array(50)
-    .fill({ height: '0', color: 'bg-secondary' } as BlockColor)
-    .concat(blocks);
+  const raw = new Array<BlockColor>(50).fill({ height: '0', color: 'bg-secondary' }).concat(blocks);
   return raw.slice(raw.length - 50);
 }
 
@@ -77,7 +75,7 @@ const grid = computed(() => {
     return {
       moniker: v.moniker,
       base64: v.base64,
-      blocks: padding(blockColors.value[v.base64] || []),
+      blocks: padding(blockColors.value[v.base64] ?? []),
       uptime,
       missed_blocks_counter: signing?.missed_blocks_counter,
       signing,
@@ -87,8 +85,9 @@ const grid = computed(() => {
 
 const preload = ref(false);
 baseStore.$subscribe((_, state) => {
-  const newHeight = Number(state.latest?.block?.header?.height || 0);
-  if (newHeight > latest.value) {
+  const latestBlock = state.latest.block;
+  const newHeight = Number(latestBlock?.header.height || 0);
+  if (latestBlock && newHeight > latest.value) {
     latest.value = newHeight;
     // initialize if it's the first time
     if (!preload.value) {
@@ -98,8 +97,8 @@ baseStore.$subscribe((_, state) => {
 
     // reset the consumer validators
     if (newHeight > 0 && consumerValidators.value.length === 0) {
-      const chain_id = state.latest.block.header.chain_id;
-      Promise.resolve().then(async () => {
+      const chain_id = latestBlock.header.chain_id;
+      void Promise.resolve().then(async () => {
         await stakingStore.getConsumerValidators(chain_id).then((x) => {
           x.validators
             .sort((a, b) => Number(b.power) - Number(a.power))
@@ -116,7 +115,7 @@ baseStore.$subscribe((_, state) => {
       });
     }
 
-    if (Number(state.latest.block.header.height) % 7 === 0) updateTotalSigningInfo();
+    if (Number(latestBlock.header.height) % 7 === 0) updateTotalSigningInfo();
     fillblock(state.latest);
   }
 });
@@ -125,13 +124,13 @@ onMounted(() => {
   live.value = true;
 
   // fill the recent blocks
-  baseStore.recents?.forEach((b) => {
+  baseStore.recents.forEach((b) => {
     fillblock(b, 'start');
   });
 
   updateTotalSigningInfo();
 
-  chainStore.rpc.getSlashingParams().then((x) => {
+  void chainStore.rpc.getSlashingParams().then((x) => {
     slashingParam.value = x.params;
   });
 });
@@ -147,7 +146,7 @@ function preFill() {
           if (live.value) {
             // continue only if the page is living
             if (i > latest.value - 50)
-              baseStore.fetchBlock(i).then((x) => {
+              void baseStore.fetchBlock(i).then((x) => {
                 fillblock(x, 'start');
                 resolve();
               });
@@ -156,17 +155,19 @@ function preFill() {
     );
   }
 }
-function fillblock(b: Block, direction = 'end') {
+function fillblock(b: Partial<Block>, direction = 'end') {
+  const data = b.block;
+  if (!data) return;
   validatorSet.value.forEach((v) => {
-    const sig = b.block.last_commit?.signatures.find((s) => s.validator_address === v.base64);
-    const block = blockColors.value[v.base64] || [];
+    const sig = data.last_commit.signatures.find((s) => s.validator_address === v.base64);
+    const block = blockColors.value[v.base64] ?? [];
     let color = {
-      height: b.block.header.height,
+      height: data.header.height,
       color: 'bg-red-500',
     };
     if (sig) {
       color = {
-        height: b.block.header.height,
+        height: data.header.height,
         color: sig.block_id_flag === 'BLOCK_ID_FLAG_COMMIT' ? 'bg-green-500' : 'bg-yellow-500',
       };
     }
@@ -181,8 +182,8 @@ function fillblock(b: Block, direction = 'end') {
 }
 
 function updateTotalSigningInfo() {
-  chainStore.rpc.getSlashingSigningInfos().then((x) => {
-    x.info?.forEach((i) => {
+  void chainStore.rpc.getSlashingSigningInfos().then((x) => {
+    x.info.forEach((i) => {
       signingInfo.value[valconsToBase64(i.address)] = i;
     });
   });
@@ -269,7 +270,7 @@ function changeTab(v: string) {
               <td>{{ $t('uptime.tombstoned') }}</td>
             </tr>
           </thead>
-          <tr v-for="(v, i) in grid" class="hover">
+          <tr v-for="(v, i) in grid" :key="v.base64" class="hover">
             <td>
               <div class="truncate max-w-sm">{{ i + 1 }}. {{ v.moniker }}</div>
             </td>

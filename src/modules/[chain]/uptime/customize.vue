@@ -1,15 +1,11 @@
 <script lang="ts" setup>
-import { ref, onMounted, computed, watchEffect } from 'vue';
-import { fromHex, toBase64 } from '@cosmjs/encoding';
-import { Icon } from '@iconify/vue';
-import { useFormatter, useStakingStore, useBaseStore, useBlockchain, useDashboard } from '@/stores';
-import UptimeBar from '@/components/UptimeBar.vue';
-import type { Block, Commit } from '@/types';
+import { ref, computed } from 'vue';
+import { useFormatter, useStakingStore, useBlockchain, useDashboard } from '@/stores';
 import { consensusPubkeyToHexAddress, valconsToBase64 } from '@/libs';
 import type { SigningInfo } from '@/types/slashing';
 import { CosmosRestClient } from '@/libs/client';
 
-const props = defineProps(['chain']);
+defineProps({ chain: { type: String, default: undefined } });
 
 const stakingStore = useStakingStore();
 const format = useFormatter();
@@ -17,7 +13,10 @@ const chainStore = useBlockchain();
 const dashboard = useDashboard();
 // storage local favorite validator ids
 const local = ref(
-  JSON.parse(localStorage.getItem('uptime-validators') || '{}') as Record<string, { name: string; address: string }[]>
+  (JSON.parse(localStorage.getItem('uptime-validators') || '{}') as Record<
+    string,
+    { name: string; address: string }[]
+  > | null) ?? {}
 );
 const signingInfo = ref({} as Record<string, SigningInfo[]>);
 const selected = ref([] as string[]);
@@ -27,17 +26,17 @@ const keyword = ref('');
 
 function loadSigningInfo(chainName: string) {
   const chain = dashboard.chains[chainName];
-  if (chain?.endpoints.rest) {
-    const client = CosmosRestClient.newDefault(chain.endpoints.rest[0].address);
-    client.getSlashingSigningInfos().then((resp) => {
+  const first = chain?.endpoints.rest?.[0];
+  if (first) {
+    const client = CosmosRestClient.newDefault(first.address);
+    void client.getSlashingSigningInfos().then((resp) => {
       signingInfo.value[chainName] = resp.info;
     });
   }
 }
-if (local.value)
-  Object.keys(local.value).map((chainName) => {
-    loadSigningInfo(chainName);
-  });
+Object.keys(local.value).forEach((chainName) => {
+  loadSigningInfo(chainName);
+});
 
 function initial() {
   const vals = local.value[selectChain.value];
@@ -54,22 +53,21 @@ const filterValidators = computed(() => {
 });
 
 const list = computed(() => {
-  const list = [] as any[];
-  if (local.value)
-    Object.keys(local.value).map((chainName) => {
-      const vals = local.value[chainName];
-      const info = signingInfo.value[chainName];
-      if (vals && info) {
-        vals.forEach((v) => {
-          const sigingInfo = info.find((x) => valconsToBase64(x.address) === v.address);
-          list.push({
-            chainName,
-            v,
-            sigingInfo,
-          });
+  const list: { chainName: string; v: { name: string; address: string }; sigingInfo: SigningInfo | undefined }[] = [];
+  Object.keys(local.value).forEach((chainName) => {
+    const vals = local.value[chainName];
+    const info = signingInfo.value[chainName];
+    if (vals && info) {
+      vals.forEach((v) => {
+        const sigingInfo = info.find((x) => valconsToBase64(x.address) === v.address);
+        list.push({
+          chainName,
+          v,
+          sigingInfo,
         });
-      }
-    });
+      });
+    }
+  });
   return list;
 });
 
@@ -86,7 +84,6 @@ function add() {
         address: x,
       });
   });
-  if (!local.value) local.value = {};
   local.value[selectChain.value] = newList;
 
   localStorage.setItem('uptime-validators', JSON.stringify(local.value));
@@ -94,11 +91,11 @@ function add() {
 
 function changeChain() {
   validators.value = [];
-  const endpoint = dashboard.chains[selectChain.value].endpoints.rest?.at(0)?.address;
+  const endpoint = dashboard.chains[selectChain.value]?.endpoints.rest?.at(0)?.address;
   if (!endpoint) return;
 
   const client = CosmosRestClient.newDefault(endpoint);
-  client.getStakingValidators('BOND_STATUS_BONDED').then((x) => {
+  void client.getStakingValidators('BOND_STATUS_BONDED').then((x) => {
     validators.value = x.validators;
   });
 
@@ -117,6 +114,7 @@ function color(v: string) {
     if (n > 1000) return ' badge-error';
     if (n > 0) return ' badge-warning';
   }
+  return undefined;
 }
 </script>
 
@@ -167,7 +165,7 @@ function color(v: string) {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(v, i) in list" class="hover">
+          <tr v-for="(v, i) in list" :key="i" class="hover">
             <td>{{ i + 1 }}</td>
             <td class="capitalize">{{ v.chainName }}</td>
             <td>{{ v.v.name }}</td>
@@ -237,7 +235,7 @@ function color(v: string) {
         <div class="form-control my-5 border-2">
           <div class="input-group input-group-md">
             <select v-model="selectChain" class="select select-bordered capitalize" @change="changeChain">
-              <option v-for="v in dashboard.chains" :value="v.chainName">
+              <option v-for="v in dashboard.chains" :key="v.chainName" :value="v.chainName">
                 {{ v.chainName }}
               </option>
             </select>
@@ -253,7 +251,7 @@ function color(v: string) {
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(v, i) in filterValidators">
+              <tr v-for="(v, i) in filterValidators" :key="v.operator_address">
                 <td>
                   <label :for="v.operator_address"
                     ><div class="w-full">{{ i + 1 }}. {{ v.description.moniker }}</div></label

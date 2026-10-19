@@ -222,7 +222,7 @@ export const useIndexModule = defineStore('module-index', {
   },
   actions: {
     // async as on master: a throw below is a rejection, not a throw in the caller
-    // eslint-disable-next-line @typescript-eslint/require-await -- see above
+    // eslint-disable-next-line @typescript-eslint/require-await -- async turns a throw in the body into a rejection, as on master
     async loadDashboard() {
       this.$reset();
       this.initCoingecko();

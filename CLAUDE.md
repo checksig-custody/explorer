@@ -15,7 +15,7 @@ yarn install --frozen-lockfile  # install
 yarn dev                     # vite dev server
 yarn build                   # typecheck + vite build (run-p)
 yarn build-only              # skip the typecheck
-yarn typecheck               # vue-tsc --noEmit, app and config projects
+yarn typecheck               # vue-tsc --noEmit, app, config and tests projects
 yarn lint                    # eslint . --max-warnings 0
 yarn format:check            # prettier --check .
 yarn format                  # prettier --write .

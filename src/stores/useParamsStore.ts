@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { useBlockchain } from './useBlockchain';
-import { percent, formatNumber, formatTokenAmount } from '@/libs/utils';
+import { maybe, percent, formatNumber, formatTokenAmount } from '@/libs/utils';
 export interface stakingItem {
   unbonding_time: string;
   max_validators: number;
@@ -224,7 +224,7 @@ export const useParamStore = defineStore('paramstore', {
 
       localStorage.setItem(
         `sdk_version_${this.blockchain.chainName}`,
-        String(res.application_version.cosmos_sdk_version)
+        String(maybe(res.application_version)?.cosmos_sdk_version)
       );
 
       this.appVersion.items = paramItems(res.application_version);

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { defined } from '@/libs/utils';
 import { useBlockchain } from '@/stores';
 import { PageRequest, type Connection, type Pagination } from '@/types';
 import { onMounted } from 'vue';
@@ -26,7 +27,7 @@ function pageload(p: number) {
     pageResponse.value = x.pagination;
     const [first] = list.value;
     if (x.pagination.total && Number(x.pagination.total) > 0) {
-      ibcStore.showConnection(first?.id);
+      ibcStore.showConnection(defined(first, 'id').id);
     }
   });
 }

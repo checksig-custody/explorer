@@ -9,7 +9,7 @@ const store = useIndexModule();
 const baseStore = useBaseStore();
 const chartConfig = computed(() => {
   const theme = baseStore.theme;
-  const labels = store.marketData.prices.map((item) => item[0] ?? 0);
+  const labels = store.marketData.prices.map((item) => item[0] as number);
   return getMarketPriceChartConfig(theme, labels);
 });
 const kind = ref('price');

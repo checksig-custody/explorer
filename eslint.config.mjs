@@ -118,6 +118,12 @@ export default defineConfig(
     },
   },
   {
+    // node:test registers a test when test() is called; the promise it returns
+    // settles when the run ends and is not meant to be awaited.
+    files: ['tests/**/*.ts'],
+    rules: { '@typescript-eslint/no-floating-promises': 'off' },
+  },
+  {
     files: ['**/*.{js,mjs,cjs}'],
     languageOptions: { globals: { ...globals.node } },
   }

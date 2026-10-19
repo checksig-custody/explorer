@@ -3,7 +3,7 @@ import { toBase64, toHex } from '@cosmjs/encoding';
 import { computed } from 'vue';
 import { ref } from 'vue';
 
-const props = defineProps(['value']);
+const props = defineProps<{ value: Uint8Array }>();
 const format = ref('base64');
 const text = computed(() => {
   return format.value === 'hex' ? toHex(props.value) : toBase64(props.value);

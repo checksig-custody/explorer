@@ -4,13 +4,13 @@ import { computed } from 'vue';
 import { useBaseStore } from '@/stores';
 import { getDonutChartConfig } from './apexChartConfig';
 
-const props = defineProps(['series', 'labels']);
+const props = defineProps<{ series: number[]; labels: string[] }>();
 
 const baseStore = useBaseStore();
 
 const expenseRationChartConfig = computed(() => {
   const theme = baseStore.theme;
-  return getDonutChartConfig(theme, props?.labels);
+  return getDonutChartConfig(theme, props.labels);
 });
 </script>
 

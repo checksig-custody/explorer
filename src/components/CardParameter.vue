@@ -1,28 +1,29 @@
 <script lang="ts" setup>
 import type { PropType } from 'vue';
-import { useFormatter } from '@/stores';
+import { useFormatter, type ParamCard } from '@/stores';
 import { formatSeconds } from '@/libs/utils';
 const props = defineProps({
   cardItem: {
-    type: Object as PropType<{ title: string; items: any[] }>,
+    type: Object as PropType<ParamCard>,
+    default: undefined,
   },
 });
 
 const formatter = useFormatter();
-function calculateValue(value: any) {
+function calculateValue(value: unknown) {
   if (Array.isArray(value)) {
-    return (value[0]?.amount) || '-';
+    return (value[0] as { amount?: string } | undefined)?.amount || '-';
   }
-  if (String(value).search(/^\d+s$/g) > -1) {
+  if (typeof value === 'string' && value.search(/^\d+s$/g) > -1) {
     return formatSeconds(value);
   }
   const newValue = Number(value);
-  if (`${newValue}` === 'NaN' || typeof value === 'boolean') {
+  if (Number.isNaN(newValue) || typeof value === 'boolean') {
     return value;
   }
 
   if (newValue < 1 && newValue > 0) {
-    return formatter.formatDecimalToPercent(value);
+    return formatter.formatDecimalToPercent(value as string | number);
   }
   return newValue;
 }

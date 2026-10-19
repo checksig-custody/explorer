@@ -2,17 +2,14 @@
 import { computed } from 'vue';
 import DynamicComponent from './DynamicComponent.vue';
 
-const props = defineProps({
-  value: { type: null as any },
-  thead: {
-    type: Boolean,
-    default: true,
-  },
+const props = withDefaults(defineProps<{ value: Record<string, unknown>[] | undefined; thead?: boolean }>(), {
+  thead: true,
 });
 
 const header = computed(() => {
-  if (props.value && props.value.length > 0) {
-    return Object.keys(props.value[0]);
+  const [first] = props.value ?? [];
+  if (first) {
+    return Object.keys(first);
   }
   return [];
 });

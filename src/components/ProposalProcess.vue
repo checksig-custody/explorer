@@ -5,12 +5,13 @@ import { computed } from 'vue';
 import type { PropType } from 'vue';
 
 const props = defineProps({
-  tally: { type: Object as PropType<Tally> },
+  tally: { type: Object as PropType<Tally>, default: undefined },
   pool: {
     type: Object as PropType<{
       not_bonded_tokens: string;
       bonded_tokens: string;
     }>,
+    default: undefined,
   },
 });
 const total = computed(() => props.pool?.bonded_tokens);

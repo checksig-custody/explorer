@@ -5,7 +5,7 @@ import { useFormatter } from '@/stores';
 import type { CommissionRate } from '@/types';
 
 const props = defineProps({
-  commission: { type: Object as PropType<CommissionRate> },
+  commission: { type: Object as PropType<CommissionRate>, default: undefined },
 });
 
 let rate = computed(() => Number(props.commission?.commission_rates.rate || 0) * 100);
@@ -76,7 +76,7 @@ const chartConfig = computed(() => {
               offsetY: -15,
               fontWeight: 500,
               fontSize: '2.125rem',
-              formatter: (value: unknown) => `${rate.value.toFixed(1)}%`,
+              formatter: () => `${rate.value.toFixed(1)}%`,
               color: primaryText,
             },
             total: {

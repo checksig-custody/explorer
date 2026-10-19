@@ -183,7 +183,7 @@ export const colorVariables = (theme: string) => {
   };
 };
 /// Price Chart config
-export const getMarketPriceChartConfig = (theme: string, categories: string[]) => {
+export const getMarketPriceChartConfig = (theme: string, categories: (string | number)[]) => {
   const { themeSecondaryTextColor, themeBorderColor, themeDisabledTextColor } = colorVariables(theme);
 
   return {
@@ -319,7 +319,7 @@ export const getDonutChartConfig = (theme: string, labels: string[]) => {
     // ],
     dataLabels: {
       enabled: true,
-      formatter: (val: string) => `${parseInt(val, 10)}%`,
+      formatter: (val: string) => `${String(parseInt(val, 10))}%`,
     },
     legend: {
       position: 'bottom',
@@ -341,7 +341,7 @@ export const getDonutChartConfig = (theme: string, labels: string[]) => {
             value: {
               fontSize: '1.5rem',
               color: themeSecondaryTextColor,
-              formatter: (val: string) => `${parseInt(val, 10)}`,
+              formatter: (val: string) => String(parseInt(val, 10)),
             },
             total: {
               show: false,

@@ -7,12 +7,11 @@ import TokenElement from './TokenElement.vue';
 import ObjectHorizontalElement from './ObjectHorizontalElement.vue';
 import Long from 'long';
 
-export function select(v: any, direct?: string) {
+export function select(v: unknown, direct?: string) {
   // if(k === 'txs' && v) {
   //     return TxsElement
   // } else {
-  const type = typeof v;
-  switch (type) {
+  switch (typeof v) {
     case 'object':
       return selectObject(v, direct);
     case 'number':
@@ -23,7 +22,7 @@ export function select(v: any, direct?: string) {
   // }
 }
 
-function selectObject(v: object, direct?: string) {
+function selectObject(v: object | null, direct?: string) {
   switch (true) {
     case v instanceof Long:
       return NumberElement;

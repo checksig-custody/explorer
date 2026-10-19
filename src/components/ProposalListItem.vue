@@ -4,10 +4,10 @@ import { select } from '@/components/dynamic/index';
 import type { PaginatedProposals } from '@/types';
 import ProposalProcess from './ProposalProcess.vue';
 import type { PropType } from 'vue';
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 const dialog = useTxDialog();
 defineProps({
-  proposals: { type: Object as PropType<PaginatedProposals> },
+  proposals: { type: Object as PropType<PaginatedProposals>, default: undefined },
 });
 
 const format = useFormatter();
@@ -25,17 +25,11 @@ const statusMap: Record<string, string> = {
   PROPOSAL_STATUS_PASSED: 'PASSED',
   PROPOSAL_STATUS_REJECTED: 'REJECTED',
 };
-const voterStatusMap: Record<string, string> = {
-  VOTE_OPTION_NO_WITH_VETO: '',
-  VOTE_OPTION_YES: 'success',
-  VOTE_OPTION_NO: 'error',
-  VOTE_OPTION_ABSTAIN: 'warning',
-};
 
 const proposalInfo = ref();
 
-function metaItem(metadata: string | undefined): { title: string; summary: string } {
-  return metadata ? JSON.parse(metadata) : {};
+function metaItem(metadata: string | undefined): { title?: string; summary?: string } {
+  return metadata ? (JSON.parse(metadata) as { title?: string; summary?: string }) : {};
 }
 </script>
 <template>

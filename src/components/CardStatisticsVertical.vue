@@ -7,12 +7,14 @@ interface Props {
   color?: string;
   icon: string;
   stats: string;
-  change?: number;
-  subtitle?: string;
+  change?: number | undefined;
+  subtitle?: string | undefined;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   color: 'primary',
+  change: undefined,
+  subtitle: undefined,
 });
 
 const isPositive = controlledComputed(

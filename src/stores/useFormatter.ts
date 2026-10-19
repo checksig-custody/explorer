@@ -312,7 +312,7 @@ export const useFormatter = defineStore('formatter', {
       const percent = Number(input) / Number(total);
       return numeral(percent > 0.0001 ? percent : 0).format('0.[00]%');
     },
-    formatDecimalToPercent(decimal: string) {
+    formatDecimalToPercent(decimal: string | number) {
       return numeral(decimal).format('0.[00]%');
     },
     formatCommissionRate(rate?: string) {

@@ -1,13 +1,12 @@
 <script lang="ts" setup>
 import Countdown from '@chenfengyuan/vue-countdown';
-import { ref } from 'vue';
 
-const props = defineProps({
-  time: { type: Number },
-  css: { type: String },
+defineOptions({ name: 'CountdownTimer' });
+
+defineProps({
+  time: { type: Number, default: undefined },
+  css: { type: String, default: undefined },
 });
-
-const s = ref(0);
 </script>
 <template>
   <Countdown
@@ -22,7 +21,7 @@ const s = ref(0);
     <span class="text-primary font-bold w-40" :class="css">
       <Transition name="slide-up">
         <span v-if="seconds % 2 === 0" class="countdown">{{ seconds }}</span>
-        <span v-else="seconds % 2 === 1" class="countdown">{{ seconds }}</span>
+        <span v-else class="countdown">{{ seconds }}</span>
       </Transition>
     </span>
     <span class="ml-10">seconds</span>

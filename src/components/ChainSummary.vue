@@ -2,6 +2,7 @@
 import { useDashboard } from '@/stores';
 import { computed } from 'vue';
 import { Icon } from '@iconify/vue';
+import type { ChainConfig } from '@/types/chaindata';
 
 const props = defineProps({
   name: {
@@ -11,12 +12,13 @@ const props = defineProps({
 });
 
 const dashboardStore = useDashboard();
-const conf = computed(() => dashboardStore.chains[props.name] || {});
+// An empty object until the chain is loaded.
+const conf = computed<Partial<ChainConfig>>(() => dashboardStore.chains[props.name] ?? {});
 
 const addFavor = (e: Event) => {
   e.stopPropagation();
   e.preventDefault();
-  dashboardStore.favoriteMap[props.name] = !dashboardStore?.favoriteMap?.[props.name];
+  dashboardStore.favoriteMap[props.name] = !dashboardStore.favoriteMap[props.name];
   window.localStorage.setItem('favoriteMap', JSON.stringify(dashboardStore.favoriteMap));
 };
 </script>

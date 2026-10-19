@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import DynamicComponent from './DynamicComponent.vue';
 import { ref } from 'vue';
-const props = defineProps(['value']);
+const props = defineProps<{ value: Record<string, unknown> }>();
 const tab = ref(Object.keys(props.value)[0] || '');
 
 const changeTab = (val: string) => {
@@ -13,6 +13,7 @@ const changeTab = (val: string) => {
     <div class="tabs">
       <a
         v-for="(item, index) of value"
+        :key="index"
         class="tab tab-bordered text-gray-400 capitalize"
         :value="index"
         :class="{ 'tab-active': tab === String(index) }"
@@ -21,7 +22,7 @@ const changeTab = (val: string) => {
       >
     </div>
     <div class="min-h-[25px] mt-4">
-      <div v-for="(v, k) of value" :value="k">
+      <div v-for="(v, k) of value" :key="k" :value="k">
         <DynamicComponent v-show="tab === String(k)" :value="v" />
       </div>
     </div>

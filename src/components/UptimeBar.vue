@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import type { PropType } from 'vue';
 
-const props = defineProps({
-  blocks: { type: Array as PropType<{ height: string; color: string }[]> },
+defineProps({
+  blocks: { type: Array as PropType<{ height: string; color: string }[]>, default: undefined },
 });
 </script>
 <template>

@@ -8,10 +8,11 @@ import { computed, onMounted, ref } from 'vue';
 
 import { fromBase64, toHex } from '@cosmjs/encoding';
 
-import { registry as nameMatcha } from '@leapwallet/name-matcha';
+import { registry as nameMatcha, type NameServiceLookupResult } from '@leapwallet/name-matcha';
 
 const chainStore = useBlockchain();
-const props = defineProps(['value']);
+// Strings, other primitives, or the empty array ArrayElement hands over.
+const props = defineProps<{ value: string | number | boolean | bigint | unknown[] | null | undefined }>();
 const format = useFormatter();
 function isMD() {
   if (props.value && (String(props.value).includes('\n') || String(props.value).includes('\\n'))) {
@@ -21,7 +22,7 @@ function isMD() {
 }
 
 function isAddress() {
-  return isBech32Address(props.value) && !String(props.value).includes('valoper1');
+  return isBech32Address(props.value ? String(props.value) : undefined) && !String(props.value).includes('valoper1');
 }
 
 const text = computed(() => {
@@ -41,27 +42,27 @@ const text = computed(() => {
   return v;
 });
 
-const names = ref([] as { name?: any; provider?: string }[]);
+const names = ref<{ name: NameServiceLookupResult | null; provider: string }[]>([]);
 
 onMounted(() => {
   if (isAddress())
-    nameMatcha.lookupAll(props.value).then((re) => {
+    void nameMatcha.lookupAll(String(props.value)).then((re) => {
       names.value = Object.keys(re)
-        .map((key) => ({ name: re[key], provider: key }))
+        .map((key) => ({ name: re[key] ?? null, provider: key }))
         .filter((x) => x.name);
     });
 });
 const toHexOutput = ref(false);
 const isConvertable = computed(() => {
-  return String(props.value).endsWith('=') && props.value.length !== 28;
+  return String(props.value).endsWith('=') && String(props.value).length !== 28;
 });
 </script>
 <template>
   <!-- Chain text is untrusted: mermaid and echarts run code outside sanitize. -->
-  <MdPreview v-if="isMD()" :model-value="format.multiLine(value)" :sanitize="sanitizeMarkdownHtml" :no-mermaid="true" :no-echarts="true" class="md-editor-recover" />
+  <MdPreview v-if="isMD()" :model-value="format.multiLine(String(value))" :sanitize="sanitizeMarkdownHtml" :no-mermaid="true" :no-echarts="true" class="md-editor-recover" />
   <span v-else-if="isAddress()" class="flex">
     <RouterLink :to="`/${chainStore.chainName}/account/${text}`">{{ text }}</RouterLink>
-    <div v-for="{ name, provider } in names">
+    <div v-for="{ name, provider } in names" :key="provider">
       <span
         class="text-xs truncate relative py-1 px-2 p2-4 w-fit ml-2 rounded text-success tooltip"
         :data-tip="provider"

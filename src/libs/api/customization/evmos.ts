@@ -1,6 +1,7 @@
 import type { RequestRegistry } from '../registry';
 import { adapter } from '../registry';
 import { proposalsAdapter, proposalByIdAdapter } from '@/libs/api/govV1';
+import { orDefault } from '@/libs/utils';
 // which registry is store
 export const store = 'name'; // name or version
 // Blockchain Name
@@ -12,8 +13,9 @@ export const requests: Partial<RequestRegistry> = {
     adapter: (data: unknown) =>
       Promise.resolve({
         inflation: (
-          Number((data as { inflation_rate?: string }).inflation_rate || 0) /
-          100
+          Number(
+            orDefault((data as { inflation_rate?: string }).inflation_rate, 0)
+          ) / 100
         ).toFixed(2),
       }),
   },

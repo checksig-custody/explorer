@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { useBaseStore, useBlockchain, useFormatter } from '@/stores';
 import { useRouter } from 'vue-router';
 import { onMounted } from 'vue';
+import { orDefault } from '@/libs/utils';
 const props = defineProps({ chain: { type: String, default: undefined } });
 const vueRouters = useRouter();
 const tab = ref('recent');
@@ -13,9 +14,11 @@ const chainStore = useBlockchain();
 const format = useFormatter();
 const hashReg = /^[A-Z\d]{64}$/;
 const hash = ref('');
-const current = chainStore.current?.chainName || '';
+const current = chainStore.current?.chainName ?? '';
 onMounted(() => {
-  tab.value = String(vueRouters.currentRoute.value.query['tab'] || 'recent');
+  tab.value = String(
+    orDefault(vueRouters.currentRoute.value.query['tab'], 'recent')
+  );
   console.log(tab.value);
 });
 function search() {

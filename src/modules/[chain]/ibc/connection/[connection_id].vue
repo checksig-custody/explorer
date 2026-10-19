@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { formatSeconds } from '@/libs/utils';
+import { formatSeconds, orDefault } from '@/libs/utils';
 import { useBaseStore, useBlockchain, useFormatter } from '@/stores';
 import {
   type Connection,
@@ -25,7 +25,7 @@ const clientState = ref({} as { client_id: string; client_state: ClientState });
 const channels = ref([] as Channel[]);
 
 const connId = computed(() => {
-  return props.connection_id || 0;
+  return orDefault(props.connection_id, 0);
 });
 
 const loading = ref(false);

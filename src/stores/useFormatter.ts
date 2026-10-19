@@ -16,6 +16,7 @@ import { fromBase64, fromHex, toHex } from '@cosmjs/encoding';
 import { consensusPubkeyToHexAddress, get } from '@/libs';
 import type { Coin, DenomTrace } from '@/types';
 import type { Asset } from '@/types/chaindata';
+import { orDefault } from '@/libs/utils';
 
 dayjs.extend(localeData);
 dayjs.extend(duration);
@@ -88,7 +89,7 @@ export const useFormatter = defineStore('formatter', {
       this.ibcMetadata[denom] = asset;
     },
     priceInfo(denom: string) {
-      const id = this.dashboard.coingecko[denom]?.coinId || '';
+      const id = this.dashboard.coingecko[denom]?.coinId ?? '';
       const prices = this.dashboard.prices[id];
       return prices;
     },
@@ -110,11 +111,11 @@ export const useFormatter = defineStore('formatter', {
     price(denom: string, currency = 'usd') {
       if (!denom || denom.length < 2) return 0;
       const info = this.priceInfo(denom);
-      return info ? info[currency] || 0 : 0;
+      return info ? orDefault(info[currency], 0) : 0;
     },
     priceChanges(denom: string, currency = 'usd'): number {
       const info = this.priceInfo(denom);
-      return info ? info[`${currency}_24h_change`] || 0 : 0;
+      return info ? orDefault(info[`${currency}_24h_change`], 0) : 0;
     },
     showChanges(v?: number) {
       return v !== 0 ? numeral(v).format('+0,0') : '';
@@ -140,12 +141,15 @@ export const useFormatter = defineStore('formatter', {
       if (!token?.denom) return 0;
 
       // find the symbol
-      const symbol =
-        this.dashboard.coingecko[token.denom]?.symbol || token.denom;
+      const symbol = orDefault(
+        this.dashboard.coingecko[token.denom]?.symbol,
+        token.denom
+      );
       // convert denomination to symbol
-      const exponent =
-        this.dashboard.coingecko[symbol.toLowerCase()]?.exponent ||
-        this.specialDenom(token.denom);
+      const exponent = orDefault(
+        this.dashboard.coingecko[symbol.toLowerCase()]?.exponent,
+        this.specialDenom(token.denom)
+      );
       // caculate amount of symbol
       const amount = Number(token.amount) / 10 ** exponent;
       return amount;
@@ -389,7 +393,10 @@ export const useFormatter = defineStore('formatter', {
       if (msgs) {
         const sum: Record<string, number> = msgs
           .map((msg) => {
-            const msgType = msg['@type'] || msg.typeUrl || 'unknown';
+            const msgType = orDefault(
+              orDefault(msg['@type'], msg.typeUrl),
+              'unknown'
+            );
             return msgType
               .substring(msgType.lastIndexOf('.') + 1)
               .replace('Msg', '');

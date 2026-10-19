@@ -11,7 +11,7 @@ import {
 } from '@/stores';
 import type { Coin, Tally } from '@/types';
 import type { CoinInfo, MarketChart } from '@/stores/useCoinGecko';
-import { defined } from '@/libs/utils';
+import { defined, maybe, orDefault } from '@/libs/utils';
 import numeral from 'numeral';
 import { defineStore } from 'pinia';
 
@@ -103,12 +103,12 @@ export const useIndexModule = defineStore('module-index', {
     homepage(): string | undefined {
       if (!this.coinInfo.links?.homepage) return '';
       const [page1, page2, page3] = this.coinInfo.links.homepage;
-      return page1 || page2 || page3;
+      return orDefault(orDefault(page1, page2), page3);
     },
     github(): string | undefined {
       if (!this.coinInfo.links?.repos_url) return '';
       const [page1, page2, page3] = this.coinInfo.links.repos_url.github ?? [];
-      return page1 || page2 || page3;
+      return orDefault(orDefault(page1, page2), page3);
     },
     telegram(): string {
       if (!this.coinInfo.links?.homepage) return '';
@@ -161,14 +161,16 @@ export const useIndexModule = defineStore('module-index', {
           title: 'Height',
           color: 'primary',
           icon: 'mdi-pound',
-          stats: String(base.latest.block?.header.height || 0),
+          stats: String(orDefault(base.latest.block?.header.height, 0)),
           change: 0,
         },
         {
           title: 'Validators',
           color: 'error',
           icon: 'mdi-human-queue',
-          stats: String(base.latest.block?.last_commit?.signatures.length || 0),
+          stats: String(
+            orDefault(base.latest.block?.last_commit?.signatures.length, 0)
+          ),
           change: 0,
         },
         {
@@ -216,15 +218,17 @@ export const useIndexModule = defineStore('module-index', {
     },
   },
   actions: {
-    loadDashboard() {
+    // async as on master: a throw below is a rejection, not a throw in the caller
+    // eslint-disable-next-line @typescript-eslint/require-await -- see above
+    async loadDashboard() {
       this.$reset();
       this.initCoingecko();
       void useMintStore().fetchInflation();
       void useDistributionStore()
         .fetchCommunityPool()
         .then((x) => {
-          this.communityPool = x?.pool
-            .filter((t) => t.denom.length < 10)
+          this.communityPool = maybe(x?.pool)
+            ?.filter((t) => t.denom.length < 10)
             .map((t) => ({
               amount: String(parseInt(t.amount)),
               denom: t.denom,

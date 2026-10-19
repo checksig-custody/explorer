@@ -5,13 +5,17 @@ import { ChainRegistryClient } from '@chain-registry/client';
 import type { IBCData } from '@chain-registry/types/ibc_data.schema';
 import router from '@/router';
 import fetch from 'cross-fetch';
+import { orDefault } from '@/libs/utils';
 
 const IBC_USE_GITHUB_API = import.meta.env.VITE_IBC_USE_GITHUB_API === 'true';
-const PINGPUB_API_URL =
-  import.meta.env.VITE_PINGPUB_API_URL || 'https://registry.ping.pub';
-const GITHUB_API_URL =
-  import.meta.env.VITE_GITHUB_API_URL ||
-  'https://api.github.com/repos/cosmos/chain-registry/contents';
+const PINGPUB_API_URL = orDefault(
+  import.meta.env.VITE_PINGPUB_API_URL,
+  'https://registry.ping.pub'
+);
+const GITHUB_API_URL = orDefault(
+  import.meta.env.VITE_GITHUB_API_URL,
+  'https://api.github.com/repos/cosmos/chain-registry/contents'
+);
 const IBC_API_URL = IBC_USE_GITHUB_API ? GITHUB_API_URL : PINGPUB_API_URL;
 
 // An entry of the registry's _IBC directory listing.
@@ -127,7 +131,7 @@ export const useIBCModule = defineStore('module-ibc', {
       if (!connId) {
         this.registryConf = {} as IBCData;
       }
-      const path = `/${this.chain.chainName}/ibc/connection/${String(connId || `connection-${String(this.connectionId || 0)}`)}`;
+      const path = `/${this.chain.chainName}/ibc/connection/${String(orDefault(connId, `connection-${String(this.connectionId || 0)}`))}`;
       void router.push(path);
     },
   },

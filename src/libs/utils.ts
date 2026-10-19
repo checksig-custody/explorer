@@ -217,3 +217,14 @@ export function defined<T>(value: T | null | undefined, property: string): T {
 export function maybe<T>(value: T): T | undefined {
   return value;
 }
+
+// Returns value, or fallback when value is falsy: the same as `value ||
+// fallback`, with the types checked. Unlike `??`, an empty string, 0, false and
+// NaN take the fallback too. The fallback is always evaluated.
+export function orDefault<T, F>(
+  value: T | null | undefined,
+  fallback: F
+): T | F {
+  if (value) return value;
+  return fallback;
+}

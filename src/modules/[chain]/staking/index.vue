@@ -11,7 +11,7 @@ import { computed } from 'vue';
 import { onMounted, ref } from 'vue';
 import { Icon } from '@iconify/vue';
 import type { Key, SlashingParam, Validator } from '@/types';
-import { formatSeconds } from '@/libs/utils';
+import { formatSeconds, orDefault } from '@/libs/utils';
 
 const staking = useStakingStore();
 const base = useBaseStore();
@@ -20,10 +20,9 @@ const dialog = useTxDialog();
 const chainStore = useBlockchain();
 const mintStore = useMintStore();
 
-const cache = JSON.parse(localStorage.getItem('avatars') || '{}') as Record<
-  string,
-  string
-> | null;
+const cache = JSON.parse(
+  orDefault(localStorage.getItem('avatars'), '{}')
+) as Record<string, string> | null;
 const avatars = ref<Record<string, string>>(cache ?? {});
 const latest = ref({} as Record<string, number>);
 const yesterday = ref({} as Record<string, number>);
@@ -46,7 +45,7 @@ onMounted(() => {
 async function fetchChange(blockWindow = 14400) {
   let page = 0;
 
-  let height = Number(base.latest.block?.header.height || 0);
+  let height = Number(orDefault(base.latest.block?.header.height, 0));
   if (height > blockWindow) {
     height -= blockWindow;
   } else {
@@ -77,8 +76,8 @@ async function fetchChange(blockWindow = 14400) {
 const changes = computed(() => {
   const changes = {} as Record<string, number>;
   Object.keys(latest.value).forEach((k) => {
-    const l = latest.value[k] || 0;
-    const y = yesterday.value[k] || 0;
+    const l = orDefault(latest.value[k], 0);
+    const y = orDefault(yesterday.value[k], 0);
     changes[k] = l - y;
   });
   return changes;
@@ -139,10 +138,11 @@ function isFeatured(
 ) {
   if (!who) return false;
   return (
-    endpoints.findIndex(
-      (x) =>
-        who.website?.substring(0, who.website.lastIndexOf('.')).endsWith(x) ||
+    endpoints.findIndex((x) =>
+      orDefault(
+        who.website?.substring(0, who.website.lastIndexOf('.')).endsWith(x),
         who.moniker.toLowerCase().search(x.toLowerCase()) > -1
+      )
     ) > -1
   );
 }

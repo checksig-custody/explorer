@@ -11,6 +11,7 @@ import {
 } from '@/libs';
 import { toBase64, fromHex, fromBech32 } from '@cosmjs/encoding';
 import { useBaseStore } from './useBaseStore';
+import { orDefault } from '@/libs/utils';
 
 // `params` and `pool` hold an empty object until they are fetched.
 interface StakingState {
@@ -171,8 +172,10 @@ export const useStakingStore = defineStore('stakingStore', {
             this.validators = res.validators;
           });
         const id_map: Record<string, string> = { neutron: '0', stride: '1' };
-        const consumer_id =
-          Object.keys(id_map).find((k) => chain_id.startsWith(k)) || 0;
+        const consumer_id = orDefault(
+          Object.keys(id_map).find((k) => chain_id.startsWith(k)),
+          0
+        );
         return client.getInterchainSecurityConsumerValidators(
           id_map[consumer_id] ?? ''
         );

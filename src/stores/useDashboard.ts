@@ -9,6 +9,7 @@ import type {
 import { ConfigSource, NetworkType } from '@/types/chaindata';
 import { useBlockchain } from './useBlockchain';
 import { coingeckoUrl, type PriceMeta } from '@/stores';
+import { orDefault } from '@/libs/utils';
 
 // The chain files give each endpoint list as strings or as endpoint objects.
 function apiConverter(
@@ -54,7 +55,7 @@ export function convertFromLocal(lc: LocalChainConfig): ChainConfig {
   conf.chainName = lc.chain_name;
   conf.networkType = lc.network_type;
   conf.coinType = lc.coin_type;
-  conf.prettyName = lc.registry_name || lc.chain_name;
+  conf.prettyName = orDefault(lc.registry_name, lc.chain_name);
   conf.endpoints = {
     rest: apiConverter(lc.api),
     rpc: apiConverter(lc.rpc),
@@ -89,9 +90,9 @@ export function convertFromDirectory(
   conf.prettyName = source.pretty_name;
   conf.networkType = source.network_type;
   conf.versions = {
-    application: source.versions?.application_version || '',
-    cosmosSdk: source.versions?.cosmos_sdk_version || '',
-    tendermint: source.versions?.tendermint_version || '',
+    application: source.versions?.application_version ?? '',
+    cosmosSdk: source.versions?.cosmos_sdk_version ?? '',
+    tendermint: source.versions?.tendermint_version ?? '',
   };
   conf.logo = pathConvert(source.image);
   conf.endpoints = source.best_apis;
@@ -105,7 +106,7 @@ function pathConvert(path: string | undefined) {
       'https://registry.ping.pub'
     );
   }
-  return path || '';
+  return path ?? '';
 }
 
 export function getLogo(
@@ -118,7 +119,7 @@ export function getLogo(
     | undefined
 ) {
   if (conf) {
-    return pathConvert(conf.svg || conf.png || conf.jpeg);
+    return pathConvert(orDefault(orDefault(conf.svg, conf.png), conf.jpeg));
   }
   return undefined;
 }
@@ -169,7 +170,10 @@ interface DashboardState {
 export const useDashboard = defineStore('dashboard', {
   state: (): DashboardState => {
     const favMap = JSON.parse(
-      localStorage.getItem('favoriteMap') || '{"cosmos":true, "osmosis":true}'
+      orDefault(
+        localStorage.getItem('favoriteMap'),
+        '{"cosmos":true, "osmosis":true}'
+      )
     ) as Record<string, boolean>;
     return {
       status: LoadingStatus.Empty,
@@ -248,9 +252,10 @@ export const useDashboard = defineStore('dashboard', {
             });
       Object.values(source).forEach((x) => {
         const chain = convertFromLocal(x);
-        if (!chain.networkType) {
-          chain.networkType = this.networkType.toString().toLowerCase();
-        }
+        chain.networkType = orDefault(
+          chain.networkType,
+          this.networkType.toString().toLowerCase()
+        );
         this.chains[x.chain_name] = chain;
       });
       this.setupDefault();
@@ -269,9 +274,10 @@ export const useDashboard = defineStore('dashboard', {
             });
       Object.values(source).forEach((x) => {
         const chain = convertFromLocal(x);
-        if (!chain.networkType) {
-          chain.networkType = network.toString().toLowerCase();
-        }
+        chain.networkType = orDefault(
+          chain.networkType,
+          network.toString().toLowerCase()
+        );
         config[x.chain_name] = chain;
       });
       return Promise.resolve(config);

@@ -32,7 +32,7 @@ function confirm() {
   const txhash = /^[A-Z\d]{64}$/;
   const addr = /^[a-z\d]+1[a-z\d]{38,58}$/;
 
-  const current = blockStore.current?.chainName || '';
+  const current = blockStore.current?.chainName ?? '';
   const routeParams = vueRouters.currentRoute.value;
 
   if (!Object.values(routeParams.params).includes(key)) {

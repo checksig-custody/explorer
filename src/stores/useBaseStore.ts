@@ -5,9 +5,16 @@ import dayjs from 'dayjs';
 import type { Block } from '@/types';
 import { hashTx } from '@/libs';
 import { fromBase64 } from '@cosmjs/encoding';
+import { orDefault } from '@/libs/utils';
 
-const FETCH_ALL_BLOCKS = import.meta.env.VITE_FETCH_ALL_BLOCKS || false;
-const RECENT_BLOCKS_LIMIT = import.meta.env.VITE_RECENT_BLOCK_LIMIT || 50;
+const FETCH_ALL_BLOCKS = orDefault(
+  import.meta.env.VITE_FETCH_ALL_BLOCKS,
+  false
+);
+const RECENT_BLOCKS_LIMIT = orDefault(
+  import.meta.env.VITE_RECENT_BLOCK_LIMIT,
+  50
+);
 
 // Until the first fetch the store holds an empty object where a block will be.
 interface BaseState {
@@ -24,7 +31,7 @@ export const useBaseStore = defineStore('baseStore', {
       earliest: {},
       latest: {},
       recents: [],
-      theme: (window.localStorage.getItem('theme') || 'dark') as
+      theme: orDefault(window.localStorage.getItem('theme'), 'dark') as
         'light' | 'dark',
       connected: false,
     };
@@ -52,7 +59,7 @@ export const useBaseStore = defineStore('baseStore', {
       return this.blockchain.rpc as unknown as boolean;
     },
     currentChainId(): string {
-      return this.latest.block?.header.chain_id || '';
+      return this.latest.block?.header.chain_id ?? '';
     },
     txsInRecents() {
       const txs: {

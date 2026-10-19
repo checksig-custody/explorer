@@ -8,6 +8,7 @@ import { computed } from 'vue';
 import { ref } from 'vue';
 import { type AccountEntry, scanCompatibleAccounts } from './utils';
 import AdBanner from '@/components/ad/AdBanner.vue';
+import { orDefault } from '@/libs/utils';
 
 const dashboard = useDashboard();
 const chainStore = useBlockchain();
@@ -17,10 +18,9 @@ const sourceHdPath = ref("m/44/118/0'/0/0"); //
 const importStep = ref('step1');
 
 const conf = ref(
-  JSON.parse(localStorage.getItem('imported-addresses') || '{}') as Record<
-    string,
-    AccountEntry[]
-  >
+  JSON.parse(
+    orDefault(localStorage.getItem('imported-addresses'), '{}')
+  ) as Record<string, AccountEntry[]>
 );
 const balances = ref({} as Record<string, CoinWithPrice[]>);
 const delegations = ref({} as Record<string, Delegation[]>);
@@ -91,7 +91,10 @@ const accounts = computed(() => {
       };
     });
     if (x.at(0))
-      a.push({ key: x.at(0)?.address || ' ', subaccounts: composition });
+      a.push({
+        key: orDefault(x.at(0)?.address, ' '),
+        subaccounts: composition,
+      });
   });
   return a;
 });
@@ -111,9 +114,9 @@ const totalValue = computed(() => {
   return accounts.value
     .flatMap((x) => x.subaccounts)
     .reduce((s, e) => {
-      s += e.delegation.value || 0;
+      s += orDefault(e.delegation.value, 0);
       e.balances.forEach((b) => {
-        s += b.value || 0;
+        s += orDefault(b.value, 0);
       });
       return s;
     }, 0);
@@ -123,9 +126,12 @@ const totalChange = computed(() => {
   return accounts.value
     .flatMap((x) => x.subaccounts)
     .reduce((s, e) => {
-      s += ((e.delegation.change24h || 0) * (e.delegation.value || 0)) / 100;
+      s +=
+        (orDefault(e.delegation.change24h, 0) *
+          orDefault(e.delegation.value, 0)) /
+        100;
       e.balances.forEach((b) => {
-        s += ((b.change24h || 0) * (b.value || 0)) / 100;
+        s += (orDefault(b.change24h, 0) * orDefault(b.value, 0)) / 100;
       });
       return s;
     }, 0);
@@ -191,7 +197,9 @@ async function loadBalances(
   address: string
 ) {
   const endpointObj = chainStore.randomEndpoint(chainName);
-  const client = CosmosRestClient.newDefault(endpointObj?.address || endpoint);
+  const client = CosmosRestClient.newDefault(
+    orDefault(endpointObj?.address, endpoint)
+  );
   await client.getBankBalances(address).then((res) => {
     balances.value[address] = res.balances.filter((x) => x.denom.length < 10);
   });

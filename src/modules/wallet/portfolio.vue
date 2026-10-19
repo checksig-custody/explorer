@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { defined } from '@/libs/utils';
+import { defined, orDefault } from '@/libs/utils';
 import { CosmosRestClient } from '@/libs/client';
 import type { Coin, Delegation } from '@/types';
 import { ref, watchEffect } from 'vue';
@@ -14,10 +14,9 @@ import AdBanner from '@/components/ad/AdBanner.vue';
 
 const format = useFormatter();
 const conf = ref(
-  JSON.parse(localStorage.getItem('imported-addresses') || '{}') as Record<
-    string,
-    AccountEntry[] | undefined
-  >
+  JSON.parse(
+    orDefault(localStorage.getItem('imported-addresses'), '{}')
+  ) as Record<string, AccountEntry[] | undefined>
 );
 const chainStore = useBlockchain();
 const balances = ref({} as Record<string, Coin[]>);
@@ -25,7 +24,7 @@ const delegations = ref({} as Record<string, Delegation[]>);
 const tokenMeta = ref({} as Record<string, AccountEntry>);
 
 const priceloading = ref(false);
-const currency = ref(localStorage.getItem('currency') || 'usd');
+const currency = ref(orDefault(localStorage.getItem('currency'), 'usd'));
 
 // A row of CoinGecko's markets reply.
 interface MarketRow {
@@ -78,7 +77,7 @@ Object.values(conf.value).forEach((imported) => {
         loading.value += 1;
         const endpoint = chainStore.randomEndpoint(x.chainName);
         const client = CosmosRestClient.newDefault(
-          endpoint?.address || x.endpoint
+          orDefault(endpoint?.address, x.endpoint)
         );
         void client
           .getBankBalances(x.address)
@@ -117,7 +116,7 @@ const tokenQty = computed(() => {
           values[coin.denom] = {
             qty: v,
             coinId:
-              format.findGlobalAssetConfig(coin.denom)?.coingecko_id || '',
+              format.findGlobalAssetConfig(coin.denom)?.coingecko_id ?? '',
           };
         }
       }
@@ -134,7 +133,7 @@ const tokenQty = computed(() => {
           values[d.balance.denom] = {
             qty: v,
             coinId:
-              format.findGlobalAssetConfig(d.balance.denom)?.coingecko_id || '',
+              format.findGlobalAssetConfig(d.balance.denom)?.coingecko_id ?? '',
           };
         }
       }
@@ -212,12 +211,12 @@ const changeData = computed(() => {
     })
     .filter((x) => x.length > 0);
 
-  const width = vals.at(0)?.length || 0;
+  const width = orDefault(vals.at(0)?.length, 0);
   const sum = new Array<number>(width).fill(0);
 
   for (let i = 0; i < width; i++) {
     for (let j = 0; j < vals.length; j++) {
-      sum[i] = (sum[i] ?? 0) + (vals.at(j)?.at(i) || 0);
+      sum[i] = (sum[i] ?? 0) + orDefault(vals.at(j)?.at(i), 0);
     }
   }
 

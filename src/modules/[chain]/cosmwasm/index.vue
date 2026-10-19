@@ -6,6 +6,7 @@ import type { PaginabledCodeInfos } from './types';
 import { PageRequest } from '@/types';
 import PaginationBar from '@/components/PaginationBar.vue';
 import router from '@/router';
+import { orDefault } from '@/libs/utils';
 
 const props = defineProps({ chain: { type: String, required: true } });
 
@@ -28,7 +29,7 @@ pageload(1);
 
 onMounted(() => {
   const historyStore = JSON.parse(
-    localStorage.getItem('contract_history') || '{}'
+    orDefault(localStorage.getItem('contract_history'), '{}')
   ) as Record<string, string[] | undefined>;
   history.value = historyStore[props.chain] ?? [];
 });

@@ -1,4 +1,5 @@
 import { createI18n, type VueI18nOptions } from 'vue-i18n';
+import { orDefault } from '@/libs/utils';
 
 type LocaleMessages = NonNullable<VueI18nOptions['messages']>[string];
 
@@ -12,7 +13,7 @@ const messages = Object.fromEntries(
 
 export default createI18n({
   legacy: false,
-  locale: localStorage.getItem('lang') || 'en',
+  locale: orDefault(localStorage.getItem('lang'), 'en'),
   fallbackLocale: 'en',
   messages,
 });

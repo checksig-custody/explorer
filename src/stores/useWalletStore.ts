@@ -10,6 +10,7 @@ import type {
 } from '@/types';
 import { useStakingStore } from './useStakingStore';
 import router from '@/router';
+import { orDefault } from '@/libs/utils';
 
 interface WalletState {
   balances: Coin[];
@@ -39,7 +40,7 @@ export const useWalletStore = defineStore('walletStore', {
       const chainStore = useBlockchain();
       const key = chainStore.defaultHDPath;
       const connected = JSON.parse(
-        localStorage.getItem(key) || '{}'
+        orDefault(localStorage.getItem(key), '{}')
       ) as Partial<WalletConnected>;
       return connected;
     },
@@ -86,7 +87,10 @@ export const useWalletStore = defineStore('walletStore', {
       if (!this.connectedWallet.cosmosAddress) return '';
       const { prefix, data } = fromBech32(this.connectedWallet.cosmosAddress);
       const chainStore = useBlockchain();
-      return toBech32(chainStore.current?.bech32Prefix || prefix, data);
+      return toBech32(
+        orDefault(chainStore.current?.bech32Prefix, prefix),
+        data
+      );
     },
     shortAddress(): string {
       const address: string = this.currentAddress;

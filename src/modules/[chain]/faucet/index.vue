@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import AdBanner from '@/components/ad/AdBanner.vue';
 import { get } from '@/libs';
-import { defined } from '@/libs/utils';
+import { defined, orDefault } from '@/libs/utils';
 import { useBlockchain, useFormatter } from '@/stores';
 import { ref, onMounted, computed } from 'vue';
 
@@ -52,7 +52,9 @@ const notReady = computed(() => {
 
 const validAddress = computed(() => {
   if (!address.value) return true;
-  return address.value.startsWith(chainStore.current?.bech32Prefix || '1');
+  return address.value.startsWith(
+    orDefault(chainStore.current?.bech32Prefix, '1')
+  );
 });
 
 const faucetUrl = computed(() => {

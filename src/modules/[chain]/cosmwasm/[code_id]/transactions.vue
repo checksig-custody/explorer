@@ -21,6 +21,7 @@ import type { ContractInfo, PaginabledContractStates } from '../types';
 import { JsonViewer } from 'vue3-json-viewer';
 // if you used v1.0.5 or latster ,you should add import "vue3-json-viewer/dist/index.css"
 import 'vue3-json-viewer/dist/index.css';
+import { orDefault } from '@/libs/utils';
 
 const chainStore = useBlockchain();
 const baseStore = useBaseStore();
@@ -46,7 +47,7 @@ const balances = ref({} as PaginatedBalances);
 const contractAddress = String(route.query['contract']);
 
 const history = JSON.parse(
-  localStorage.getItem('contract_history') || '{}'
+  orDefault(localStorage.getItem('contract_history'), '{}')
 ) as Record<string, string[] | undefined>;
 
 const chainHistory = history[chainStore.chainName];

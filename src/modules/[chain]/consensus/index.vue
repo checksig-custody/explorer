@@ -8,7 +8,7 @@ import {
   useBaseStore,
 } from '@/stores';
 import { consensusPubkeyToHexAddress } from '@/libs';
-import { defined } from '@/libs/utils';
+import { defined, orDefault } from '@/libs/utils';
 import type { Validator } from '@/types';
 
 interface HeightVoteSet {
@@ -85,7 +85,7 @@ function showName(i: number, text: string) {
     const address = positions.value[i]?.address;
     if (address) {
       const val = vals.value.find((x) => x.hex === address);
-      return val?.description.moniker || i;
+      return orDefault(val?.description.moniker, i);
     }
     return i;
   }
@@ -125,8 +125,8 @@ async function fetchPosition() {
     positions.value = data.result.round_state.validators.validators;
   } catch (error) {
     const err = error as { status?: number; message?: string } | undefined;
-    httpstatus.value = err?.status || 500;
-    httpStatusText.value = err?.message || 'Error';
+    httpstatus.value = orDefault(err?.status, 500);
+    httpStatusText.value = orDefault(err?.message, 'Error');
   }
 }
 

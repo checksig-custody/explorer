@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import { useDashboard, useBlockchain } from '@/stores';
 import type { ChainConfig } from '@/types/chaindata';
 import { CosmosRestClient } from '@/libs/client';
-import { defined } from '@/libs/utils';
+import { defined, orDefault } from '@/libs/utils';
 import { onMounted } from 'vue';
 import AdBanner from '@/components/ad/AdBanner.vue';
 
@@ -30,9 +30,11 @@ async function initParamsForKeplr() {
     high: 0.03,
   };
   const asset = defined(chain.assets[0], 'denom_units');
-  const coinDecimals =
+  const coinDecimals = orDefault(
     asset.denom_units.find((x) => x.denom === asset.symbol.toLowerCase())
-      ?.exponent || 6;
+      ?.exponent,
+    6
+  );
   conf.value = JSON.stringify(
     {
       chainId: chainid,
@@ -56,7 +58,7 @@ async function initParamsForKeplr() {
           coinDenom: asset.symbol,
           coinMinimalDenom: asset.base,
           coinDecimals,
-          coinGeckoId: asset.coingecko_id || 'unknown',
+          coinGeckoId: orDefault(asset.coingecko_id, 'unknown'),
         },
       ],
       feeCurrencies: [
@@ -64,7 +66,7 @@ async function initParamsForKeplr() {
           coinDenom: asset.symbol,
           coinMinimalDenom: asset.base,
           coinDecimals,
-          coinGeckoId: asset.coingecko_id || 'unknown',
+          coinGeckoId: orDefault(asset.coingecko_id, 'unknown'),
           gasPriceStep,
         },
       ],
@@ -73,7 +75,7 @@ async function initParamsForKeplr() {
         coinDenom: asset.symbol,
         coinMinimalDenom: asset.base,
         coinDecimals,
-        coinGeckoId: asset.coingecko_id || 'unknown',
+        coinGeckoId: orDefault(asset.coingecko_id, 'unknown'),
       },
       features: chain.keplrFeatures ?? [],
     },

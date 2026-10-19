@@ -27,7 +27,11 @@ import {
 } from '@/types';
 import PaginationBar from '@/components/PaginationBar.vue';
 import { fromBase64, toBase64 } from '@cosmjs/encoding';
-import { stringToUint8Array, uint8ArrayToString } from '@/libs/utils';
+import {
+  stringToUint8Array,
+  uint8ArrayToString,
+  orDefault,
+} from '@/libs/utils';
 
 const props = defineProps({
   validator: { type: String, required: true },
@@ -43,10 +47,9 @@ const page = new PageRequest();
 const validator: string = props.validator;
 
 const v = ref<Partial<Validator>>({});
-const cache = JSON.parse(localStorage.getItem('avatars') || '{}') as Record<
-  string,
-  string
-> | null;
+const cache = JSON.parse(
+  orDefault(localStorage.getItem('avatars'), '{}')
+) as Record<string, string> | null;
 const avatars = ref<Record<string, string>>(cache ?? {});
 const identity = ref('');
 const rewards = ref([] as Coin[] | undefined);
@@ -79,7 +82,7 @@ void blockchain.rpc.getTxsBySender(addresses.value.account).then((x) => {
 });
 
 const apr = computed(() => {
-  const rate = Number(v.value.commission?.commission_rates.rate || 0);
+  const rate = Number(orDefault(v.value.commission?.commission_rates.rate, 0));
   const inflation = useMintStore().inflation;
   const communityTax = Number(useDistributionStore().params.community_tax);
   const bondedRatio =
@@ -102,7 +105,7 @@ const selfRate = computed(() => {
 
 const logo = (identity?: string) => {
   if (!identity) return '';
-  const url = avatars.value[identity] || '';
+  const url = avatars.value[identity] ?? '';
   return url.startsWith('http')
     ? url
     : `https://s3.amazonaws.com/keybase_processed_uploads/${url}`;
@@ -144,7 +147,7 @@ onMounted(() => {
       v.value = res.validator;
       identity.value =
         (res.validator as Partial<Validator> | undefined)?.description
-          ?.identity || '';
+          ?.identity ?? '';
       if (identity.value && !avatars.value[identity.value])
         loadAvatar(identity.value);
 
@@ -153,7 +156,7 @@ onMounted(() => {
       );
       addresses.value.valCons = pubKeyToValcons(
         v.value.consensus_pubkey,
-        blockchain.current?.bech32ConsensusPrefix || ''
+        blockchain.current?.bech32ConsensusPrefix ?? ''
       );
     });
     void blockchain.rpc
@@ -295,7 +298,7 @@ function mapDelegators(
 ) {
   if (!messages) return [];
   return Array.from(
-    new Set(messages.map((x) => x.delegator_address || x.grantee))
+    new Set(messages.map((x) => orDefault(x.delegator_address, x.grantee)))
   );
 }
 </script>

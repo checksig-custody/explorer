@@ -12,6 +12,7 @@ import type { SlashingParam, SigningInfo } from '@/types';
 import { consensusPubkeyToHexAddress, valconsToBase64 } from '@/libs';
 import { fillBlock } from '@/libs/uptime';
 import type { BlockColor, UptimeBlock } from '@/libs/uptime';
+import { orDefault } from '@/libs/utils';
 
 defineProps({ chain: { type: String, default: undefined } });
 
@@ -53,7 +54,7 @@ const validatorSet = computed(() => {
           b64
       )?.description.moniker;
       return {
-        moniker: moniker || v.moniker,
+        moniker: orDefault(moniker, v.moniker),
         base64: v.base64,
       };
     });
@@ -98,7 +99,7 @@ const grid = computed(() => {
 const preload = ref(false);
 baseStore.$subscribe((_, state) => {
   const latestBlock = state.latest.block;
-  const newHeight = Number(latestBlock?.header.height || 0);
+  const newHeight = Number(orDefault(latestBlock?.header.height, 0));
   if (latestBlock && newHeight > latest.value) {
     latest.value = newHeight;
     // initialize if it's the first time

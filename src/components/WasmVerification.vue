@@ -7,6 +7,7 @@ import { codeToHtml } from 'shiki';
 import { useWasmStore } from '@/modules/[chain]/cosmwasm/WasmStore';
 
 import { JsonViewer } from 'vue3-json-viewer';
+import { orDefault } from '@/libs/utils';
 
 interface Verification {
   chainId?: string;
@@ -74,7 +75,7 @@ function fetchVerification() {
 
 function fetchSchema() {
   const base = useBaseStore();
-  const chainId = base.latest.block?.header.chain_id || 'neutron-1';
+  const chainId = orDefault(base.latest.block?.header.chain_id, 'neutron-1');
   const url = `${baseurl}/schemas/${chainId}?contract=${String(props.contract)}`;
   get(url)
     .then((x) => {
@@ -88,7 +89,7 @@ function fetchSchema() {
 
 function fetchSourceCode() {
   const base = useBaseStore();
-  const chainId = base.latest.block?.header.chain_id || 'neutron-1';
+  const chainId = orDefault(base.latest.block?.header.chain_id, 'neutron-1');
   const url = `${baseurl}/source-codes/${chainId}?contract=${String(props.contract)}`;
   const theme = baseStore.theme === 'dark' ? 'material-theme' : 'github-light';
   get(url)
@@ -112,7 +113,7 @@ const base = useBaseStore();
 const chain_id = ref('');
 base.$subscribe((m, s) => {
   if (chain_id.value !== s.latest.block?.header.chain_id) {
-    chain_id.value = s.latest.block?.header.chain_id || 'unknown';
+    chain_id.value = orDefault(s.latest.block?.header.chain_id, 'unknown');
     fetchVerification();
     fetchSchema();
     fetchSourceCode();
@@ -121,7 +122,7 @@ base.$subscribe((m, s) => {
 
 function verify() {
   const base = useBaseStore();
-  const id = base.latest.block?.header.chain_id || 'unknown';
+  const id = orDefault(base.latest.block?.header.chain_id, 'unknown');
   const data = { contractAddress: props.contract, chainId: id };
 
   void post(`${baseurl}/verification/neutron`, data).then((x) => {
@@ -144,7 +145,7 @@ const executions = computed(() => {
     .filter(
       (x) => x.path.includes('execute_msg') || x.path.includes('query_msg')
     )
-    .map((x) => JSON.parse(x.sourceCode || '{}') as Schema);
+    .map((x) => JSON.parse(orDefault(x.sourceCode, '{}')) as Schema);
   // if(raw && raw.sourceCode) {
   //   return JSON.parse(raw.sourceCode) as Schema
   // }

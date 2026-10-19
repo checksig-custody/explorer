@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { get } from '@/libs/http';
 import type { LoadingStatus } from '@/stores';
+import { orDefault } from '@/libs/utils';
 
 // Coingecko answers with numbers, keyed `<currency>` and `<currency>_24h_change`.
 export type PriceMeta = Partial<Record<string, number>>;
@@ -49,8 +50,10 @@ export interface CoinInfo {
 
 const LocalStoreKey = 'currency';
 
-export const coingeckoUrl =
-  import.meta.env.VITE_COINGECKO_URL || 'https://api.coingecko.com';
+export const coingeckoUrl = orDefault(
+  import.meta.env.VITE_COINGECKO_URL,
+  'https://api.coingecko.com'
+);
 
 interface CoingeckoState {
   currency: string | null; // secondary currency

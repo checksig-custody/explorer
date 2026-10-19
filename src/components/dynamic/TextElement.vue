@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { isBech32Address } from '@/libs/utils';
+import { isBech32Address, orDefault } from '@/libs/utils';
 import { useBlockchain, useFormatter } from '@/stores';
 import { MdPreview } from 'md-editor-v3';
 import { sanitizeMarkdownHtml } from '@/libs/sanitize';
@@ -41,7 +41,7 @@ const text = computed(() => {
   const v = String(props.value);
   switch (true) {
     case v.length === 28 && v.endsWith('='): {
-      return format.validator(v) || v;
+      return orDefault(format.validator(v), v);
     }
     // 2023-06-12T03:09:38.253756368Z
     case v.search(/^[1-9]\d{3}-\d{1,2}-\d{1,2}T\d{1,2}:\d{2}:\d{2}[.\d]*Z$/g) >

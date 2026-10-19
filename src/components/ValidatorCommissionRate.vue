@@ -3,6 +3,7 @@ import ApexCharts from 'vue3-apexcharts';
 import { computed, type PropType } from 'vue';
 import { useFormatter } from '@/stores';
 import type { CommissionRate } from '@/types';
+import { orDefault } from '@/libs/utils';
 
 const props = defineProps({
   commission: {
@@ -12,13 +13,15 @@ const props = defineProps({
 });
 
 let rate = computed(
-  () => Number(props.commission?.commission_rates.rate || 0) * 100
+  () => Number(orDefault(props.commission?.commission_rates.rate, 0)) * 100
 );
 let change = computed(
-  () => Number(props.commission?.commission_rates.max_change_rate || 0) * 100
+  () =>
+    Number(orDefault(props.commission?.commission_rates.max_change_rate, 0)) *
+    100
 );
 let max = computed(
-  () => Number(props.commission?.commission_rates.max_rate || 1) * 100
+  () => Number(orDefault(props.commission?.commission_rates.max_rate, 1)) * 100
 );
 
 const left = rate;

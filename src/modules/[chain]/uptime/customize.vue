@@ -9,6 +9,7 @@ import {
 import { consensusPubkeyToHexAddress, valconsToBase64 } from '@/libs';
 import type { SigningInfo } from '@/types/slashing';
 import { CosmosRestClient } from '@/libs/client';
+import { orDefault } from '@/libs/utils';
 
 defineProps({ chain: { type: String, default: undefined } });
 
@@ -18,10 +19,9 @@ const chainStore = useBlockchain();
 const dashboard = useDashboard();
 // storage local favorite validator ids
 const local = ref(
-  (JSON.parse(localStorage.getItem('uptime-validators') || '{}') as Record<
-    string,
-    { name: string; address: string }[]
-  > | null) ?? {}
+  (JSON.parse(
+    orDefault(localStorage.getItem('uptime-validators'), '{}')
+  ) as Record<string, { name: string; address: string }[]> | null) ?? {}
 );
 const signingInfo = ref({} as Record<string, SigningInfo[]>);
 const selected = ref([] as string[]);

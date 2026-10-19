@@ -2,6 +2,7 @@ import type { RequestRegistry } from '@/libs/api/registry';
 // import dayjs from 'dayjs'
 import { adapter } from '@/libs/api/registry';
 import { proposalsAdapter, proposalByIdAdapter } from '@/libs/api/govV1';
+import { orDefault } from '@/libs/utils';
 
 // which registry is store
 export const store = 'name'; // name or version
@@ -19,7 +20,7 @@ export const requests: Partial<RequestRegistry> = {
     adapter: (data: unknown) => {
       const [first] = data as ({ apr?: string } | undefined)[];
       return Promise.resolve({
-        inflation: String(Number(first?.apr || '0') / 100.0),
+        inflation: String(Number(orDefault(first?.apr, '0')) / 100.0),
       });
     },
   },

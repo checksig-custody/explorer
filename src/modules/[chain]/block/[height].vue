@@ -8,6 +8,7 @@ import { onBeforeRouteUpdate } from 'vue-router';
 import { useBaseStore, useFormatter } from '@/stores';
 import type { Block } from '@/types';
 import Countdown from '@/components/Countdown.vue';
+import { orDefault } from '@/libs/utils';
 
 const props = defineProps({
   height: { type: String, default: undefined },
@@ -17,10 +18,12 @@ const props = defineProps({
 const store = useBaseStore();
 const format = useFormatter();
 const current = ref<Partial<Block>>({});
-const target = ref(Number(props.height || 0));
+const target = ref(Number(orDefault(props.height, 0)));
 
 const height = computed(() => {
-  return Number(current.value.block?.header.height || props.height || 0);
+  return Number(
+    orDefault(orDefault(current.value.block?.header.height, props.height), 0)
+  );
 });
 
 const isFutureBlock = computed({

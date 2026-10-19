@@ -14,7 +14,7 @@ import {
   useWalletStore,
 } from '.';
 import { useBlockModule } from '@/modules/[chain]/block/block';
-import { hexToRgb, rgbToHsl } from '@/libs/utils';
+import { hexToRgb, rgbToHsl, orDefault } from '@/libs/utils';
 
 interface BlockchainState {
   status: Record<string, string>;
@@ -45,10 +45,10 @@ export const useBlockchain = defineStore('blockchain', {
       return chain;
     },
     logo(): string {
-      return this.current?.logo || '';
+      return this.current?.logo ?? '';
     },
     defaultHDPath(): string {
-      const cointype = this.current?.coinType || '118';
+      const cointype = orDefault(this.current?.coinType, '118');
       return `m/44'/${cointype}/0'/0/0`;
     },
     dashboard() {
@@ -91,7 +91,7 @@ export const useBlockchain = defineStore('blockchain', {
                 to: { path: x.path.replace(':chain', this.chainName) },
                 icon: { icon: 'mdi-chevron-right', size: '22' },
                 i18n: true,
-                order: Number(x.meta['order'] || 100),
+                order: Number(orDefault(x.meta['order'], 100)),
               }))
               .sort((a, b) => a.order - b.order),
           },
@@ -194,10 +194,12 @@ export const useBlockchain = defineStore('blockchain', {
       }
 
       // Find the case-sensitive name for the chainName, else simply use the parameter-value.
-      const caseSensitiveName =
+      const caseSensitiveName = orDefault(
         Object.keys(this.dashboard.chains).find(
           (x) => x.toLowerCase() === name.toLowerCase()
-        ) || name;
+        ),
+        name
+      );
 
       // Update chainName if needed
       if (caseSensitiveName !== this.chainName) {

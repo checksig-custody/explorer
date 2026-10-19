@@ -34,7 +34,7 @@ const coinInfo = computed(() => {
 });
 
 onMounted(() => {
-  store.loadDashboard();
+  void store.loadDashboard();
   walletStore.loadMyAsset();
   void paramStore.handleAbciInfo();
   // if(!(coinInfo.value && coinInfo.value.name)) {
@@ -51,7 +51,7 @@ const currName = ref('');
 blockchain.$subscribe((m, s) => {
   if (s.chainName !== currName.value) {
     currName.value = s.chainName;
-    store.loadDashboard();
+    void store.loadDashboard();
     walletStore.loadMyAsset();
     void paramStore.handleAbciInfo();
   }

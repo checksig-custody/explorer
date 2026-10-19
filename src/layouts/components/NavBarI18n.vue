@@ -2,6 +2,7 @@
 import { ref, watch } from 'vue';
 import { Icon } from '@iconify/vue';
 import { useI18n } from 'vue-i18n';
+import { orDefault } from '@/libs/utils';
 
 const i18nLangs: { label: string; i18nLang: string }[] = [
   {
@@ -39,7 +40,7 @@ watch(locale, (val) => {
   document.documentElement.setAttribute('lang', val);
 });
 
-let currentLang = ref(localStorage.getItem('lang') || 'en');
+let currentLang = ref(orDefault(localStorage.getItem('lang'), 'en'));
 
 watch(currentLang, (val: string) => {
   document.documentElement.setAttribute('lang', val);

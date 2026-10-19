@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { computed, ref, type PropType } from 'vue';
+import { orDefault } from '@/libs/utils';
 
 const props = defineProps({
   total: { type: String as PropType<string | undefined>, default: undefined },
@@ -13,7 +14,7 @@ const current = ref(1);
 const showSize = 3;
 const pages = computed(() => {
   const pages: { color: string; page: number }[] = [];
-  const total = Number(props.total || 0);
+  const total = Number(orDefault(props.total, 0));
   if (total > 0 && props.limit && total > props.limit) {
     let page = 0;
     for (;;) {

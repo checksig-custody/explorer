@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { PropType } from 'vue';
 import { useFormatter, type ParamCard } from '@/stores';
-import { formatSeconds } from '@/libs/utils';
+import { formatSeconds, orDefault } from '@/libs/utils';
 const props = defineProps({
   cardItem: {
     type: Object as PropType<ParamCard>,
@@ -12,7 +12,10 @@ const props = defineProps({
 const formatter = useFormatter();
 function calculateValue(value: unknown) {
   if (Array.isArray(value)) {
-    return (value[0] as { amount?: string } | undefined)?.amount || '-';
+    return orDefault(
+      (value[0] as { amount?: string } | undefined)?.amount,
+      '-'
+    );
   }
   if (typeof value === 'string' && value.search(/^\d+s$/g) > -1) {
     return formatSeconds(value);

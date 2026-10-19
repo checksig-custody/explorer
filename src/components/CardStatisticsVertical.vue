@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
 import { controlledComputed } from '@vueuse/core';
+import { orDefault } from '@/libs/utils';
 
 interface Props {
   title: string;
@@ -19,7 +20,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const isPositive = controlledComputed(
   () => props.change,
-  () => Math.sign(props.change || 0) === 1
+  () => Math.sign(orDefault(props.change, 0)) === 1
 );
 </script>
 

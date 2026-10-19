@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { defined } from '@/libs/utils';
+import { defined, orDefault } from '@/libs/utils';
 import { useBaseStore, useBlockchain } from '@/stores';
 import type { NodeInfo } from '@/types';
 import { fromBase64, toHex } from '@cosmjs/encoding';
@@ -32,7 +32,7 @@ const rpcs = computed(() => {
 });
 
 const appName = computed(() => {
-  return nodeInfo.value.application_version?.app_name || 'gaiad';
+  return orDefault(nodeInfo.value.application_version?.app_name, 'gaiad');
 });
 
 onMounted(() => {

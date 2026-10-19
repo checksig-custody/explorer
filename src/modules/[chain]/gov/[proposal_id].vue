@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import { MdPreview } from 'md-editor-v3';
 import { sanitizeMarkdownHtml } from '@/libs/sanitize';
-import { maybe } from '@/libs/utils';
+import { maybe, orDefault } from '@/libs/utils';
 import 'md-editor-v3/lib/preview.css';
 import ObjectElement from '@/components/dynamic/ObjectElement.vue';
 import {
@@ -60,7 +60,7 @@ void store.fetchProposal(props.proposal_id).then((res) => {
     });
   }
 
-  const msgType = proposalDetail.content?.['@type'] || '';
+  const msgType = orDefault(proposalDetail.content?.['@type'], '');
   if (msgType.endsWith('MsgUpdateParams')) {
     if (msgType.includes('staking')) {
       void chainStore.rpc.getStakingParams().then((res) => {
@@ -132,16 +132,16 @@ const votingCountdown = computed((): number => {
 });
 
 const upgradeCountdown = computed((): number => {
-  const height = Number(proposal.value.content?.plan?.height || 0);
+  const height = Number(orDefault(proposal.value.content?.plan?.height, 0));
   if (height > 0) {
     const base = useBaseStore();
-    const current = Number(base.latest.block?.header.height || 0);
+    const current = Number(orDefault(base.latest.block?.header.height, 0));
     return (
       (height - current) * Number((base.blocktime / 1000).toFixed()) * 1000
     );
   }
   const now = new Date();
-  const end = new Date(proposal.value.content?.plan?.time || '');
+  const end = new Date(orDefault(proposal.value.content?.plan?.time, ''));
   return end.getTime() - now.getTime();
 });
 
@@ -167,7 +167,7 @@ const turnout = computed(() => {
 
 const yes = computed(() => {
   if (total.value > 0) {
-    const yes = proposal.value.final_tally_result?.yes || 0;
+    const yes = orDefault(proposal.value.final_tally_result?.yes, 0);
     return format.percent(Number(yes) / total.value);
   }
   return 0;
@@ -175,7 +175,7 @@ const yes = computed(() => {
 
 const no = computed(() => {
   if (total.value > 0) {
-    const value = proposal.value.final_tally_result?.no || 0;
+    const value = orDefault(proposal.value.final_tally_result?.no, 0);
     return format.percent(Number(value) / total.value);
   }
   return 0;
@@ -183,7 +183,7 @@ const no = computed(() => {
 
 const veto = computed(() => {
   if (total.value > 0) {
-    const value = proposal.value.final_tally_result?.no_with_veto || 0;
+    const value = orDefault(proposal.value.final_tally_result?.no_with_veto, 0);
     return format.percent(Number(value) / total.value);
   }
   return 0;
@@ -191,7 +191,7 @@ const veto = computed(() => {
 
 const abstain = computed(() => {
   if (total.value > 0) {
-    const value = proposal.value.final_tally_result?.abstain || 0;
+    const value = orDefault(proposal.value.final_tally_result?.abstain, 0);
     return format.percent(Number(value) / total.value);
   }
   return 0;

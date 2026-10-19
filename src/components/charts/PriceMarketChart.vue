@@ -9,7 +9,10 @@ const store = useIndexModule();
 const baseStore = useBaseStore();
 const chartConfig = computed(() => {
   const theme = baseStore.theme;
-  const labels = store.marketData.prices.map((item) => item[0] as number);
+  // A missing price time stays undefined, as on master.
+  const labels = store.marketData.prices.map(
+    (item) => item[0] as unknown as number
+  );
   return getMarketPriceChartConfig(theme, labels);
 });
 const kind = ref('price');

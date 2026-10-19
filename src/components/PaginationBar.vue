@@ -2,8 +2,8 @@
 import { computed, ref, type PropType } from 'vue';
 
 const props = defineProps({
-  total: { type: String, default: undefined },
-  limit: { type: Number, default: undefined },
+  total: { type: String as PropType<string | undefined>, default: undefined },
+  limit: { type: Number as PropType<number | undefined>, default: undefined },
   callback: { type: Function as PropType<(page: number) => void>, required: true },
 });
 const current = ref(1);

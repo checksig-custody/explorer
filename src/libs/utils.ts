@@ -1,7 +1,7 @@
-export function getLocalObject(name: string) {
+export function getLocalObject(name: string): unknown {
   const text = localStorage.getItem(name);
   if (text) {
-    return JSON.parse(text);
+    return JSON.parse(text) as unknown;
   }
   return null;
 }
@@ -25,7 +25,7 @@ export function stringToUint8Array(str: string) {
 export function uint8ArrayToString(arr: Uint8Array) {
   let str = '';
   for (let i = 0, j = arr.length; i < j; ++i) {
-    str += String.fromCharCode(arr[i]);
+    str += String.fromCharCode(arr[i] ?? 0);
   }
   return str;
 }
@@ -34,25 +34,26 @@ const COUNT_ABBRS = ['', 'K', 'M', 'B', 't', 'q', 's', 'S', 'o', 'n', 'd', 'U', 
 
 export function formatNumber(count: number, withAbbr = false, decimals = 2) {
   const i = count === 0 ? count : Math.floor(Math.log(count) / Math.log(1000));
-  let result: any = parseFloat((count / 1000 ** i).toFixed(decimals));
-  if (withAbbr && COUNT_ABBRS[i]) {
-    result += COUNT_ABBRS[i];
+  const value = parseFloat((count / 1000 ** i).toFixed(decimals));
+  const abbr = COUNT_ABBRS[i];
+  if (withAbbr && abbr) {
+    return `${String(value)}${abbr}`;
   }
-  return result;
+  return value;
 }
 
-export function formatTokenAmount(assets: any, tokenAmount: any, decimals = 2, tokenDenom = 'uatom', format = true) {
-  const denom =
-    typeof tokenDenom === 'string'
-      ? tokenDenom
-      : // @ts-ignore
-        tokenDenom?.denom_trace?.base_denom;
-  let amount = 0;
-  const asset = assets.find((a: any) => a.base === denom);
+export function formatTokenAmount(
+  assets: { base: string; exponent: number }[],
+  tokenAmount: string | number,
+  decimals = 2,
+  tokenDenom: string | { denom_trace?: { base_denom?: string } } = 'uatom',
+  format = true
+) {
+  const denom = typeof tokenDenom === 'string' ? tokenDenom : tokenDenom.denom_trace?.base_denom;
+  const asset = assets.find((a) => a.base === denom);
   const exp = asset ? asset.exponent : String(denom).startsWith('gravity') ? 18 : 6;
-  const config = Object.values(getLocalChains());
 
-  amount = Number(Number(tokenAmount)) / 10 ** exp;
+  const amount = Number(tokenAmount) / 10 ** exp;
   if (amount > 10) {
     if (format) {
       return numberWithCommas(parseFloat(amount.toFixed(decimals)));
@@ -62,30 +63,26 @@ export function formatTokenAmount(assets: any, tokenAmount: any, decimals = 2, t
   return parseFloat(amount.toFixed(exp));
 }
 
-export function numberWithCommas(x: any) {
+export function numberWithCommas(x: number | string) {
   const parts = x.toString().split('.');
-  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  parts[0] = (parts[0] ?? '').replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   return parts.join('.');
 }
 
-export function isToken(value: string) {
-  let is = false;
+export function isToken(value: object | object[]) {
   if (Array.isArray(value)) {
-    is = value.findIndex((x) => Object.keys(x).includes('denom')) > -1;
-  } else {
-    is = Object.keys(value).includes('denom');
+    return value.some((x: object) => Object.keys(x).includes('denom'));
   }
-  return is;
+  return Object.keys(value).includes('denom');
 }
-export function isStringArray(value: any) {
-  let is = false;
+export function isStringArray(value: unknown) {
   if (Array.isArray(value)) {
-    is = value.findIndex((x) => typeof x === 'string') > -1;
+    return value.some((x) => typeof x === 'string');
   }
-  return is;
+  return false;
 }
 
-export function isHexAddress(v: any) {
+export function isHexAddress(v: string) {
   // const re = /^[A-Z\d]{40}$/
   // return re.test(v)
   return v.length === 28;
@@ -94,7 +91,7 @@ export function isHexAddress(v: any) {
 export function isBech32Address(v?: string) {
   if (!v) return '';
   const pattern = /^[a-z\d]+1[a-z\d]{38}$/g;
-  return String(v).search(pattern) > -1;
+  return v.search(pattern) > -1;
 }
 
 export function formatSeconds(value?: string) {
@@ -107,7 +104,7 @@ export function formatSeconds(value?: string) {
     return `${(duration / (60 * 60)).toFixed()} hours`;
   }
   if (duration > 60) {
-    return `${duration / 60} mins`;
+    return `${String(duration / 60)} mins`;
   }
   return value;
 }
@@ -123,7 +120,7 @@ export function hexToRgb(hex: string) {
   const b = parseInt(hex.substring(4, 6), 16);
 
   return {
-    color: 'rgb(' + r + ', ' + g + ', ' + b + ')',
+    color: `rgb(${String(r)}, ${String(g)}, ${String(b)})`,
     r,
     g,
     b,
@@ -133,16 +130,16 @@ export function hexToRgb(hex: string) {
 export function rgbToHsl(color: string) {
   color = color.replace('rgb(', '');
   color = color.replace(')', '');
-  const colorList = color.split(',') || [0, 0, 0];
+  const colorList = color.split(',');
   // console.log(colorList, 'colorList')
-  const r = parseInt(colorList?.[0]) / 255;
-  const g = parseInt(colorList?.[1]) / 255;
-  const b = parseInt(colorList?.[2]) / 255;
+  const r = parseInt(colorList[0] ?? '') / 255;
+  const g = parseInt(colorList[1] ?? '') / 255;
+  const b = parseInt(colorList[2] ?? '') / 255;
   // console.log(r,g,b, '88')
   const max = Math.max(r, g, b);
   const min = Math.min(r, g, b);
   let h = 0,
-    s = 0,
+    s: number,
     l = (max + min) / 2;
 
   if (max == min) {
@@ -169,8 +166,8 @@ export function rgbToHsl(color: string) {
   s = Math.round(s * 100);
   l = Math.round(l * 100);
   return {
-    color: 'hsl(' + h + ', ' + s + '%, ' + l + '%)',
-    value: h + ' ' + s + ' ' + l,
+    color: `hsl(${String(h)}, ${String(s)}%, ${String(l)}%)`,
+    value: `${String(h)} ${String(s)} ${String(l)}`,
     h,
     s,
     l,

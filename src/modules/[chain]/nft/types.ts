@@ -87,7 +87,7 @@ export const DEFAULT: NFTRequestRegistry = {
 
 export class NFTRestClient extends BaseRestClient<NFTRequestRegistry> {
   getClasses(pr?: PageRequest) {
-    if (!pr) pr = new PageRequest();
+    pr ??= new PageRequest();
     const query = `?${pr.toQueryString()}`;
     return this.request(this.registry.nft_classes, {}, query);
   }
@@ -95,7 +95,7 @@ export class NFTRestClient extends BaseRestClient<NFTRequestRegistry> {
     return this.request(this.registry.nft_classes_class_id, { class_id }); // `code_id` is a param in above url
   }
   getNFTs(class_id: string, id: string, page?: PageRequest) {
-    if (!page) page = new PageRequest();
+    page ??= new PageRequest();
     const query = `?${page.toQueryString()}`;
     return this.request(this.registry.nft_classes_nfts_class_id_nft_id, { class_id, id }, query);
   }

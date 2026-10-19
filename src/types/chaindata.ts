@@ -19,10 +19,10 @@ export enum EndpointType {
   // webgrpc
 }
 
-export interface Chain extends RegistryChain {}
-export interface Asset extends RegistryAsset {}
-export interface Endpoint extends RegistryEndPoint {}
-export interface DenomUnit extends RegistryDenomUnit {}
+export type Chain = RegistryChain;
+export type Asset = RegistryAsset;
+export type Endpoint = RegistryEndPoint;
+export type DenomUnit = RegistryDenomUnit;
 
 export interface LocalChainConfig {
   addr_prefix: string;

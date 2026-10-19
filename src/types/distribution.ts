@@ -18,7 +18,7 @@ export interface DelegatorRewards {
 }
 
 export interface PaginatedSlashes extends PaginatedResponse {
-  slashes: any[];
+  slashes: unknown[];
 }
 
 export interface WalletConnected {

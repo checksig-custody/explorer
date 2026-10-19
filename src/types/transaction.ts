@@ -6,8 +6,8 @@ export interface Tx {
     messages: { '@type': string; amount?: Coin[]; packet?: { data: string } }[];
     memo: string;
     timeout_height: string;
-    extension_options: any[];
-    non_critical_extension_options: any[];
+    extension_options: unknown[];
+    non_critical_extension_options: unknown[];
   };
   auth_info: {
     signer_infos: [

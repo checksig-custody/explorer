@@ -24,40 +24,37 @@ export function consensusPubkeyToHexAddress(consensusPubkey?: { '@type': string;
   const raw = '';
   if (consensusPubkey['@type'] === '/cosmos.crypto.ed25519.PubKey') {
     const pubkey = fromBase64(consensusPubkey.key);
-    if (pubkey) return toHex(sha256(pubkey)).slice(0, 40).toUpperCase();
+    return toHex(sha256(pubkey)).slice(0, 40).toUpperCase();
   }
 
   if (consensusPubkey['@type'] === '/cosmos.crypto.secp256k1.PubKey') {
     const pubkey = fromBase64(consensusPubkey.key);
-    if (pubkey) return toHex(new Ripemd160().update(sha256(pubkey)).digest());
+    return toHex(new Ripemd160().update(sha256(pubkey)).digest());
   }
   return raw;
 }
 
 // not work as expected, will fix later or remove
-export function consumerKeyToBase64Address(consumerKey?: Record<string, string>) {
+export function consumerKeyToBase64Address(consumerKey?: { ed25519?: string; secp256k1?: string }) {
   if (!consumerKey) return '';
   const raw = '';
   if (consumerKey.ed25519) {
     const pubkey = fromBase64(consumerKey.ed25519);
-    if (pubkey) return toBase64(sha256(pubkey)).slice(0, 40);
+    return toBase64(sha256(pubkey)).slice(0, 40);
   }
 
   if (consumerKey.secp256k1) {
     const pubkey = fromBase64(consumerKey.secp256k1);
-    if (pubkey)
-      return toBase64(new Ripemd160().update(sha256(pubkey)).digest());
+    return toBase64(new Ripemd160().update(sha256(pubkey)).digest());
   }
   return raw;
 }
 
-export function pubKeyToValcons(consensusPubkey: { '@type': string; key: string }, prefix: string) {
-  if (consensusPubkey && consensusPubkey.key) {
+export function pubKeyToValcons(consensusPubkey: { '@type': string; key: string } | undefined, prefix: string) {
+  if (consensusPubkey?.key) {
     const pubkey = fromBase64(consensusPubkey.key);
-    if (pubkey) {
-      const addressData = sha256(pubkey).slice(0, 20);
-      return toBech32(prefix, addressData);
-    }
+    const addressData = sha256(pubkey).slice(0, 20);
+    return toBech32(prefix, addressData);
   }
   return '';
 }

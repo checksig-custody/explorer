@@ -1,6 +1,7 @@
 import { fileURLToPath } from 'node:url';
 
 import eslint from '@eslint/js';
+import { defineConfig } from 'eslint/config';
 import eslintComments from '@eslint-community/eslint-plugin-eslint-comments';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
@@ -9,7 +10,7 @@ import vueParser from 'vue-eslint-parser';
 
 const rootDir = fileURLToPath(new URL('.', import.meta.url));
 
-export default tseslint.config(
+export default defineConfig(
   {
     // Build output, generated declarations and the vendored widget bundle.
     // None of them is ours to fix.
@@ -43,6 +44,7 @@ export default tseslint.config(
             'postcss.config.js',
             'tailwind.config.ts',
             'tests/sanitize.test.ts',
+            'daisyui-themes.d.ts',
           ],
           defaultProject: 'tsconfig.config.json',
         },

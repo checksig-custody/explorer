@@ -11,8 +11,23 @@ import {
   registryVersionProfile,
   withCustomRequest,
 } from './api/registry';
-import { PageRequest, type Coin } from '@/types';
+import { PageRequest } from '@/types';
+import type { ChainConfig } from '@/types/chaindata';
 import semver from 'semver';
+
+// A tally as the node sends it: the field names depend on the SDK version.
+interface TallyWire {
+  yes?: string;
+  yes_count?: string;
+  abstain?: string;
+  abstain_count?: string;
+  no?: string;
+  no_count?: string;
+  no_with_veto?: string;
+  no_with_veto_count?: string;
+}
+
+type RequestArgs = Record<string, string | number | undefined>;
 
 export class BaseRestClient<R extends AbstractRegistry> {
   version: string;
@@ -23,25 +38,31 @@ export class BaseRestClient<R extends AbstractRegistry> {
     this.registry = registry;
     this.version = version || 'v0.40';
   }
-  async request<T>(request: Request<T>, args: Record<string, any>, query = '', adapter?: (source: any) => Promise<T>) {
+  async request<T>(request: Request<T>, args: RequestArgs, query = '', adapter?: (source: unknown) => Promise<T>) {
     let url = `${request.url.startsWith('http') ? '' : this.endpoint}${request.url}${query}`;
     Object.keys(args).forEach((k) => {
-      url = url.replace(`{${k}}`, args[k] || '');
+      url = url.replace(`{${k}}`, String(args[k] || ''));
     });
-    return fetchData<T>(url, adapter || request.adapter);
+    return fetchData<T>(url, adapter ?? request.adapter);
   }
-  async get<T>(request: Request<T>, args: Record<string, any>, query = '') {
+  async get<T>(request: Request<T>, args: RequestArgs, query = '') {
     let url = `${request.url.startsWith('http') ? '' : this.endpoint}${request.url}${query}`;
     Object.keys(args).forEach((k) => {
-      url = url.replace(`{${k}}`, args[k] || '');
+      url = url.replace(`{${k}}`, String(args[k] || ''));
     });
     return get(url);
   }
 }
 
 // dynamic all custom request implementations
+interface CustomizationModule {
+  store?: 'name' | 'version';
+  name: string;
+  requests: Partial<RequestRegistry>;
+}
+
 function registeCustomRequest() {
-  const extensions: Record<string, any> = import.meta.glob('./api/customization/*.ts', { eager: true });
+  const extensions = import.meta.glob<CustomizationModule>('./api/customization/*.ts', { eager: true });
   Object.values(extensions).forEach((m) => {
     if (m.store === 'version') {
       registryVersionProfile(m.name, withCustomRequest(DEFAULT, m.requests));
@@ -58,24 +79,22 @@ export class CosmosRestClient extends BaseRestClient<RequestRegistry> {
     return new CosmosRestClient(endpoint, DEFAULT);
   }
 
-  static newStrategy(endpoint: string, chain: any) {
+  static newStrategy(endpoint: string, chain: ChainConfig) {
     // sdk version of current chain
-    const ver = localStorage.getItem(`sdk_version_${chain.chainName}`) || chain.versions?.cosmosSdk;
-    let profile;
-    if (chain) {
-      // find by name first
-      profile = findApiProfileByChain(chain.chainName);
-      // if not found. try sdk version
-      if (!profile && chain.versions?.cosmosSdk) {
-        profile = findApiProfileBySDKVersion(ver);
-      }
+    const sdkVersion = chain.versions.cosmosSdk;
+    const ver = localStorage.getItem(`sdk_version_${chain.chainName}`) || sdkVersion;
+    // find by name first
+    let profile = findApiProfileByChain(chain.chainName);
+    // if not found. try sdk version
+    if (!profile && sdkVersion) {
+      profile = findApiProfileBySDKVersion(ver ?? sdkVersion);
     }
-    return new CosmosRestClient(endpoint, profile || DEFAULT, ver);
+    return new CosmosRestClient(endpoint, profile ?? DEFAULT, ver);
   }
 
   // Auth Module
   async getAuthAccounts(page?: PageRequest) {
-    if (!page) page = new PageRequest();
+    page ??= new PageRequest();
     const query = `?${page.toQueryString()}`;
     return this.request(this.registry.auth_accounts, {}, query);
   }
@@ -93,7 +112,7 @@ export class CosmosRestClient extends BaseRestClient<RequestRegistry> {
     return this.request(this.registry.bank_denoms_metadata, {});
   }
   async getBankSupply(page?: PageRequest) {
-    if (!page) page = new PageRequest();
+    page ??= new PageRequest();
     const query = `?${page.toQueryString()}`;
     return this.request(this.registry.bank_supply, {}, query);
   }
@@ -101,12 +120,9 @@ export class CosmosRestClient extends BaseRestClient<RequestRegistry> {
     let supply;
     try {
       supply = await this.request(this.registry.bank_supply_by_denom, { denom });
-    } catch (err) {
+    } catch {
       // will move this to sdk version profile later
-      supply = await this.request(
-        { url: '/cosmos/bank/v1beta1/supply/by_denom?denom={denom}', adapter } as Request<{ amount: Coin }>,
-        { denom }
-      );
+      supply = await this.request({ url: '/cosmos/bank/v1beta1/supply/by_denom?denom={denom}', adapter }, { denom });
     }
     return supply;
   }
@@ -158,7 +174,7 @@ export class CosmosRestClient extends BaseRestClient<RequestRegistry> {
     return this.request(this.registry.gov_params_tally, {});
   }
   async getGovProposals(status: string, page?: PageRequest) {
-    if (!page) page = new PageRequest();
+    page ??= new PageRequest();
     page.reverse = true;
     const query = `?proposal_status={status}&${page.toQueryString()}`;
     return this.request(this.registry.gov_proposals, { status }, query);
@@ -172,19 +188,20 @@ export class CosmosRestClient extends BaseRestClient<RequestRegistry> {
     return this.request(this.registry.gov_proposals_deposits, { proposal_id });
   }
   async getGovProposalTally(proposal_id: string) {
-    return this.request(this.registry.gov_proposals_tally, { proposal_id }, undefined, (source: any) => {
+    return this.request(this.registry.gov_proposals_tally, { proposal_id }, undefined, (source: unknown) => {
+      const { tally } = source as { tally: TallyWire };
       return Promise.resolve({
         tally: {
-          yes: source.tally.yes || source.tally.yes_count,
-          abstain: source.tally.abstain || source.tally.abstain_count,
-          no: source.tally.no || source.tally.no_count,
-          no_with_veto: source.tally.no_with_veto || source.tally.no_with_veto_count,
+          yes: tally.yes || tally.yes_count,
+          abstain: tally.abstain || tally.abstain_count,
+          no: tally.no || tally.no_count,
+          no_with_veto: tally.no_with_veto || tally.no_with_veto_count,
         },
       });
     });
   }
   async getGovProposalVotes(proposal_id: string, page?: PageRequest) {
-    if (!page) page = new PageRequest();
+    page ??= new PageRequest();
     page.reverse = true;
     const query = `?proposal_status={status}&${page.toQueryString()}`;
     return this.request(this.registry.gov_proposals_votes, { proposal_id }, query);
@@ -268,7 +285,7 @@ export class CosmosRestClient extends BaseRestClient<RequestRegistry> {
     return this.request(this.registry.base_tendermint_node_info, {});
   }
   async getBaseValidatorsetAt(height: string | number, offset: number) {
-    const query = `?pagination.limit=100&pagination.offset=${offset}`;
+    const query = `?pagination.limit=100&pagination.offset=${String(offset)}`;
     return this.request(
       this.registry.base_tendermint_validatorsets_height,
       {
@@ -278,18 +295,18 @@ export class CosmosRestClient extends BaseRestClient<RequestRegistry> {
     );
   }
   async getBaseValidatorsetLatest(offset: number) {
-    const query = `?pagination.limit=100&pagination.offset=${offset}`;
+    const query = `?pagination.limit=100&pagination.offset=${String(offset)}`;
     return this.request(this.registry.base_tendermint_validatorsets_latest, {}, query);
   }
   // tx
   async getTxsBySender(sender: string, page?: PageRequest) {
-    if (!page) page = new PageRequest();
+    page ??= new PageRequest();
 
-    let query = `?events=message.sender='${sender}'&pagination.limit=${page.limit}&pagination.offset=${
+    let query = `?events=message.sender='${sender}'&pagination.limit=${String(page.limit)}&pagination.offset=${String(
       page.offset || 0
-    }`;
+    )}`;
     if (semver.gte(this.version.replaceAll('v', ''), '0.50.0')) {
-      query = `?query=message.sender='${sender}'&order_by=ORDER_BY_DESC&pagination.limit=${page.limit}&pagination.offset=${page.offset || 0}`;
+      query = `?query=message.sender='${sender}'&order_by=ORDER_BY_DESC&pagination.limit=${String(page.limit)}&pagination.offset=${String(page.offset || 0)}`;
     }
     return this.request(this.registry.tx_txs, {}, query);
   }
@@ -297,8 +314,8 @@ export class CosmosRestClient extends BaseRestClient<RequestRegistry> {
   // ?&pagination.reverse=true&events=send_packet.packet_src_channel='${channel}'&events=send_packet.packet_src_port='${port}'
   // query ibc receiving msgs
   // ?&pagination.reverse=true&events=recv_packet.packet_dst_channel='${channel}'&events=recv_packet.packet_dst_port='${port}'
-  async getTxs(query: string, params: any, page?: PageRequest) {
-    if (!page) page = new PageRequest();
+  async getTxs(query: string, params: RequestArgs, page?: PageRequest) {
+    page ??= new PageRequest();
     if (semver.gte(this.version.replaceAll('v', ''), '0.50.0')) {
       const query_edit = query.replaceAll('events=', 'query=');
       return this.request(this.registry.tx_txs, params, `${query_edit}&order_by=ORDER_BY_DESC&${page.toQueryString()}`);
@@ -331,7 +348,7 @@ export class CosmosRestClient extends BaseRestClient<RequestRegistry> {
     });
   }
   async getIBCConnections(page?: PageRequest) {
-    if (!page) page = new PageRequest();
+    page ??= new PageRequest();
     const query = `?${page.toQueryString()}`;
     return this.request(this.registry.ibc_core_connection_connections, {}, query);
   }

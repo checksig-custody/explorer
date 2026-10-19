@@ -73,10 +73,10 @@ export interface Block {
       proposer_address: string;
     };
     data: {
-      txs: any[];
+      txs: string[];
     };
     evidence: {
-      evidence: any[];
+      evidence: unknown[];
     };
     last_commit: Commit;
   };

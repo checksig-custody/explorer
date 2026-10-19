@@ -1,6 +1,6 @@
 import { fileURLToPath, URL } from 'node:url';
 
-import { defineConfig } from 'vite';
+import { defineConfig, type PluginOption } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import vueJsx from '@vitejs/plugin-vue-jsx';
 import Layouts from 'vite-plugin-vue-layouts';
@@ -30,10 +30,11 @@ export default defineConfig({
     Layouts({
       layoutsDirs: './src/layouts/',
     }),
+    // unplugin-auto-import 0.13 types its Vite plugin as `any`.
     AutoImport({
       imports: ['vue', 'vue-router', '@vueuse/core', '@vueuse/math', 'vue-i18n', 'pinia'],
       vueTemplate: true,
-    }),
+    }) as PluginOption,
     VueI18nPlugin({
       runtimeOnly: true,
       compositionOnly: true,

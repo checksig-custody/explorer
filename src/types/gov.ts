@@ -3,7 +3,7 @@ import type { Coin, PaginatedResponse } from './common';
 export interface GovParams {
   voting_params: {
     voting_period: string;
-    proposal_voting_periods: any[];
+    proposal_voting_periods: unknown[];
     expedited_voting_period: string;
   };
   deposit_params: {
@@ -29,9 +29,9 @@ export interface GovProposal {
     '@type': string;
     title?: string;
     description?: string;
-    current?: any[];
-    changes?: any[];
-    params?: any[];
+    current?: unknown[];
+    changes?: unknown[];
+    params?: unknown[];
     plan?: {
       height?: string | number;
       time?: string | number;

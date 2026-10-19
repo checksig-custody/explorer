@@ -1,11 +1,11 @@
 import fetch from 'cross-fetch';
 
-export async function fetchData<T>(url: string, adapter: (source: any) => Promise<T>): Promise<T> {
+export async function fetchData<T>(url: string, adapter: (source: unknown) => Promise<T>): Promise<T> {
   const response = await fetch(url);
   if (!response.ok) {
-    throw new Error(`HTTP error: ${response.status}, ${response.statusText}`);
+    throw new Error(`HTTP error: ${String(response.status)}, ${response.statusText}`);
   }
-  const data = await response.json();
+  const data: unknown = await response.json();
   return adapter(data);
 }
 
@@ -25,7 +25,7 @@ try {
   console.error(error.message);
 }
 // */
-export async function get(url: string) {
+export async function get(url: string): Promise<unknown> {
   return (await fetch(url, { referrerPolicy: 'origin-when-cross-origin' })).json();
 }
 
@@ -33,7 +33,7 @@ export async function getB(url: string) {
   return (await fetch(url, { referrerPolicy: 'origin-when-cross-origin' })).arrayBuffer();
 }
 
-export async function post(url: string, data: any) {
+export async function post(url: string, data: unknown): Promise<unknown> {
   const response = await fetch(url, {
     method: 'POST', // *GET, POST, PUT, DELETE, etc.
     // mode: 'cors', // no-cors, *cors, same-origin

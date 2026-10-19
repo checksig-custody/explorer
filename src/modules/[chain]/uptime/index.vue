@@ -8,8 +8,10 @@ import {
   useFormatter,
 } from '@/stores';
 import UptimeBar from '@/components/UptimeBar.vue';
-import type { SlashingParam, SigningInfo, Block } from '@/types';
+import type { SlashingParam, SigningInfo } from '@/types';
 import { consensusPubkeyToHexAddress, valconsToBase64 } from '@/libs';
+import { fillBlock } from '@/libs/uptime';
+import type { BlockColor, UptimeBlock } from '@/libs/uptime';
 
 defineProps({ chain: { type: String, default: undefined } });
 
@@ -24,10 +26,6 @@ const slashingParam = ref({} as SlashingParam);
 const signingInfo = ref({} as Record<string, SigningInfo>);
 const consumerValidators = ref([] as { moniker: string; base64: string }[]);
 
-interface BlockColor {
-  height: string;
-  color: string;
-}
 interface ValidatorUnit {
   moniker: string;
   blocks: BlockColor[];
@@ -176,40 +174,13 @@ function preFill() {
     );
   }
 }
-function fillblock(b: Partial<Block>, direction = 'end') {
-  const data = b.block;
-  if (!data) return;
-  validatorSet.value.forEach((v) => {
-    const sig = data.last_commit.signatures.find(
-      (s) => s.validator_address === v.base64
-    );
-    const block = blockColors.value[v.base64] ?? [];
-    let color = {
-      height: data.header.height,
-      color: 'bg-red-500',
-    };
-    if (sig) {
-      color = {
-        height: data.header.height,
-        color:
-          sig.block_id_flag === 'BLOCK_ID_FLAG_COMMIT'
-            ? 'bg-green-500'
-            : 'bg-yellow-500',
-      };
-    }
-    if (direction === 'end') {
-      block.push(color);
-    } else {
-      block.unshift(color);
-    }
-    if (block.length > 50) block.shift();
-    blockColors.value[v.base64] = block;
-  });
+function fillblock(b: UptimeBlock, direction = 'end') {
+  fillBlock(blockColors.value, validatorSet.value, b, direction);
 }
 
 function updateTotalSigningInfo() {
   void chainStore.rpc.getSlashingSigningInfos().then((x) => {
-    x.info.forEach((i) => {
+    (x.info as SigningInfo[] | undefined)?.forEach((i) => {
       signingInfo.value[valconsToBase64(i.address)] = i;
     });
   });

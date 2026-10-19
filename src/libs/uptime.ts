@@ -3,9 +3,10 @@ export interface BlockColor {
   color: string;
 }
 
-// The parts of a block reply that the uptime grid reads.
+// The parts of a block reply that the uptime grid reads. The reply is empty
+// when the node did not answer.
 export interface UptimeBlock {
-  block: {
+  block?: {
     header: { height: string };
     last_commit?:
       | {
@@ -26,18 +27,20 @@ export function fillBlock(
   b: UptimeBlock,
   direction = 'end'
 ) {
+  const data = b.block;
+  if (!data) return;
   validators.forEach((v) => {
-    const sig = b.block.last_commit?.signatures.find(
+    const sig = data.last_commit?.signatures.find(
       (s) => s.validator_address === v.base64
     );
     const block = colors[v.base64] ?? [];
     let color = {
-      height: b.block.header.height,
+      height: data.header.height,
       color: 'bg-red-500',
     };
     if (sig) {
       color = {
-        height: b.block.header.height,
+        height: data.header.height,
         color:
           sig.block_id_flag === 'BLOCK_ID_FLAG_COMMIT'
             ? 'bg-green-500'

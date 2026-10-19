@@ -17,7 +17,7 @@ test('a failed block fetch (an empty reply) leaves the grid as it was', () => {
   const colors: Record<string, BlockColor[]> = {};
   // fetchBlock returns {} when the node does not answer
   assert.doesNotThrow(() => {
-    fillBlock(colors, validators, {} as UptimeBlock, 'start');
+    fillBlock(colors, validators, {}, 'start');
   });
   assert.deepEqual(colors, {});
 });

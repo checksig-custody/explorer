@@ -5,6 +5,7 @@
   "sdk_version": "0.50.0",
   "coin_type": "118",
   "min_tx_fee": "0",
+  "keplr_price_step": { "low": 0.025, "average": 0.03, "high": 0.04 },
   "addr_prefix": "cks",
   "features": [
     "dashboard",

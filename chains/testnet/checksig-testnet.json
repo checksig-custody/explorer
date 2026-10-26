@@ -26,6 +26,12 @@
       "symbol": "CKSG",
       "exponent": "6",
       "logo": "/logos/cksg.svg"
+    },
+    {
+      "base": "ucst",
+      "symbol": "CST",
+      "exponent": "6",
+      "logo": "/logos/cksg.svg"
     }
   ],
   "theme_color": "#3b82f6",

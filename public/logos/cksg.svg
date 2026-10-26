@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="CheckSig Token (CST) logo">
-  <title>CheckSig Token (CST)</title>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="CheckSig Token (CKSG) logo">
+  <title>CheckSig Token (CKSG)</title>
   <desc>CheckSig pictogram centered in a transparent square canvas, sized to fit within an inscribed circle. Intended for use as token icon on wallets, block explorers, and asset lists.</desc>
   <g transform="translate(50 50) scale(0.78) translate(-40.177 -40)">
     <path fill="#211F1E" d="M70.5646 80H9.79013C6.28275 80 3.60182 78.5082 3.40696 76.4479L0.00708577 40.2308C-0.00626817 40.0772 -0.00626817 39.9228 0.00708577 39.7692L3.40696 3.55883C3.60182 1.49845 6.28275 0 9.79013 0H70.5646C74.072 0 76.7529 1.49845 76.9478 3.55883L80.3477 39.7692C80.361 39.9228 80.361 40.0772 80.3477 40.2308L76.9478 76.4479C76.7529 78.5082 74.072 80 70.5646 80ZM9.79013 2.24099C7.20327 2.24099 5.69818 3.25111 5.64443 3.7662L2.25127 39.9766L5.64443 76.2338C5.69818 76.7556 7.20327 77.759 9.79013 77.759H70.5646C73.1515 77.759 74.6565 76.7556 74.7036 76.2338L78.1035 40.0234L74.6901 3.7662C74.6431 3.25111 73.138 2.24099 70.5512 2.24099H9.79013Z"/>

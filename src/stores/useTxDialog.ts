@@ -3,7 +3,7 @@ import { useWalletStore } from './useWalletStore';
 import { useBlockchain } from './useBlockchain';
 import router from '@/router';
 
-let CALLBACK: any = null;
+let CALLBACK: (() => void) | undefined = undefined;
 
 export const useTxDialog = defineStore('txDialogStore', {
   state: () => {
@@ -19,7 +19,7 @@ export const useTxDialog = defineStore('txDialogStore', {
       return useWalletStore().currentAddress;
     },
     currentEndpoint() {
-      return useBlockchain().endpoint?.address;
+      return useBlockchain().endpoint.address;
     },
     blockchain() {
       return useBlockchain();
@@ -29,21 +29,21 @@ export const useTxDialog = defineStore('txDialogStore', {
     },
   },
   actions: {
-    setParams(param: any) {
+    setParams(param: unknown) {
       this.params = JSON.stringify(param);
     },
     openWithArgument(
       type: string,
       sender: string,
       endpoint: string,
-      param: any
+      param: unknown
     ) {
       this.type = type;
       this.sender = sender;
       this.endpoint = endpoint;
       this.params = JSON.stringify(param);
     },
-    open(type: string, param: any, callback?: Function) {
+    open(type: string, param: unknown, callback?: () => void) {
       this.type = type;
       this.sender = this.walletAddress;
       this.endpoint = this.currentEndpoint || '';
@@ -61,9 +61,12 @@ export const useTxDialog = defineStore('txDialogStore', {
       };
     }) {
       console.log(tx.detail);
-      if (tx.detail && tx.detail.hash) router.push({ path: `/${this.blockchain.chainName}/tx/${tx.detail.hash}` });
+      if (tx.detail.hash)
+        void router.push({
+          path: `/${this.blockchain.chainName}/tx/${tx.detail.hash}`,
+        });
     },
-    confirmed(tx: any) {
+    confirmed(tx: unknown) {
       console.log('confirmed:', tx);
       if (CALLBACK) {
         CALLBACK();

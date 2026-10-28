@@ -1,7 +1,7 @@
-export function getLocalObject(name: string) {
+export function getLocalObject(name: string): unknown {
   const text = localStorage.getItem(name);
   if (text) {
-    return JSON.parse(text);
+    return JSON.parse(text) as unknown;
   }
   return null;
 }
@@ -25,67 +25,90 @@ export function stringToUint8Array(str: string) {
 export function uint8ArrayToString(arr: Uint8Array) {
   let str = '';
   for (let i = 0, j = arr.length; i < j; ++i) {
-    str += String.fromCharCode(arr[i]);
+    str += String.fromCharCode(arr[i] ?? 0);
   }
   return str;
 }
 
-const COUNT_ABBRS = ['', 'K', 'M', 'B', 't', 'q', 's', 'S', 'o', 'n', 'd', 'U', 'D', 'T', 'Qt', 'Qd', 'Sd', 'St'];
+const COUNT_ABBRS = [
+  '',
+  'K',
+  'M',
+  'B',
+  't',
+  'q',
+  's',
+  'S',
+  'o',
+  'n',
+  'd',
+  'U',
+  'D',
+  'T',
+  'Qt',
+  'Qd',
+  'Sd',
+  'St',
+];
 
 export function formatNumber(count: number, withAbbr = false, decimals = 2) {
   const i = count === 0 ? count : Math.floor(Math.log(count) / Math.log(1000));
-  let result: any = parseFloat((count / 1000 ** i).toFixed(decimals));
-  if (withAbbr && COUNT_ABBRS[i]) {
-    result += `${COUNT_ABBRS[i]}`;
+  const value = parseFloat((count / 1000 ** i).toFixed(decimals));
+  const abbr = COUNT_ABBRS[i];
+  if (withAbbr && abbr) {
+    return `${String(value)}${abbr}`;
   }
-  return result;
+  return value;
 }
 
-export function formatTokenAmount(assets: any, tokenAmount: any, decimals = 2, tokenDenom = 'uatom', format = true) {
+export function formatTokenAmount(
+  assets: { base: string; exponent?: string | number }[],
+  tokenAmount: string | number | undefined,
+  decimals = 2,
+  tokenDenom: string | { denom_trace?: { base_denom?: string } } = 'uatom',
+  format = true
+) {
   const denom =
     typeof tokenDenom === 'string'
       ? tokenDenom
-      : // @ts-ignore
-        tokenDenom?.denom_trace?.base_denom;
-  let amount = 0;
-  const asset = assets.find((a: any) => a.base === denom);
-  let exp = asset ? asset.exponent : String(denom).startsWith('gravity') ? 18 : 6;
-  const config = Object.values(getLocalChains());
+      : tokenDenom.denom_trace?.base_denom;
+  const asset = assets.find((a) => a.base === denom);
+  const exp = asset
+    ? asset.exponent
+    : String(denom).startsWith('gravity')
+      ? 18
+      : 6;
 
-  amount = Number(Number(tokenAmount)) / 10 ** exp;
+  const amount = Number(tokenAmount) / 10 ** Number(exp);
   if (amount > 10) {
     if (format) {
       return numberWithCommas(parseFloat(amount.toFixed(decimals)));
     }
     return parseFloat(amount.toFixed(decimals));
   }
-  return parseFloat(amount.toFixed(exp));
+  return parseFloat(amount.toFixed(Number(exp)));
 }
 
-export function numberWithCommas(x: any) {
+export function numberWithCommas(x: number | string) {
   const parts = x.toString().split('.');
-  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  parts[0] = (parts[0] ?? '').replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   return parts.join('.');
 }
 
-export function isToken(value: string) {
-  let is = false;
+export function isToken(value: object | object[]) {
   if (Array.isArray(value)) {
-    is = value.findIndex((x) => Object.keys(x).includes('denom')) > -1;
-  } else {
-    is = Object.keys(value).includes('denom');
+    return value.some((x: object) => Object.keys(x).includes('denom'));
   }
-  return is;
+  return Object.keys(value).includes('denom');
 }
-export function isStringArray(value: any) {
-  let is = false;
+export function isStringArray(value: unknown) {
   if (Array.isArray(value)) {
-    is = value.findIndex((x) => typeof x === 'string') > -1;
+    return value.some((x) => typeof x === 'string');
   }
-  return is;
+  return false;
 }
 
-export function isHexAddress(v: any) {
+export function isHexAddress(v: string) {
   // const re = /^[A-Z\d]{40}$/
   // return re.test(v)
   return v.length === 28;
@@ -94,7 +117,7 @@ export function isHexAddress(v: any) {
 export function isBech32Address(v?: string) {
   if (!v) return '';
   const pattern = /^[a-z\d]+1[a-z\d]{38}$/g;
-  return String(v).search(pattern) > -1;
+  return v.search(pattern) > -1;
 }
 
 export function formatSeconds(value?: string) {
@@ -107,7 +130,7 @@ export function formatSeconds(value?: string) {
     return `${(duration / (60 * 60)).toFixed()} hours`;
   }
   if (duration > 60) {
-    return `${duration / 60} mins`;
+    return `${String(duration / 60)} mins`;
   }
   return value;
 }
@@ -123,7 +146,7 @@ export function hexToRgb(hex: string) {
   const b = parseInt(hex.substring(4, 6), 16);
 
   return {
-    color: 'rgb(' + r + ', ' + g + ', ' + b + ')',
+    color: `rgb(${String(r)}, ${String(g)}, ${String(b)})`,
     r,
     g,
     b,
@@ -133,23 +156,23 @@ export function hexToRgb(hex: string) {
 export function rgbToHsl(color: string) {
   color = color.replace('rgb(', '');
   color = color.replace(')', '');
-  const colorList = color.split(',') || [0, 0, 0];
+  const colorList = color.split(',');
   // console.log(colorList, 'colorList')
-  const r = parseInt(colorList?.[0]) / 255;
-  const g = parseInt(colorList?.[1]) / 255;
-  const b = parseInt(colorList?.[2]) / 255;
+  const r = parseInt(colorList[0] ?? '') / 255;
+  const g = parseInt(colorList[1] ?? '') / 255;
+  const b = parseInt(colorList[2] ?? '') / 255;
   // console.log(r,g,b, '88')
   const max = Math.max(r, g, b);
   const min = Math.min(r, g, b);
   let h = 0,
-    s = 0,
+    s: number,
     l = (max + min) / 2;
 
   if (max == min) {
     h = 0;
     s = 0;
   } else {
-    var d = max - min;
+    const d = max - min;
     s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
     switch (max) {
       case r:
@@ -169,10 +192,49 @@ export function rgbToHsl(color: string) {
   s = Math.round(s * 100);
   l = Math.round(l * 100);
   return {
-    color: 'hsl(' + h + ', ' + s + '%, ' + l + '%)',
-    value: h + ' ' + s + ' ' + l,
+    color: `hsl(${String(h)}, ${String(s)}%, ${String(l)}%)`,
+    value: `${String(h)} ${String(s)} ${String(l)}`,
     h,
     s,
     l,
   };
+}
+
+// Returns value, or throws the TypeError that reading `property` of undefined
+// raises. It keeps the old failure where the types now say a value may be
+// missing.
+export function defined<T>(value: T | null | undefined, property: string): T {
+  if (value === undefined || value === null) {
+    throw new TypeError(
+      `Cannot read properties of ${String(value)} (reading '${property}')`
+    );
+  }
+  return value;
+}
+
+// Says that value may be missing. It is for a reply that can lack a field the
+// types call required, where the code keeps its `?.`.
+export function maybe<T>(value: T): T | undefined {
+  return value;
+}
+
+// Returns value, or fallback when value is falsy: the same as `value ||
+// fallback`, with the types checked. Unlike `??`, an empty string, 0, false and
+// NaN take the fallback too. The fallback is always evaluated.
+export function orDefault<T, F>(
+  value: T | null | undefined,
+  fallback: F
+): T | F {
+  if (value) return value;
+  return fallback;
+}
+
+// orDefault with a fallback that is computed only when it is used, as the right
+// side of `||` is.
+export function orDefaultWith<T, F>(
+  value: T | null | undefined,
+  fallback: () => F
+): T | F {
+  if (value) return value;
+  return fallback();
 }

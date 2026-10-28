@@ -3,11 +3,18 @@ import type { Coin, Key, PaginatedResponse } from './common';
 export interface Tx {
   '@type'?: string;
   body: {
-    messages: { '@type': string; amount?: Coin[]; packet?: { data: string } }[];
+    messages: {
+      '@type': string;
+      amount?: Coin[];
+      packet?: { data: string };
+      delegator_address?: string;
+      grantee?: string;
+      message?: string;
+    }[];
     memo: string;
     timeout_height: string;
-    extension_options: any[];
-    non_critical_extension_options: any[];
+    extension_options: unknown[];
+    non_critical_extension_options: unknown[];
   };
   auth_info: {
     signer_infos: [
@@ -19,7 +26,7 @@ export interface Tx {
           };
         };
         sequence: string;
-      }
+      },
     ];
     fee: {
       amount: Coin[];
@@ -49,7 +56,7 @@ export interface TxResponse {
       msg_index: number;
       log: string;
       events: Attributes[];
-    }
+    },
   ];
   info: '';
   gas_wanted: '204431';

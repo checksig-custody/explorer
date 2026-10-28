@@ -1,5 +1,11 @@
-import type { Asset as RegistryAsset, DenomUnit as RegistryDenomUnit } from '@chain-registry/types';
-import type { Chain as RegistryChain, Endpoint as RegistryEndPoint } from '@chain-registry/types/chain.schema';
+import type {
+  Asset as RegistryAsset,
+  DenomUnit as RegistryDenomUnit,
+} from '@chain-registry/types';
+import type {
+  Chain as RegistryChain,
+  Endpoint as RegistryEndPoint,
+} from '@chain-registry/types/chain.schema';
 
 export enum NetworkType {
   Mainnet,
@@ -19,18 +25,18 @@ export enum EndpointType {
   // webgrpc
 }
 
-export interface Chain extends RegistryChain {}
-export interface Asset extends RegistryAsset {}
-export interface Endpoint extends RegistryEndPoint {}
-export interface DenomUnit extends RegistryDenomUnit {}
+export type Chain = RegistryChain;
+export type Asset = RegistryAsset;
+export type Endpoint = RegistryEndPoint;
+export type DenomUnit = RegistryDenomUnit;
 
 export interface LocalChainConfig {
   addr_prefix: string;
   consensus_prefix?: string;
   alias: string;
   api: string[] | Endpoint[];
-  grpc: Endpoint[];
-  provider_chain: {
+  grpc?: Endpoint[];
+  provider_chain?: {
     api: string[] | Endpoint[];
   };
   assets: {
@@ -55,7 +61,7 @@ export interface LocalChainConfig {
     average: number;
     high: number;
   };
-  keplr_features: string[];
+  keplr_features?: string[];
   faucet?: {
     amount: string;
     ip_limit: number;
@@ -104,14 +110,14 @@ export interface DirectoryChainConfig {
 export interface ChainConfig {
   chainName: string;
   prettyName: string;
-  networkType?: string;
+  networkType?: string | undefined;
   bech32Prefix: string;
   bech32ConsensusPrefix: string;
   chainId: string;
   coinType: string;
   assets: Asset[];
-  themeColor?: string;
-  features?: string[];
+  themeColor?: string | undefined;
+  features?: string[] | undefined;
   endpoints: {
     rest?: Endpoint[];
     rpc?: Endpoint[];
@@ -125,20 +131,24 @@ export interface ChainConfig {
   };
   exponent: string;
   excludes?: string;
-  providerChain: {
+  providerChain?: {
     api: Endpoint[];
   };
   // keplr config
-  keplrFeatures?: string[];
-  keplrPriceStep?: {
-    low: number;
-    average: number;
-    high: number;
-  };
-  faucet?: {
-    amount: string;
-    ip_limit: number;
-    address_limit: number;
-    fees: string;
-  };
+  keplrFeatures?: string[] | undefined;
+  keplrPriceStep?:
+    | {
+        low: number;
+        average: number;
+        high: number;
+      }
+    | undefined;
+  faucet?:
+    | {
+        amount: string;
+        ip_limit: number;
+        address_limit: number;
+        fees: string;
+      }
+    | undefined;
 }

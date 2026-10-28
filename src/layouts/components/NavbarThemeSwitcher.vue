@@ -2,8 +2,9 @@
 import { Icon } from '@iconify/vue';
 import { onMounted, computed } from 'vue';
 import { useBaseStore } from '@/stores';
+import { orDefault } from '@/libs/utils';
 
-const themeMap: Record<string, string> = {
+const themeMap: Record<'system' | 'light' | 'dark', string> = {
   system: 'mdi-laptop',
   light: 'mdi-weather-sunny',
   dark: 'mdi-weather-night',
@@ -15,7 +16,7 @@ const theme = computed(() => {
 
 const changeMode = (val?: 'dark' | 'light') => {
   let value: 'dark' | 'light' = 'dark';
-  const currentValue: 'dark' | 'light' = val || theme.value;
+  const currentValue: 'dark' | 'light' = orDefault(val, theme.value);
   if (currentValue === 'dark') {
     value = 'light';
   }
@@ -39,7 +40,10 @@ onMounted(() => {
 <template>
   <div class="tooltip tooltip-bottom delay-1000">
     <button class="btn btn-ghost btn-circle btn-sm mx-1" @click="changeMode()">
-      <Icon :icon="themeMap?.[theme]" class="text-2xl text-gray-500 dark:text-gray-400" />
+      <Icon
+        :icon="themeMap?.[theme]"
+        class="text-2xl text-gray-500 dark:text-gray-400"
+      />
     </button>
   </div>
 </template>

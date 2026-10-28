@@ -1,7 +1,7 @@
 import type { PaginatedResponse } from '.';
-import type { IBCInfo as RegistryIBCInfo } from "@chain-registry/types"
+import type { IBCInfo as RegistryIBCInfo } from '@chain-registry/types';
 
-export interface IBCInfo extends RegistryIBCInfo { }
+export type IBCInfo = RegistryIBCInfo;
 
 export interface DenomTrace {
   path: string;

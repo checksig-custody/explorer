@@ -1,12 +1,10 @@
 <script lang="ts" setup>
-import { fromBase64, toBase64 } from '@cosmjs/encoding';
+import { fromBase64 } from '@cosmjs/encoding';
 import { decodeTxRaw } from '@cosmjs/proto-signing';
-import { computed } from '@vue/reactivity';
+import { computed } from 'vue';
 import { hashTx } from '@/libs';
 import { useBlockchain, useFormatter } from '@/stores';
-const props = defineProps({
-  value: { type: Array<string> },
-});
+const props = defineProps<{ value: string[] | undefined }>();
 
 const txs = computed(() => {
   return (
@@ -16,7 +14,7 @@ const txs = computed(() => {
       let injected = 'Standard';
       try {
         tx = decodeTxRaw(fromBase64(x));
-      } catch (e) {
+      } catch {
         injected = 'Injected';
       }
       return {
@@ -24,7 +22,7 @@ const txs = computed(() => {
         tx,
         injected,
       };
-    }) || []
+    }) ?? []
   );
 });
 
@@ -33,7 +31,7 @@ const chain = useBlockchain();
 </script>
 <template>
   <div class="overflow-x-auto mt-4">
-    <table class="table w-full" density="compact" v-if="txs.length > 0">
+    <table v-if="txs.length > 0" class="table w-full" density="compact">
       <thead>
         <tr>
           <th>Type</th>
@@ -43,17 +41,24 @@ const chain = useBlockchain();
         </tr>
       </thead>
       <tbody class="text-sm">
-        <tr v-for="item in txs">
+        <tr v-for="(item, index) in txs" :key="index">
           <td>{{ item.injected }}</td>
           <td>
             <span v-if="item.injected === 'Injected'">{{ item.hash }}</span>
-            <RouterLink v-else :to="`/${chain.chainName}/tx/${item.hash}`" class="text-primary dark:invert">{{
-              item.hash
-            }}</RouterLink>
+            <RouterLink
+              v-else
+              :to="`/${chain.chainName}/tx/${item.hash}`"
+              class="text-primary dark:invert"
+              >{{ item.hash }}</RouterLink
+            >
           </td>
           <td>
             <span v-if="item.tx">
-              {{ format.messages(item.tx.body.messages.map((x) => ({ '@type': x.typeUrl }))) }}
+              {{
+                format.messages(
+                  item.tx.body.messages.map((x) => ({ '@type': x.typeUrl }))
+                )
+              }}
             </span>
           </td>
           <td>

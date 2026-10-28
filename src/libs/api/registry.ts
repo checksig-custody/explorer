@@ -5,7 +5,6 @@ import type {
   Coin,
   ConnectionWithProof,
   DenomTrace,
-  Group,
   GroupProposal,
   GroupTallyResult,
   NodeInfo,
@@ -16,8 +15,16 @@ import type {
   PaginatedIBCConnections,
   PaginatedTendermintValidator,
 } from '@/types';
-import type { BankParams, PaginatedBalances, PaginatedDenomMetadata, PaginatedSupply } from '@/types/bank';
-import type { DistributionParams, PaginatedSlashes } from '@/types/distribution';
+import type {
+  BankParams,
+  PaginatedBalances,
+  PaginatedDenomMetadata,
+  PaginatedSupply,
+} from '@/types/bank';
+import type {
+  DistributionParams,
+  PaginatedSlashes,
+} from '@/types/distribution';
 import type {
   GovParams,
   GovProposal,
@@ -42,16 +49,14 @@ import type { PaginatedTxs, Tx, TxResponse } from '@/types';
 import semver from 'semver';
 export interface Request<T> {
   url: string;
-  adapter: (source: any) => Promise<T>;
+  adapter: (source: unknown) => Promise<T>;
 }
 
-export interface AbstractRegistry {
-  [key: string]: Request<any>;
-}
+export type AbstractRegistry = Record<string, Request<unknown>>;
 
 // use snake style, since the all return object use snake style.
 export interface RequestRegistry extends AbstractRegistry {
-  auth_params: Request<any>;
+  auth_params: Request<unknown>;
   auth_accounts: Request<PaginabledAccounts>;
   auth_account_address: Request<{ account: AuthAccount }>;
 
@@ -59,7 +64,7 @@ export interface RequestRegistry extends AbstractRegistry {
   bank_balances_address: Request<PaginatedBalances>;
   bank_denoms_metadata: Request<PaginatedDenomMetadata>;
   bank_supply: Request<PaginatedSupply>;
-  bank_supply_by_denom: Request<{ amount: Coin }>;
+  bank_supply_by_denom: Request<{ amount?: Coin }>;
 
   distribution_params: Request<DistributionParams>;
   distribution_validator_commission: Request<{
@@ -114,14 +119,14 @@ export interface RequestRegistry extends AbstractRegistry {
   }>;
   staking_validators_delegations_unbonding_delegations: Request<PaginatedUnbonding>;
 
-  base_tendermint_abci_query: Request<any>;
+  base_tendermint_abci_query: Request<unknown>;
   base_tendermint_block_latest: Request<Block>;
   base_tendermint_block_height: Request<Block>;
   base_tendermint_node_info: Request<NodeInfo>;
   base_tendermint_validatorsets_latest: Request<PaginatedTendermintValidator>;
   base_tendermint_validatorsets_height: Request<PaginatedTendermintValidator>;
 
-  params: Request<{ param: any }>;
+  params: Request<{ param: unknown }>;
 
   group_groups: Request<PaginatedGroups>;
   group_groups_by_admin: Request<PaginatedGroups>;
@@ -134,10 +139,10 @@ export interface RequestRegistry extends AbstractRegistry {
   tx_txs_block: Request<Tx>;
   tx_hash: Request<{ tx: Tx; tx_response: TxResponse }>;
 
-  ibc_app_ica_controller_params: Request<any>;
-  ibc_app_ica_host_params: Request<any>;
-  ibc_app_transfer_escrow_address: Request<any>;
-  ibc_app_transfer_denom_traces: Request<any>;
+  ibc_app_ica_controller_params: Request<unknown>;
+  ibc_app_ica_host_params: Request<unknown>;
+  ibc_app_transfer_escrow_address: Request<unknown>;
+  ibc_app_transfer_denom_traces: Request<unknown>;
   ibc_app_transfer_denom_traces_hash: Request<{
     denom_trace: DenomTrace;
   }>;
@@ -150,27 +155,37 @@ export interface RequestRegistry extends AbstractRegistry {
       revision_height: string;
     };
   }>;
-  ibc_core_channel_channels_acknowledgements: Request<any>;
+  ibc_core_channel_channels_acknowledgements: Request<unknown>;
   ibc_core_channel_connections_channels: Request<PaginatedIBCChannels>;
   ibc_core_connection_connections: Request<PaginatedIBCConnections>;
   ibc_core_connection_connections_connection_id: Request<ConnectionWithProof>;
   ibc_core_connection_connections_connection_id_client_state: Request<ClientStateWithProof>;
-  interchain_security_ccv_provider_validator_consumer_addr: Request<{ consumer_address: string }>;
-  interchain_security_provider_opted_in_validators: Request<{ validators_provider_addresses: string[] }>;
+  interchain_security_ccv_provider_validator_consumer_addr: Request<{
+    consumer_address: string;
+  }>;
+  interchain_security_provider_opted_in_validators: Request<{
+    validators_provider_addresses: string[];
+  }>;
   interchain_security_consumer_validators: Request<{
-    validators: { provider_address: string; consumer_key: { ed25519: string }; power: string }[];
+    validators: {
+      provider_address: string;
+      consumer_key: { ed25519: string };
+      power: string;
+    }[];
   }>;
 }
 
-export function adapter<T>(source: any): Promise<T> {
-  return source;
+// The wire data is passed through as the declared type, unchecked.
+export function adapter<T>(source: unknown): Promise<T> {
+  return source as Promise<T>;
 }
 
-export interface ApiProfileRegistry {
-  [key: string]: RequestRegistry;
-}
+export type ApiProfileRegistry = Record<string, RequestRegistry>;
 
-export function withCustomRequest<T extends RequestRegistry>(target: T, source?: Partial<T>): T {
+export function withCustomRequest<T extends RequestRegistry>(
+  target: T,
+  source?: Partial<T>
+): T {
   return source ? Object.assign({}, target, source) : target;
 }
 
@@ -179,14 +194,22 @@ export const VERSION_REGISTRY: ApiProfileRegistry = {};
 // ChainName Profile Registory
 export const NAME_REGISTRY: ApiProfileRegistry = {};
 
-export function registryVersionProfile(version: string, requests: RequestRegistry) {
+export function registryVersionProfile(
+  version: string,
+  requests: RequestRegistry
+) {
   VERSION_REGISTRY[version] = requests;
 }
 
-export function registryChainProfile(version: string, requests: RequestRegistry) {
+export function registryChainProfile(
+  version: string,
+  requests: RequestRegistry
+) {
   NAME_REGISTRY[version] = requests;
 }
-export function findApiProfileByChain(name: string): RequestRegistry {
+export function findApiProfileByChain(
+  name: string
+): RequestRegistry | undefined {
   const url = NAME_REGISTRY[name];
   // if (!url) {
   //   throw new Error(`Unsupported version or name: ${name}`);
@@ -194,9 +217,11 @@ export function findApiProfileByChain(name: string): RequestRegistry {
   return url;
 }
 
-export function findApiProfileBySDKVersion(version: string): RequestRegistry | undefined {
+export function findApiProfileBySDKVersion(
+  version: string
+): RequestRegistry | undefined {
   let closestVersion: string | null = null;
-  const chain_version = version.match(/(\d+\.\d+\.?\d*)/g) || [''];
+  const chain_version = version.match(/(\d+\.\d+\.?\d*)/g) ?? [''];
   for (const k in VERSION_REGISTRY) {
     const key = k.replace('v', '');
     if (semver.lte(key, chain_version[0])) {

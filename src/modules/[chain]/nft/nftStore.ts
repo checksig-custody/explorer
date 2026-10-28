@@ -1,7 +1,12 @@
 import { defineStore } from 'pinia';
 
 import { useBlockchain } from '@/stores';
-import { DEFAULT, NFTRestClient, type PageinatedClasses, type PageinatedNFTs } from './types';
+import {
+  DEFAULT,
+  NFTRestClient,
+  type PageinatedClasses,
+  type PageinatedNFTs,
+} from './types';
 
 export const useNFTModule = defineStore('module-nft', {
   state: () => {

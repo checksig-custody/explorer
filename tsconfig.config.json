@@ -1,13 +1,45 @@
 {
-  "extends": "@vue/tsconfig/tsconfig.node.json",
-  "include": [
-    "vite.config.*",
-    "vitest.config.*",
-    "cypress.config.*",
-    "playwright.config.*"
-  ],
   "compilerOptions": {
-    "composite": true,
-    "types": ["node"]
-  }
+    "target": "ES2024",
+    "lib": ["ES2024", "DOM"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "types": ["node"],
+    // These packages ship types that "exports" hides from Bundler resolution.
+    "paths": {
+      "vite-plugin-vue-layouts": [
+        "./node_modules/vite-plugin-vue-layouts/dist/index.d.ts"
+      ],
+      "unplugin-vue-define-options/vite": [
+        "./node_modules/unplugin-vue-define-options/dist/vite.d.ts"
+      ]
+    },
+
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "useUnknownInCatchVariables": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "esModuleInterop": true,
+    "allowImportingTsExtensions": true,
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+
+    // Third-party declarations only; our own files are fully checked.
+    "skipLibCheck": true
+  },
+  "include": [
+    "vite.config.ts",
+    "eslint.config.mjs",
+    "postcss.config.js",
+    "tailwind.config.ts",
+    "daisyui-themes.d.ts"
+  ]
 }

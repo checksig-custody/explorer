@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { isBech32Address } from '@/libs/utils';
+import { isBech32Address, orDefault } from '@/libs/utils';
 import { useBlockchain, useFormatter } from '@/stores';
 import { MdPreview } from 'md-editor-v3';
 import { sanitizeMarkdownHtml } from '@/libs/sanitize';
@@ -8,20 +8,32 @@ import { computed, onMounted, ref } from 'vue';
 
 import { fromBase64, toHex } from '@cosmjs/encoding';
 
-import { registry as nameMatcha } from '@leapwallet/name-matcha';
+import {
+  registry as nameMatcha,
+  type NameServiceLookupResult,
+} from '@leapwallet/name-matcha';
 
 const chainStore = useBlockchain();
-const props = defineProps(['value']);
+// Strings, other primitives, or the empty array ArrayElement hands over.
+const props = defineProps<{
+  value: string | number | boolean | bigint | unknown[] | null | undefined;
+}>();
 const format = useFormatter();
 function isMD() {
-  if (props.value && (String(props.value).indexOf('\n') > -1 || String(props.value).indexOf('\\n') > -1)) {
+  if (
+    props.value &&
+    (String(props.value).includes('\n') || String(props.value).includes('\\n'))
+  ) {
     return true;
   }
   return false;
 }
 
 function isAddress() {
-  return isBech32Address(props.value) && String(props.value).indexOf('valoper1') === -1;
+  return (
+    isBech32Address(props.value ? String(props.value) : undefined) &&
+    !String(props.value).includes('valoper1')
+  );
 }
 
 const text = computed(() => {
@@ -29,10 +41,11 @@ const text = computed(() => {
   const v = String(props.value);
   switch (true) {
     case v.length === 28 && v.endsWith('='): {
-      return format.validator(v) || v;
+      return orDefault(format.validator(v), v);
     }
     // 2023-06-12T03:09:38.253756368Z
-    case v.search(/^[1-9]\d{3}-\d{1,2}-\d{1,2}T\d{1,2}:\d{2}:\d{2}[.\d]*Z$/g) > -1: {
+    case v.search(/^[1-9]\d{3}-\d{1,2}-\d{1,2}T\d{1,2}:\d{2}:\d{2}[.\d]*Z$/g) >
+      -1: {
       return new Date(v).toLocaleString(navigator.language);
     }
     case toHexOutput.value:
@@ -41,40 +54,55 @@ const text = computed(() => {
   return v;
 });
 
-const names = ref([] as { name?: any; provider?: string }[]);
+const names = ref<{ name: NameServiceLookupResult | null; provider: string }[]>(
+  []
+);
 
 onMounted(() => {
   if (isAddress())
-    nameMatcha.lookupAll(props.value).then((re) => {
+    void nameMatcha.lookupAll(String(props.value)).then((re) => {
       names.value = Object.keys(re)
-        .map((key) => ({ name: re[key], provider: key }))
+        .map((key) => ({ name: re[key] ?? null, provider: key }))
         .filter((x) => x.name);
     });
 });
 const toHexOutput = ref(false);
 const isConvertable = computed(() => {
-  return String(props.value).endsWith('=') && props.value.length !== 28;
+  return String(props.value).endsWith('=') && String(props.value).length !== 28;
 });
 </script>
 <template>
   <!-- Chain text is untrusted: mermaid and echarts run code outside sanitize. -->
-  <MdPreview v-if="isMD()" :model-value="format.multiLine(value)" :sanitize="sanitizeMarkdownHtml" :no-mermaid="true" :no-echarts="true" class="md-editor-recover"></MdPreview>
+  <MdPreview
+    v-if="isMD()"
+    :model-value="format.multiLine(String(value))"
+    :sanitize="sanitizeMarkdownHtml"
+    :no-mermaid="true"
+    :no-echarts="true"
+    class="md-editor-recover"
+  />
   <span v-else-if="isAddress()" class="flex">
-    <RouterLink :to="`/${chainStore.chainName}/account/${text}`">{{ text }}</RouterLink>
-    <div v-for="{ name, provider } in names">
+    <RouterLink :to="`/${chainStore.chainName}/account/${text}`">{{
+      text
+    }}</RouterLink>
+    <div v-for="{ name, provider } in names" :key="provider">
       <span
         class="text-xs truncate relative py-1 px-2 p2-4 w-fit ml-2 rounded text-success tooltip"
         :data-tip="provider"
         :title="provider"
       >
-        <span class="inset-x-0 inset-y-0 opacity-10 absolute bg-success"></span>
+        <span class="inset-x-0 inset-y-0 opacity-10 absolute bg-success" />
         <button>{{ name }}</button>
       </span>
     </div>
   </span>
   <span v-else class="flex"
     ><span class="break-words max-w-5xl">{{ text }}</span>
-    <span v-if="isConvertable" @click="toHexOutput = !toHexOutput" class="ml-2 cursor-pointer">
+    <span
+      v-if="isConvertable"
+      class="ml-2 cursor-pointer"
+      @click="toHexOutput = !toHexOutput"
+    >
       <svg
         xmlns="http://www.w3.org/2000/svg"
         fill="none"

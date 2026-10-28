@@ -3,7 +3,7 @@ import type { Coin, PaginatedResponse } from './common';
 export interface GovParams {
   voting_params: {
     voting_period: string;
-    proposal_voting_periods: any[];
+    proposal_voting_periods: unknown[];
     expedited_voting_period: string;
   };
   deposit_params: {
@@ -25,25 +25,28 @@ export interface GovProposal {
   summary?: string;
   proposal_id: string;
   metadata?: string;
-  content: {
+  // Absent when the proposal carries no message.
+  content?: {
     '@type': string;
     title?: string;
     description?: string;
-    current?: any[];
-    changes?: any[];
-    params?: any[];
+    current?: unknown[];
+    changes?: { subspace: string; key: string; value?: string }[];
+    params?: unknown[];
     plan?: {
       height?: string | number;
       time?: string | number;
     };
   };
   status: string;
-  final_tally_result: {
-    yes: string;
-    abstain: string;
-    no: string;
-    no_with_veto: string;
-  };
+  final_tally_result?:
+    | {
+        yes: string;
+        abstain: string;
+        no: string;
+        no_with_veto: string;
+      }
+    | undefined;
   submit_time: string;
   deposit_end_time: string;
   total_deposit: Coin[];

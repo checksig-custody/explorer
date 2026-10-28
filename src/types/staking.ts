@@ -51,7 +51,7 @@ export interface Delegation {
   balance: Coin;
 }
 
-export interface Redelegation {}
+export type Redelegation = Record<string, unknown>;
 
 export interface StakingParam {
   params: {

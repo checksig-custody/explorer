@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 import ApexCharts from 'vue3-apexcharts';
-import { computed, ref } from '@vue/reactivity';
+import { computed } from 'vue';
 import { useBaseStore } from '@/stores';
+import { defined } from '@/libs/utils';
 
 const baseStore = useBaseStore();
 
@@ -38,7 +39,9 @@ const series = computed(() => {
   return [
     {
       name: 'Txs',
-      data: baseStore.recents?.map((x) => x.block.data.txs.length) || [],
+      data: baseStore.recents.map(
+        (x) => defined(x.block.data, 'txs').txs.length
+      ),
     },
   ];
 });

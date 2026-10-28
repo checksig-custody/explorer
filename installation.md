@@ -8,9 +8,9 @@
 ```sh
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.4/install.sh | bash
 ```
-2. Install the latest version of NodeJS
+2. Install NodeJS 24, the version in `.nvmrc`
 ```sh
-nvm install node # "node" is an alias for the latest version
+nvm install # reads .nvmrc
 ```
 3. Install the latest version of NPM for Node
 ```sh
@@ -25,12 +25,12 @@ npm install --global yarn
 
 1. Running with yarn
 ```sh
-yarn --ignore-engines && yarn serve
+yarn install --frozen-lockfile && yarn serve
 ```
 
 2. Building for web servers, like nginx, apache
 ```sh
-yarn --ignore-engines && yarn build
+yarn install --frozen-lockfile && yarn build
 cp -r ./dist/* <ROOT_OF_WEB_SERVER>
 ```
 

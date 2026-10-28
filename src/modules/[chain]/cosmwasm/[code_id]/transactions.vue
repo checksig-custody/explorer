@@ -21,6 +21,7 @@ import type { ContractInfo, PaginabledContractStates } from '../types';
 import { JsonViewer } from 'vue3-json-viewer';
 // if you used v1.0.5 or latster ,you should add import "vue3-json-viewer/dist/index.css"
 import 'vue3-json-viewer/dist/index.css';
+import { orDefault } from '@/libs/utils';
 
 const chainStore = useBlockchain();
 const baseStore = useBaseStore();
@@ -31,7 +32,11 @@ const route = useRoute();
 const page = ref(new PageRequest());
 const pageRequest = ref(new PageRequest());
 
-const txs = ref<PaginatedTxs>({ txs: [], tx_responses: [], pagination: { total: '0' } });
+const txs = ref<PaginatedTxs>({
+  txs: [],
+  tx_responses: [],
+  pagination: { total: '0' },
+});
 
 const dialog = useTxDialog();
 const info = ref({} as ContractInfo);
@@ -39,15 +44,18 @@ const state = ref({} as PaginabledContractStates);
 const selected = ref('');
 const balances = ref({} as PaginatedBalances);
 
-const contractAddress = String(route.query.contract);
+const contractAddress = String(route.query['contract']);
 
-const history = JSON.parse(localStorage.getItem('contract_history') || '{}');
+const history = JSON.parse(
+  orDefault(localStorage.getItem('contract_history'), '{}')
+) as Record<string, string[] | undefined>;
 
-if (history[chainStore.chainName]) {
-  if (!history[chainStore.chainName].includes(contractAddress)) {
-    history[chainStore.chainName].push(contractAddress);
-    if (history[chainStore.chainName].length > 10) {
-      history[chainStore.chainName].shift();
+const chainHistory = history[chainStore.chainName];
+if (chainHistory) {
+  if (!chainHistory.includes(contractAddress)) {
+    chainHistory.push(contractAddress);
+    if (chainHistory.length > 10) {
+      chainHistory.shift();
     }
   }
 } else {
@@ -57,22 +65,29 @@ localStorage.setItem('contract_history', JSON.stringify(history));
 
 onMounted(() => {
   const address = contractAddress;
-  wasmStore.wasmClient.getWasmContracts(address).then((x) => {
+  void wasmStore.wasmClient.getWasmContracts(address).then((x) => {
     info.value = x.contract_info;
   });
-  chainStore.rpc
-    .getTxs("?order_by=2&events=execute._contract_address='{address}'", { address }, page.value)
+  void chainStore.rpc
+    .getTxs(
+      "?order_by=2&events=execute._contract_address='{address}'",
+      { address },
+      page.value
+    )
     .then((res) => {
       txs.value = res;
     });
 
-  wasmStore.wasmClient.getWasmContractQueries(contractAddress).then((res) => {
-    console.log('queries: ', res);
-    queries.value = res;
-    if (res && res.length > 0) {
-      selectQuery(res[0]);
-    }
-  });
+  void wasmStore.wasmClient
+    .getWasmContractQueries(contractAddress)
+    .then((res) => {
+      console.log('queries: ', res);
+      queries.value = res;
+      const [first] = res;
+      if (first !== undefined) {
+        selectQuery(first);
+      }
+    });
 
   showFunds();
   showState();
@@ -80,36 +95,37 @@ onMounted(() => {
 
 function pageload(pageNum: number) {
   page.value.setPage(pageNum);
-  const address = String(route.query.contract);
-  chainStore.rpc
-    .getTxs("?order_by=2&events=execute._contract_address='{address}'", { address }, page.value)
+  const address = String(route.query['contract']);
+  void chainStore.rpc
+    .getTxs(
+      "?order_by=2&events=execute._contract_address='{address}'",
+      { address },
+      page.value
+    )
     .then((res) => {
       txs.value = res;
     });
 }
 
 function showFunds() {
-  const address = String(route.query.contract);
-  chainStore.rpc.getBankBalances(address).then((res) => {
+  const address = String(route.query['contract']);
+  void chainStore.rpc.getBankBalances(address).then((res) => {
     balances.value = res;
   });
 }
 function showState() {
-  const address = String(route.query.contract);
+  const address = String(route.query['contract']);
   selected.value = address;
   pageloadState(1);
 }
 
 function pageloadState(p: number) {
   pageRequest.value.setPage(p);
-  wasmStore.wasmClient.getWasmContractStates(selected.value, pageRequest.value).then((x) => {
-    state.value = x;
-  });
-}
-
-function showQuery() {
-  query.value = '';
-  result.value = '';
+  void wasmStore.wasmClient
+    .getWasmContractStates(selected.value, pageRequest.value)
+    .then((x) => {
+      state.value = x;
+    });
 }
 
 function selectQuery(method: string) {
@@ -119,21 +135,21 @@ function selectQuery(method: string) {
 function queryContract() {
   try {
     if (selectedRadio.value === 'raw') {
-      wasmStore.wasmClient
+      void wasmStore.wasmClient
         .getWasmContractRawQuery(contractAddress, query.value)
         .then((x) => {
           result.value = x;
         })
-        .catch((err) => {
+        .catch((err: unknown) => {
           result.value = err;
         });
     } else {
-      wasmStore.wasmClient
+      void wasmStore.wasmClient
         .getWasmContractSmartQuery(contractAddress, query.value)
         .then((x) => {
           result.value = x;
         })
-        .catch((err) => {
+        .catch((err: unknown) => {
           result.value = err;
         });
     }
@@ -145,23 +161,31 @@ function queryContract() {
 
 const selectedRadio = ref('smart');
 const query = ref('');
-const result = ref({});
+const result = ref<unknown>({});
 const queries = ref<string[]>([]);
 const tab = ref('detail');
 </script>
 <template>
   <div>
     <div class="tabs tabs-boxed bg-transparent mb-4">
-      <a class="tab text-gray-400 uppercase" :class="{ 'tab-active': tab === 'detail' }" @click="tab = 'detail'">{{
-        $t('cosmwasm.contract_detail')
-      }}</a>
+      <a
+        class="tab text-gray-400 uppercase"
+        :class="{ 'tab-active': tab === 'detail' }"
+        @click="tab = 'detail'"
+        >{{ $t('cosmwasm.contract_detail') }}</a
+      >
       <a
         class="tab text-gray-400 uppercase"
         :class="{ 'tab-active': tab === 'transaction' }"
         @click="tab = 'transaction'"
         >Transactions</a
       >
-      <a class="tab text-gray-400 uppercase" :class="{ 'tab-active': tab === 'query' }" @click="tab = 'query'">Query</a>
+      <a
+        class="tab text-gray-400 uppercase"
+        :class="{ 'tab-active': tab === 'query' }"
+        @click="tab = 'query'"
+        >Query</a
+      >
     </div>
 
     <div v-show="tab === 'detail'">
@@ -177,12 +201,15 @@ const tab = ref('detail');
           <div class="text-lg">{{ $t('cosmwasm.contract_balances') }}</div>
         </div>
         <ul class="menu mt-5">
-          <li v-for="b in balances.balances">
+          <li v-for="(b, bi) in balances.balances" :key="bi">
             <a class="flex justify-between"
               ><span>{{ format.formatToken(b) }}</span> {{ b.amount }}
             </a>
           </li>
-          <li v-if="balances.pagination?.total === '0'" class="my-10 text-center">
+          <li
+            v-if="balances.pagination?.total === '0'"
+            class="my-10 text-center"
+          >
             {{ $t('cosmwasm.no_escrowed_assets') }}
           </li>
         </ul>
@@ -207,7 +234,11 @@ const tab = ref('detail');
             sort
             :expand-depth="5"
           />
-          <PaginationBar :limit="pageRequest.limit" :total="state.pagination?.total" :callback="pageloadState" />
+          <PaginationBar
+            :limit="pageRequest.limit"
+            :total="state.pagination?.total"
+            :callback="pageloadState"
+          />
         </div>
       </div>
 
@@ -219,7 +250,9 @@ const tab = ref('detail');
         <label
           for="wasm_migrate_contract"
           class="btn btn-primary btn-xs text-xs mr-2"
-          @click="dialog.open('wasm_migrate_contract', { contract: contractAddress })"
+          @click="
+            dialog.open('wasm_migrate_contract', { contract: contractAddress })
+          "
         >
           {{ $t('cosmwasm.btn_migrate') }}
         </label>
@@ -227,7 +260,9 @@ const tab = ref('detail');
         <label
           for="wasm_update_admin"
           class="btn btn-primary btn-xs text-xs mr-2"
-          @click="dialog.open('wasm_update_admin', { contract: contractAddress })"
+          @click="
+            dialog.open('wasm_update_admin', { contract: contractAddress })
+          "
         >
           {{ $t('cosmwasm.btn_update_admin') }}
         </label>
@@ -235,7 +270,9 @@ const tab = ref('detail');
         <label
           for="wasm_clear_admin"
           class="btn btn-primary btn-xs text-xs mr-2"
-          @click="dialog.open('wasm_clear_admin', { contract: contractAddress })"
+          @click="
+            dialog.open('wasm_clear_admin', { contract: contractAddress })
+          "
         >
           {{ $t('cosmwasm.btn_clear_admin') }}
         </label>
@@ -243,14 +280,19 @@ const tab = ref('detail');
         <label
           for="wasm_execute_contract"
           class="btn btn-primary btn-xs text-xs mr-2"
-          @click="dialog.open('wasm_execute_contract', { contract: contractAddress })"
+          @click="
+            dialog.open('wasm_execute_contract', { contract: contractAddress })
+          "
         >
           {{ $t('cosmwasm.btn_execute') }}
         </label>
       </div>
     </div>
 
-    <div v-show="tab === 'transaction'" class="bg-base-100 px-4 pt-3 pb-4 rounded mb-4 shadow">
+    <div
+      v-show="tab === 'transaction'"
+      class="bg-base-100 px-4 pt-3 pb-4 rounded mb-4 shadow"
+    >
       <h2 class="card-title truncate w-full mt-4 mb-2">Transactions</h2>
       <table class="table">
         <thead class="bg-base-200">
@@ -262,17 +304,23 @@ const tab = ref('detail');
           </tr>
         </thead>
         <tbody>
-          <tr v-for="resp in txs?.tx_responses">
+          <tr v-for="(resp, ri) in txs.tx_responses" :key="ri">
             <td>{{ resp.height }}</td>
             <td>
               <div class="text-xs truncate text-primary dark:invert">
-                <RouterLink :to="`/${chainStore.chainName}/tx/${resp.txhash}`">{{ resp.txhash }} </RouterLink>
+                <RouterLink :to="`/${chainStore.chainName}/tx/${resp.txhash}`"
+                  >{{ resp.txhash }}
+                </RouterLink>
               </div>
             </td>
             <td>
               <div class="flex">
                 {{ format.messages(resp.tx.body.messages) }}
-                <Icon v-if="resp.code === 0" icon="mdi-check" class="text-success text-lg" />
+                <Icon
+                  v-if="resp.code === 0"
+                  icon="mdi-check"
+                  class="text-success text-lg"
+                />
                 <Icon v-else icon="mdi-multiply" class="text-error text-lg" />
               </div>
             </td>
@@ -280,18 +328,30 @@ const tab = ref('detail');
           </tr>
         </tbody>
       </table>
-      <PaginationBar :limit="page.limit" :total="txs.pagination?.total" :callback="pageload" />
+      <PaginationBar
+        :limit="page.limit"
+        :total="txs.pagination?.total"
+        :callback="pageload"
+      />
     </div>
 
     <div v-show="tab === 'query'">
       <div class="bg-base-100 px-4 pt-3 pb-4 rounded mb-4 shadow">
         <div class="flex items-center justify-between px-3 pt-2 mb-4">
-          <div class="text-lg font-semibold">{{ $t('cosmwasm.suggested_messages') }}</div>
+          <div class="text-lg font-semibold">
+            {{ $t('cosmwasm.suggested_messages') }}
+          </div>
         </div>
         <div class="px-3">
           <div>
             <div>
-              <span v-for="q in queries" class="btn btn-xs mx-1" @click="selectQuery(q)">{{ q }}</span>
+              <span
+                v-for="q in queries"
+                :key="q"
+                class="btn btn-xs mx-1"
+                @click="selectQuery(q)"
+                >{{ q }}</span
+              >
             </div>
             <textarea
               v-model="query"
@@ -301,7 +361,10 @@ const tab = ref('detail');
             />
 
             <div class="mt-4 mb-4 text-center">
-              <button class="btn btn-primary btn-sm px-4 text-white" @click="queryContract()">
+              <button
+                class="btn btn-primary btn-sm px-4 text-white"
+                @click="queryContract()"
+              >
                 {{ $t('cosmwasm.btn_query') }}
               </button>
             </div>
@@ -313,12 +376,20 @@ const tab = ref('detail');
     <div v-show="tab === 'execute'">
       <div class="bg-base-100 px-4 pt-3 pb-4 rounded mb-4 shadow">
         <div class="flex items-center justify-between px-3 pt-2 mb-4">
-          <div class="text-lg font-semibold">{{ $t('cosmwasm.suggested_messages') }}</div>
+          <div class="text-lg font-semibold">
+            {{ $t('cosmwasm.suggested_messages') }}
+          </div>
         </div>
         <div class="px-3">
           <div>
             <div>
-              <span v-for="q in queries" class="btn btn-xs mx-1" @click="selectQuery(q)">{{ q }}</span>
+              <span
+                v-for="q in queries"
+                :key="q"
+                class="btn btn-xs mx-1"
+                @click="selectQuery(q)"
+                >{{ q }}</span
+              >
             </div>
             <textarea
               v-model="query"
@@ -328,7 +399,10 @@ const tab = ref('detail');
             />
 
             <div class="mt-4 mb-4 text-center">
-              <button class="btn btn-primary btn-sm px-4 text-white" @click="queryContract()">
+              <button
+                class="btn btn-primary btn-sm px-4 text-white"
+                @click="queryContract()"
+              >
                 {{ $t('cosmwasm.btn_execute') }}
               </button>
             </div>
@@ -337,7 +411,10 @@ const tab = ref('detail');
       </div>
     </div>
 
-    <div v-if="tab === 'execute' || tab === 'query'" class="bg-base-100 px-4 pt-3 pb-4 rounded mb-4 shadow">
+    <div
+      v-if="tab === 'execute' || tab === 'query'"
+      class="bg-base-100 px-4 pt-3 pb-4 rounded mb-4 shadow"
+    >
       <div class="flex items-center justify-between px-3 pt-2 mb-4">
         <div class="text-lg font-semibold">{{ $t('cosmwasm.result') }}</div>
       </div>

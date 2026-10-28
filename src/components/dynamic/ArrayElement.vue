@@ -5,9 +5,7 @@ import TextElement from './TextElement.vue';
 import ArrayCoinElement from './ArrayCoinElement.vue';
 import ArrayStringElement from './ArrayStringElement.vue';
 
-const props = defineProps({
-  value: { type: Array<Object> },
-});
+const props = defineProps<{ value: unknown[] | undefined }>();
 
 function selectByElement() {
   if (props.value && props.value.length > 0) {
@@ -17,7 +15,7 @@ function selectByElement() {
         return ArrayBytesElement;
       case typeof first === 'string':
         return ArrayStringElement;
-      case Object.keys(first).includes('denom'):
+      case Object.keys(first as object).includes('denom'):
         return ArrayCoinElement;
       default:
         return ArrayObjectElement;
@@ -27,5 +25,5 @@ function selectByElement() {
 }
 </script>
 <template>
-  <Component :is="selectByElement()" :value="props.value"></Component>
+  <Component :is="selectByElement()" :value="props.value" />
 </template>

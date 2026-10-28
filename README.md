@@ -21,13 +21,17 @@ upstream project (see [LICENSE](./LICENSE)).
 
 ## Development
 
-Package manager is **yarn**.
+Package manager is **yarn**; Node is 24 (`.nvmrc`).
 
 ```sh
-yarn --ignore-engines    # install
+yarn install --frozen-lockfile  # install
 yarn dev                 # vite dev server
-yarn build               # type-check + production build
+yarn build               # typecheck + production build
 yarn preview             # preview the production build
+yarn typecheck           # vue-tsc --noEmit
+yarn lint                # eslint
+yarn format:check        # prettier --check .
+yarn test                # node --test
 yarn format              # prettier --write .
 ```
 

@@ -3,3 +3,6 @@ dist/
 *.md
 auto-imports.d.ts
 public/vendor/
+components.d.ts
+# Chain data, validated by the config-check workflow, not source.
+chains/

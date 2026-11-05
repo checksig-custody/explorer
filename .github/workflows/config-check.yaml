@@ -19,6 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Git Checkout Latest
-      uses: actions/checkout@v3
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
     - name: Check Chain Configs
       uses: ping-pub/ping-dashboard-config-checker@6f8ff6a07801f9a4082cd9b4fdc1e8d47f341519 # v1.0

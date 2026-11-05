@@ -1,30 +1,43 @@
 <script lang="ts" setup>
 import AdBanner from '@/components/ad/AdBanner.vue';
 import { get } from '@/libs';
-import { useBlockchain, useFormatter, useGovStore } from '@/stores';
+import { defined, orDefault } from '@/libs/utils';
+import { useBlockchain, useFormatter } from '@/stores';
 import { ref, onMounted, computed } from 'vue';
 
 const chainStore = useBlockchain();
 const format = useFormatter();
 interface FaucetResponse {
   status: string;
-  result: any;
+  result: {
+    balance?: { amount: string; denom: string }[];
+    address?: string;
+    txhash: string;
+  };
   message: string;
 }
 
 const address = ref('');
-const faucet = ref('');
-const balances = ref([]);
+const faucet = ref<string | undefined>('');
+const balances = ref<{ amount: string; denom: string }[] | undefined>([]);
 const faucetModal = ref(false);
 const ret = ref({} as FaucetResponse);
 const configChecker = ref('');
 
 const checklist = computed(() => {
-  const endpoint = chainStore.current?.endpoints?.rest;
-  const bs = balances.value.length > 0 && balances.value.findIndex((v: any) => v.amount <= 10) === -1;
+  const rest = chainStore.current?.endpoints.rest;
+  const list = defined(balances.value, 'length');
+  const bs =
+    list.length > 0 && list.findIndex((v) => Number(v.amount) <= 10) === -1;
   return [
-    { title: 'Rest Endpoint', status: endpoint && endpoint[0].address !== '' },
-    { title: 'Faucet Configured', status: chainStore.current?.faucet !== undefined },
+    {
+      title: 'Rest Endpoint',
+      status: rest && defined(rest[0], 'address').address !== '',
+    },
+    {
+      title: 'Faucet Configured',
+      status: chainStore.current?.faucet !== undefined,
+    },
     { title: 'Faucet Account', status: faucet.value !== '' },
     { title: 'Faucet Balance', status: bs },
   ];
@@ -39,39 +52,42 @@ const notReady = computed(() => {
 
 const validAddress = computed(() => {
   if (!address.value) return true;
-  return address.value.startsWith(chainStore.current?.bech32Prefix || '1');
+  return address.value.startsWith(
+    orDefault(chainStore.current?.bech32Prefix, '1')
+  );
 });
 
 const faucetUrl = computed(() => {
-  return `https://faucet.ping.pub/${chainStore.current?.chainName}`;
+  return `https://faucet.ping.pub/${String(chainStore.current?.chainName)}`;
   // return `http://localhost:3000/${chainStore.current?.chainName}`;
 });
 
 function claim() {
   ret.value = {} as FaucetResponse;
-  const prefix = chainStore.current?.bech32Prefix || 'cosmos';
   if (!address.value) return;
   faucetModal.value = true;
-  // @ts-ignore
-  get(`${faucetUrl.value}/send/${address.value}`).then((res: FaucetResponse) => {
+  void get(`${faucetUrl.value}/send/${address.value}`).then((res) => {
     console.log(res);
-    ret.value = res;
+    ret.value = res as FaucetResponse;
   });
 }
 
 function balance() {
-  get(`${faucetUrl.value}/balance`).then((res) => {
+  void get(`${faucetUrl.value}/balance`).then((x) => {
+    const res = x as FaucetResponse;
     if (res.status === 'error') {
       configChecker.value = res.message;
       return;
     }
-    balances.value = res.result?.balance;
-    faucet.value = res.result?.address;
+    // the node's reply may have no result
+    const result = (res as Partial<FaucetResponse>).result;
+    balances.value = result?.balance;
+    faucet.value = result?.address;
   });
 }
 
 onMounted(() => {
-  if (chainStore.current && chainStore.current.faucet) {
+  if (chainStore.current?.faucet) {
     balance();
   }
 });
@@ -79,7 +95,11 @@ onMounted(() => {
 <template>
   <div>
     <div class="flex flex-col items-center justify-center mb-6 mt-14 gap-4">
-      <img v-if="chainStore.current?.logo" :src="`${chainStore.current?.logo}`" class="w-16 rounded-md" />
+      <img
+        v-if="chainStore.current?.logo"
+        :src="`${chainStore.current?.logo}`"
+        class="w-16 rounded-md"
+      />
       <div v-else class="w-16 rounded-full">
         <svg
           version="1.0"
@@ -87,7 +107,12 @@ onMounted(() => {
           viewBox="0 0 150.000000 132.000000"
           preserveAspectRatio="xMidYMid meet"
         >
-          <g transform="translate(0.000000,132.000000) scale(0.100000,-0.100000)" fill="#666CFF" class="" stroke="none">
+          <g
+            transform="translate(0.000000,132.000000) scale(0.100000,-0.100000)"
+            fill="#666CFF"
+            class=""
+            stroke="none"
+          >
             <path
               d="M500 1310 l-125 -5 -182 -315 c-100 -173 -182 -321 -182 -329 -1 -7
             81 -159 181 -337 l183 -324 372 0 371 0 186 325 c102 179 186 330 186 337 0 7
@@ -111,19 +136,25 @@ onMounted(() => {
           </g>
         </svg>
       </div>
-      <h1 class="text-primary text-3xl md:!text-6xl font-bold capitalize">{{ chainStore.chainName }} Faucet</h1>
+      <h1 class="text-primary text-3xl md:!text-6xl font-bold capitalize">
+        {{ chainStore.chainName }} Faucet
+      </h1>
     </div>
     <div class="bg-base-100 my-5 px-4 pt-3 pb-4 rounded shadow">
       <h2 class="card-title">Get Tokens</h2>
       <input
-        type="text"
         v-model="address"
+        type="text"
         class="mt-4 mb-4 w-full border border-gray-300 rounded-md p-2"
         :class="{ 'input-error': !validAddress }"
         :disabled="notReady"
         placeholder="Enter your address"
       />
-      <button class="btn btn-primary w-full bg-primary text-white" :disabled="notReady" @click="claim()">
+      <button
+        class="btn btn-primary w-full bg-primary text-white"
+        :disabled="notReady"
+        @click="claim()"
+      >
         Get Tokens
       </button>
     </div>
@@ -135,12 +166,12 @@ onMounted(() => {
       <div class="mt-4">
         <span class="text-base"> 1. Submit chain configuration</span>
         <div class="mockup-code bg-base-200 my-2 gap-4">
-          <div v-for="it in checklist">
+          <div v-for="it in checklist" :key="it.title">
             <pre><code class="text-gray-800 dark:invert">{{ it.title }}: </code>{{ it.status ? '✅' : '❌' }} </pre>
           </div>
 
           <pre class="text-xs text-red-500">{{ configChecker }}</pre>
-          <pre></pre>
+          <pre />
           <a
             class="btn-ghost text-white rounded-md p-2 ml-4"
             href="https://github.com/ping-pub/ping.pub/blob/main/faucet.md"
@@ -150,14 +181,21 @@ onMounted(() => {
 
         <span class="text-base"> 2. Fund the faucet account</span>
         <div class="mockup-code bg-base-200 my-2">
-          <pre data-prefix=">"><code class=" text-gray-800 dark:invert"> Faucet Address: {{ faucet }} </code></pre>
+          <pre
+            data-prefix=">"
+          ><code class=" text-gray-800 dark:invert"> Faucet Address: {{ faucet }} </code></pre>
           <pre
             data-prefix=">"
           ><code class="text-gray-800 dark:invert"> Balances: {{ format.formatTokens(balances) }} </code></pre>
         </div>
       </div>
     </div>
-    <input type="checkbox" v-model="faucetModal" id="my_modal_6" class="modal-toggle" />
+    <input
+      id="my_modal_6"
+      v-model="faucetModal"
+      type="checkbox"
+      class="modal-toggle"
+    />
     <div class="modal" role="dialog">
       <div class="modal-box">
         <div v-if="ret.status === 'error'">
@@ -167,13 +205,21 @@ onMounted(() => {
         <div v-else-if="ret.status === 'ok'">
           <h3 class="font-bold text-green-500">Token Sent!</h3>
           <div class="text-center mt-4">
-            <RouterLink :to="`/${chainStore.chainName}/tx/${ret.result.txhash}`">View Transaction</RouterLink>
+            <RouterLink :to="`/${chainStore.chainName}/tx/${ret.result.txhash}`"
+              >View Transaction</RouterLink
+            >
           </div>
         </div>
-        <h3 v-else class="font-bold text-lg">Processing <span class="loading loading-bars loading-sm"></span></h3>
+        <h3 v-else class="font-bold text-lg">
+          Processing <span class="loading loading-bars loading-sm" />
+        </h3>
 
         <div class="modal-action">
-          <label for="my_modal_6" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</label>
+          <label
+            for="my_modal_6"
+            class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+            >✕</label
+          >
         </div>
         <div class="py-2">
           <div>

@@ -1,17 +1,6 @@
-<script lang="ts" setup>
-import { computed } from 'vue';
-import { useRoute } from 'vue-router';
-const route = useRoute();
+<script lang="ts">
+import { defineComponent } from 'vue';
 
-const aa = computed(() => {
-  const hostname = location.hostname;
-  if (hostname === 'testnet.ping.pub') {
-    return '2396360';
-  } else if (hostname === 'ping.pub') {
-    return '2395639';
-  } else {
-    return '2396360';
-  }
-});
+// The ad slot is intentionally empty: it renders nothing.
+export default defineComponent({ render: () => null });
 </script>
-<template></template>

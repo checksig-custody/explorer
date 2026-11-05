@@ -1,15 +1,19 @@
-import { createI18n } from 'vue-i18n';
+import { createI18n, type VueI18nOptions } from 'vue-i18n';
+import { orDefault } from '@/libs/utils';
+
+type LocaleMessages = NonNullable<VueI18nOptions['messages']>[string];
 
 const messages = Object.fromEntries(
   Object.entries(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    import.meta.glob<{ default: any }>('./locales/*.json', { eager: true })
+    import.meta.glob<{ default: LocaleMessages }>('./locales/*.json', {
+      eager: true,
+    })
   ).map(([key, value]) => [key.slice(10, -5), value.default])
 );
 
 export default createI18n({
   legacy: false,
-  locale: localStorage.getItem('lang') || 'en',
+  locale: orDefault(localStorage.getItem('lang'), 'en'),
   fallbackLocale: 'en',
   messages,
 });

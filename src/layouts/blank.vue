@@ -5,7 +5,8 @@ export default defineComponent({
   setup() {
     const routerView = resolveComponent('router-view');
 
-    return () => h('div', { class: 'layout-wrapper layout-blank' }, h(routerView));
+    return () =>
+      h('div', { class: 'layout-wrapper layout-blank' }, h(routerView));
   },
 });
 </script>

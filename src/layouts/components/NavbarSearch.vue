@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { Icon } from '@iconify/vue';
-import { onMounted, ref } from 'vue';
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 import { useBlockchain } from '@/stores';
@@ -9,7 +9,6 @@ const blockStore = useBlockchain();
 let searchModalShow = ref(false);
 let searchQuery = ref('');
 let errorMessage = ref('');
-onMounted(() => {});
 
 function closeSearchModal() {
   searchModalShow.value = false;
@@ -18,7 +17,7 @@ function openSearchModal() {
   searchModalShow.value = true;
 }
 
-function preventClick(event: any) {
+function preventClick(event: Event) {
   event.preventDefault();
   event.stopPropagation();
 }
@@ -33,23 +32,23 @@ function confirm() {
   const txhash = /^[A-Z\d]{64}$/;
   const addr = /^[a-z\d]+1[a-z\d]{38,58}$/;
 
-  const current = blockStore?.current?.chainName || '';
-  const routeParams = vueRouters?.currentRoute?.value;
+  const current = blockStore.current?.chainName ?? '';
+  const routeParams = vueRouters.currentRoute.value;
 
-  if (!Object.values(routeParams?.params).includes(key)) {
+  if (!Object.values(routeParams.params).includes(key)) {
     if (height.test(key)) {
-      vueRouters.push({ path: `/${current}/block/${key}` });
+      void vueRouters.push({ path: `/${current}/block/${key}` });
       setTimeout(() => {
         closeSearchModal();
       }, 1000);
     } else if (txhash.test(key)) {
-      vueRouters.push({ path: `/${current}/tx/${key}` });
+      void vueRouters.push({ path: `/${current}/tx/${key}` });
       setTimeout(() => {
         closeSearchModal();
       }, 1000);
       //     this.$router.push({ name: 'transaction', params: { chain: c.chain_name, hash: key } })
     } else if (addr.test(key)) {
-      vueRouters.push({ path: `/${current}/account/${key}` });
+      void vueRouters.push({ path: `/${current}/account/${key}` });
       setTimeout(() => {
         closeSearchModal();
       }, 1000);
@@ -61,8 +60,14 @@ function confirm() {
 </script>
 <template>
   <div>
-    <button class="btn btn-ghost btn-circle btn-sm mx-1" @click="openSearchModal">
-      <Icon icon="mdi:magnify" class="text-2xl text-gray-500 dark:text-gray-400" />
+    <button
+      class="btn btn-ghost btn-circle btn-sm mx-1"
+      @click="openSearchModal"
+    >
+      <Icon
+        icon="mdi:magnify"
+        class="text-2xl text-gray-500 dark:text-gray-400"
+      />
     </button>
 
     <!-- modal -->
@@ -71,33 +76,52 @@ function confirm() {
       class="cursor-pointer modal !pointer-events-auto !opacity-100 !visible"
       @click="closeSearchModal"
     >
-      <div class="relative modal-box cursor-default" @click="(event) => preventClick(event)">
+      <div
+        class="relative modal-box cursor-default"
+        @click="(event) => preventClick(event)"
+      >
         <!-- header -->
         <div class="flex items-center justify-between">
-          <div class="text-lg font-bold flex flex-col md:!flex-row justify-between items-baseline">
+          <div
+            class="text-lg font-bold flex flex-col md:!flex-row justify-between items-baseline"
+          >
             <span class="mr-2">Search</span>
-            <span class="capitalize text-sm md:!text-base">Height/Transaction/Account Address</span>
+            <span class="capitalize text-sm md:!text-base"
+              >Height/Transaction/Account Address</span
+            >
           </div>
-          <label htmlFor="modal-pool-modal" class="cursor-pointer" @click="closeSearchModal">
-            <Icon icon="zondicons:close-outline" class="text-2xl text-gray-500 dark:text-gray-400" />
+          <label
+            htmlFor="modal-pool-modal"
+            class="cursor-pointer"
+            @click="closeSearchModal"
+          >
+            <Icon
+              icon="zondicons:close-outline"
+              class="text-2xl text-gray-500 dark:text-gray-400"
+            />
           </label>
         </div>
         <!-- body -->
         <div class="mt-4">
           <div class="">
             <input
-              class="input flex-1 w-full !input-bordered"
               v-model="searchQuery"
+              class="input flex-1 w-full !input-bordered"
               placeholder="Height/Transaction/Account Address"
             />
-            <div class="mt-2 text-right text-sm text-error" v-show="errorMessage">
+            <div
+              v-show="errorMessage"
+              class="mt-2 text-right text-sm text-error"
+            >
               {{ errorMessage }}
             </div>
           </div>
         </div>
         <!-- foot -->
         <div class="mt-6">
-          <button class="w-full btn btn-primary" @click="confirm">Confirm</button>
+          <button class="w-full btn btn-primary" @click="confirm">
+            Confirm
+          </button>
         </div>
       </div>
     </div>

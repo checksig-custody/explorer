@@ -1,15 +1,13 @@
 <script setup lang="ts">
 import { get, post } from '@/libs/http';
 import { useBaseStore, useTxDialog } from '@/stores';
-import { computed, onMounted, ref } from 'vue';
-import TextElement from '@/components/dynamic/TextElement.vue';
+import { computed, ref } from 'vue';
 import DynamicComponent from '@/components/dynamic/DynamicComponent.vue';
 import { codeToHtml } from 'shiki';
 import { useWasmStore } from '@/modules/[chain]/cosmwasm/WasmStore';
-import { toBase64 } from '@cosmjs/encoding';
 
 import { JsonViewer } from 'vue3-json-viewer';
-import { CosmjsOfflineSigner } from '@leapwallet/cosmos-snap-provider';
+import { orDefault } from '@/libs/utils';
 
 interface Verification {
   chainId?: string;
@@ -29,7 +27,7 @@ interface SourceCode<T> {
 interface Argument {
   format?: string;
   type: string;
-  properties: Record<string, Argument>;
+  properties?: Record<string, Argument>;
 }
 
 interface Method {
@@ -46,8 +44,12 @@ interface Schema {
 }
 
 const props = defineProps({
-  contract: { type: String },
+  contract: { type: String, default: undefined },
 });
+
+interface SourceCodesResponse {
+  sourceCodes: (SourceCode<string> & { sourceCode: string })[];
+}
 
 const baseurl = 'https://prod.compiler.welldonestudio.io';
 
@@ -57,49 +59,52 @@ const schemas = ref<SourceCode<string>[]>([]);
 const wasmStore = useWasmStore();
 const baseStore = useBaseStore();
 const dialog = useTxDialog();
-const result = ref<Record<string, any>>({});
+const result = ref<Record<string, unknown>>({});
 
 function fetchVerification() {
-  const url = `${baseurl}/deploy-histories/${chain_id.value}?contract=${props.contract}`;
+  const url = `${baseurl}/deploy-histories/${chain_id.value}?contract=${String(props.contract)}`;
   get(url)
     .then((x) => {
       console.log('verification:', x);
-      verification.value = x;
+      verification.value = x as Verification;
     })
-    .catch((e) => {
+    .catch((e: unknown) => {
       console.error(e);
     });
 }
 
 function fetchSchema() {
   const base = useBaseStore();
-  const chainId = base.latest?.block?.header?.chain_id || 'neutron-1';
-  const url = `${baseurl}/schemas/${chainId}?contract=${props.contract}`;
+  const chainId = orDefault(base.latest.block?.header.chain_id, 'neutron-1');
+  const url = `${baseurl}/schemas/${chainId}?contract=${String(props.contract)}`;
   get(url)
-    .then(async (x) => {
+    .then((x) => {
       console.log('schema:', x);
-      schemas.value = x.sourceCodes;
+      schemas.value = (x as SourceCodesResponse).sourceCodes;
     })
-    .catch((e) => {
+    .catch((e: unknown) => {
       console.error(e);
     });
 }
 
 function fetchSourceCode() {
   const base = useBaseStore();
-  const chainId = base.latest?.block?.header?.chain_id || 'neutron-1';
-  const url = `${baseurl}/source-codes/${chainId}?contract=${props.contract}`;
+  const chainId = orDefault(base.latest.block?.header.chain_id, 'neutron-1');
+  const url = `${baseurl}/source-codes/${chainId}?contract=${String(props.contract)}`;
   const theme = baseStore.theme === 'dark' ? 'material-theme' : 'github-light';
   get(url)
     .then(async (x) => {
       console.log('source codes:', x);
-      for (let i = 0; i < x.sourceCodes.length; i++) {
-        const sc = x.sourceCodes[i];
-        sc.sourceCode = await codeToHtml(sc.sourceCode, { lang: sc.path.endsWith('.toml') ? 'toml' : 'rust', theme });
+      const { sourceCodes } = x as SourceCodesResponse;
+      for (const sc of sourceCodes) {
+        sc.sourceCode = await codeToHtml(sc.sourceCode, {
+          lang: sc.path.endsWith('.toml') ? 'toml' : 'rust',
+          theme,
+        });
       }
-      sourceCode.value = x.sourceCodes;
+      sourceCode.value = sourceCodes;
     })
-    .catch((e) => {
+    .catch((e: unknown) => {
       console.error(e);
     });
 }
@@ -107,8 +112,8 @@ function fetchSourceCode() {
 const base = useBaseStore();
 const chain_id = ref('');
 base.$subscribe((m, s) => {
-  if (chain_id.value !== s.latest?.block?.header?.chain_id) {
-    chain_id.value = s.latest?.block?.header?.chain_id || 'unknown';
+  if (chain_id.value !== s.latest.block?.header.chain_id) {
+    chain_id.value = orDefault(s.latest.block?.header.chain_id, 'unknown');
     fetchVerification();
     fetchSchema();
     fetchSourceCode();
@@ -117,12 +122,13 @@ base.$subscribe((m, s) => {
 
 function verify() {
   const base = useBaseStore();
-  const id = base.latest?.block?.header?.chain_id || 'unknown';
+  const id = orDefault(base.latest.block?.header.chain_id, 'unknown');
   const data = { contractAddress: props.contract, chainId: id };
 
-  post(`${baseurl}/verification/neutron`, data).then((x) => {
-    if (x.result) {
-      verification.value = x.result;
+  void post(`${baseurl}/verification/neutron`, data).then((x) => {
+    const { result } = x as { result?: Verification };
+    if (result) {
+      verification.value = result;
       fetchSchema();
       fetchSourceCode();
     }
@@ -136,20 +142,14 @@ function selectTab(tabName: string) {
 
 const executions = computed(() => {
   return schemas.value
-    .filter((x) => x.path.indexOf('execute_msg') > -1 || x.path.indexOf('query_msg') > -1)
-    .map((x) => JSON.parse(x.sourceCode || '{}') as Schema);
+    .filter(
+      (x) => x.path.includes('execute_msg') || x.path.includes('query_msg')
+    )
+    .map((x) => JSON.parse(orDefault(x.sourceCode, '{}')) as Schema);
   // if(raw && raw.sourceCode) {
   //   return JSON.parse(raw.sourceCode) as Schema
   // }
   // return {} as Schema
-});
-
-const queries = computed(() => {
-  let raw = schemas.value.find((x) => x.path.indexOf('query_msg') > -1);
-  if (raw && raw.sourceCode) {
-    return JSON.parse(raw.sourceCode) as Schema;
-  }
-  return {} as Schema;
 });
 
 function callFunction(title: string, method: string, arg: Argument) {
@@ -157,10 +157,12 @@ function callFunction(title: string, method: string, arg: Argument) {
 
   // console.log("callFunction", title, method, arg)
 
-  let args = {} as Record<string, any>;
+  const args: Record<string, string> = {};
   if (arg.properties)
     Object.keys(arg.properties).forEach((k) => {
-      const input = document.querySelector(`input[name="${method}-${k}"]`) as HTMLInputElement;
+      const input = document.querySelector<HTMLInputElement>(
+        `input[name="${method}-${k}"]`
+      );
       if (input) {
         args[k] = input.value;
       }
@@ -169,10 +171,13 @@ function callFunction(title: string, method: string, arg: Argument) {
   //console.log("args", arg.properties, JSON.stringify(args))
 
   if (title === 'ExecuteMsg') {
-    let execution = {} as Record<string, any>;
+    const execution: Record<string, Record<string, string>> = {};
     execution[method] = args;
     console.log('execution', execution);
-    dialog.open('wasm_execute_contract', { contract: props.contract, execution });
+    dialog.open('wasm_execute_contract', {
+      contract: props.contract,
+      execution,
+    });
   } else {
     // QueryMsg
     wasmStore.wasmClient
@@ -183,7 +188,7 @@ function callFunction(title: string, method: string, arg: Argument) {
       .then((x) => {
         result.value[`${title}-${method}`] = x;
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         result.value[`${title}-${method}`] = err;
       });
   }
@@ -192,37 +197,69 @@ function callFunction(title: string, method: string, arg: Argument) {
 <template>
   <div class="bg-base-100 px-4 pt-3 pb-4 rounded mb-4 shadow">
     <div role="tablist" class="tabs tabs-boxed">
-      <a role="tab" class="tab tooltip tooltip-right tooltip-success" data-tip="Powered By WELLDONE Studio">
+      <a
+        role="tab"
+        class="tab tooltip tooltip-right tooltip-success"
+        data-tip="Powered By WELLDONE Studio"
+      >
         <div class="w-8 rounded">
-          <img src="../assets/images/welldone-logo.svg" alt="Powered By WELLDONE Studio" />
+          <img
+            src="../assets/images/welldone-logo.svg"
+            alt="Powered By WELLDONE Studio"
+          />
         </div>
       </a>
-      <a role="tab" class="tab" :class="{ 'tab-active': tab === 'verification' }" @click="selectTab('verification')"
+      <a
+        role="tab"
+        class="tab"
+        :class="{ 'tab-active': tab === 'verification' }"
+        @click="selectTab('verification')"
         >Verification</a
       >
-      <a role="tab" class="tab" :class="{ 'tab-active': tab === 'executions' }" @click="selectTab('executions')"
+      <a
+        role="tab"
+        class="tab"
+        :class="{ 'tab-active': tab === 'executions' }"
+        @click="selectTab('executions')"
         >Functions</a
       >
-      <a role="tab" class="tab" :class="{ 'tab-active': tab === 'source_code' }" @click="selectTab('source_code')"
+      <a
+        role="tab"
+        class="tab"
+        :class="{ 'tab-active': tab === 'source_code' }"
+        @click="selectTab('source_code')"
         >Source Code</a
       >
     </div>
     <div class="">
-      <div v-if="tab === 'verification'"><DynamicComponent :value="verification" /></div>
+      <div v-if="tab === 'verification'">
+        <DynamicComponent :value="verification" />
+      </div>
       <div v-if="tab === 'executions'" class="">
-        <div v-for="{ title, oneOf } in executions" class="join join-vertical w-full mt-2">
-          <div v-if="oneOf" v-for="m in oneOf">
+        <div
+          v-for="({ title, oneOf }, ti) in executions"
+          :key="ti"
+          class="join join-vertical w-full mt-2"
+        >
+          <div v-for="(m, mi) in oneOf ?? []" :key="mi">
             <div
-              v-for="(props, method) in m.properties"
+              v-for="(prop, method) in m.properties"
+              :key="method"
               class="collapse collapse-arrow join-item border border-base-300"
             >
               <input type="radio" name="my-accordion-1" :checked="false" />
-              <div class="collapse-title font-medium">{{ title }}::{{ method }}</div>
+              <div class="collapse-title font-medium">
+                {{ title }}::{{ method }}
+              </div>
               <div class="collapse-content">
-                <div v-for="(p, name) in props.properties" class="form-control pb-2">
+                <div
+                  v-for="(p, name) in prop.properties"
+                  :key="name"
+                  class="form-control pb-2"
+                >
                   <label class="label">
                     <span class="label-text">{{ name }}</span>
-                    <span></span>
+                    <span />
                   </label>
                   <input
                     :name="`${method}-${name}`"
@@ -236,10 +273,15 @@ function callFunction(title: string, method: string, arg: Argument) {
                     v-if="title === 'ExecuteMsg'"
                     for="wasm_execute_contract"
                     class="btn btn-sm"
-                    @click="callFunction(title, method, props)"
+                    @click="callFunction(title, method, prop)"
                     >{{ method }}</label
                   >
-                  <label v-else class="btn btn-sm" @click="callFunction(title, method, props)">{{ method }}</label>
+                  <label
+                    v-else
+                    class="btn btn-sm"
+                    @click="callFunction(title, method, prop)"
+                    >{{ method }}</label
+                  >
                 </div>
                 <div v-if="result[`${title}-${method}`]" class="mt-2">
                   <JsonViewer
@@ -260,29 +302,38 @@ function callFunction(title: string, method: string, arg: Argument) {
       <div v-if="tab === 'source_code'" class="mt-2 join join-vertical w-full">
         <div
           v-for="sc in sourceCode.filter((x) => !x.isDirectory)"
+          :key="sc.path"
           class="collapse collapse-arrow join-item border border-base-300"
         >
           <input type="radio" name="sourceCodeAccordion" :checked="false" />
           <div class="collapse-title font-medium">{{ sc.path }}</div>
-          <div class="collapse-content overflow-auto" v-html="sc.sourceCode"></div>
+          <!-- eslint-disable-next-line vue/no-v-html -- shiki escapes the code it highlights -->
+          <div class="collapse-content overflow-auto" v-html="sc.sourceCode" />
         </div>
       </div>
     </div>
     <div v-show="tab === 'verification'" class="text-center">
-      <div v-if="Object.keys(verification).length == 0">Haven't found verification</div>
+      <div v-if="Object.keys(verification).length == 0">
+        Haven't found verification
+      </div>
       <button
-        class="btn btn-primary mt-5"
-        @click="verify"
         v-show="tab === 'verification'"
+        class="btn btn-primary mt-5"
         :disabled="verification.error !== undefined"
+        @click="verify"
       >
         verify
       </button>
     </div>
 
     <!-- alert-info -->
-    <div class="text-[#00cfe8] bg-[rgba(0,207,232,0.12)] rounded shadow mt-4 alert-info">
-      <div class="drop-shadow-md px-4 pt-2 pb-2" style="box-shadow: rgba(0, 207, 232, 0.4) 0px 6px 15px -7px">
+    <div
+      class="text-[#00cfe8] bg-[rgba(0,207,232,0.12)] rounded shadow mt-4 alert-info"
+    >
+      <div
+        class="drop-shadow-md px-4 pt-2 pb-2"
+        style="box-shadow: rgba(0, 207, 232, 0.4) 0px 6px 15px -7px"
+      >
         <h2 class="text-base font-semibold">{{ $t('consensus.tips') }}</h2>
       </div>
       <div class="px-4 py-4">
@@ -291,7 +342,9 @@ function callFunction(title: string, method: string, arg: Argument) {
             {{ $t('cosmwasm.tips_description_1') }}
           </li>
           <li>
-            <a href="https://docs.welldonestudio.io/code/verification-api/" target="_blank"
+            <a
+              href="https://docs.welldonestudio.io/code/verification-api/"
+              target="_blank"
               >Link to Verification API Manual</a
             >
           </li>

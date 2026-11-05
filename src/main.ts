@@ -8,6 +8,7 @@ import LazyLoad from 'lazy-load-vue3';
 
 import router from './router';
 import { useBaseStore } from '@/stores';
+import { orDefault } from '@/libs/utils';
 
 // Create vue app
 const app = createApp(App);
@@ -19,7 +20,7 @@ app.use(LazyLoad, { component: true });
 // Mount vue app
 app.mount('#app');
 
-const REFRESH_INTERVAL = import.meta.env.VITE_REFRESH_INTERVAL || 6000; // 6 seconds
+const REFRESH_INTERVAL = orDefault(import.meta.env.VITE_REFRESH_INTERVAL, 6000); // 6 seconds
 
 // fetch latest block every 6s
 const blockStore = useBaseStore();
@@ -28,6 +29,6 @@ setInterval(() => {
   requestCounter.value += 1;
   if (requestCounter.value < 5) {
     // max allowed request
-    blockStore.fetchLatest().finally(() => (requestCounter.value -= 1));
+    void blockStore.fetchLatest().finally(() => (requestCounter.value -= 1));
   }
 }, REFRESH_INTERVAL);

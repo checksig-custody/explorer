@@ -1,8 +1,6 @@
 import { useBlockchain } from '@/stores';
 import { createRouter, createWebHistory } from 'vue-router';
-// @ts-ignore
 import { setupLayouts } from 'virtual:generated-layouts';
-// @ts-ignore
 import routes from '~pages';
 
 const router = createRouter({
@@ -16,7 +14,7 @@ router.beforeEach((to) => {
   if (chain) {
     const blockchain = useBlockchain();
     if (chain !== blockchain.chainName) {
-      blockchain.setCurrent(chain.toString());
+      void blockchain.setCurrent(chain.toString());
     }
   }
 });

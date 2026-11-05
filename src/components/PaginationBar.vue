@@ -1,22 +1,30 @@
 <script lang="ts" setup>
-import { computed, ref } from 'vue';
+import { computed, ref, type PropType } from 'vue';
+import { orDefault } from '@/libs/utils';
 
 const props = defineProps({
-  total: { type: String },
-  limit: { type: Number },
-  callback: { type: Function, required: true },
+  total: { type: String as PropType<string | undefined>, default: undefined },
+  limit: { type: Number as PropType<number | undefined>, default: undefined },
+  callback: {
+    type: Function as PropType<(page: number) => void>,
+    required: true,
+  },
 });
 const current = ref(1);
 const showSize = 3;
 const pages = computed(() => {
   const pages: { color: string; page: number }[] = [];
-  const total = Number(props.total || 0);
+  const total = Number(orDefault(props.total, 0));
   if (total > 0 && props.limit && total > props.limit) {
     let page = 0;
-    while (true) {
+    for (;;) {
       if (page * props.limit >= total) break;
       page += 1;
-      if (total / props.limit > 10 && page > showSize && page < total / props.limit - showSize + 1) {
+      if (
+        total / props.limit > 10 &&
+        page > showSize &&
+        page < total / props.limit - showSize + 1
+      ) {
         if (!(page >= current.value - 1 && page <= current.value + 1)) {
           continue;
         }

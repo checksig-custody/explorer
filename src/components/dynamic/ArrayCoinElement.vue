@@ -2,9 +2,7 @@
 import { useFormatter } from '@/stores';
 import type { Coin } from '@/types';
 
-const props = defineProps({
-  value: { type: Array<Coin> },
-});
+defineProps<{ value: Coin[] | undefined }>();
 
 const format = useFormatter();
 </script>

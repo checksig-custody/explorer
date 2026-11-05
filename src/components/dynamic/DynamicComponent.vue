@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { select } from './index';
 
-const props = defineProps(['value', 'direct']);
+defineProps<{ value?: unknown; direct?: string }>();
 </script>
 <template>
-  <Component :is="select(value, direct)" :value="value"></Component>
+  <Component :is="select(value, direct)" :value="value" />
 </template>

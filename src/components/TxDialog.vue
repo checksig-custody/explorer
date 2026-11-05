@@ -13,5 +13,5 @@ const chainStore = useBlockchain();
     :registry-name="chainStore.current?.prettyName || chainStore.chainName"
     @view="store.view"
     @confirmed="store.confirmed"
-  ></ping-tx-dialog>
+  />
 </template>

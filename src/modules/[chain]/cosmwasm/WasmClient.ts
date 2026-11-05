@@ -4,7 +4,6 @@ import {
   type AbstractRegistry,
   type Request,
 } from '@/libs/api/registry';
-import { defineStore } from 'pinia';
 import type {
   CodeInfo,
   ContractInfo,
@@ -15,9 +14,7 @@ import type {
   WasmParam,
 } from './types';
 import { toBase64 } from '@cosmjs/encoding';
-import { useBlockchain } from '@/stores';
 import { PageRequest } from '@/types';
-import { get } from '@/libs';
 
 export interface WasmRequestRegistry extends AbstractRegistry {
   cosmwasm_code: Request<PaginabledCodeInfos>;
@@ -29,8 +26,8 @@ export interface WasmRequestRegistry extends AbstractRegistry {
     contract_info: ContractInfo;
   }>;
   cosmwasm_contract_address_history: Request<PaginabledContractHistory>;
-  cosmwasm_contract_address_raw_query_data: Request<any>;
-  cosmwasm_contract_address_smart_query_data: Request<any>;
+  cosmwasm_contract_address_raw_query_data: Request<unknown>;
+  cosmwasm_contract_address_smart_query_data: Request<unknown>;
   cosmwasm_contract_address_state: Request<PaginabledContractStates>;
   cosmwasm_wasm_contracts_creator: Request<PaginabledContracts>;
 }
@@ -70,7 +67,7 @@ export const DEFAULT_VERSION: WasmRequestRegistry = {
 };
 
 export class WasmRestClient extends BaseRestClient<WasmRequestRegistry> {
-  getWasmCodeList(pr?: PageRequest) {
+  getWasmCodeList() {
     // if(!pr) pr = new PageRequest()
     // const query = `?${pr.toQueryString()}`
     return this.request(this.registry.cosmwasm_code, {} /*query*/);
@@ -78,7 +75,7 @@ export class WasmRestClient extends BaseRestClient<WasmRequestRegistry> {
   getWasmCodeById(code_id: string) {
     return this.request(this.registry.cosmwasm_code, { code_id }); // `code_id` is a param in above url
   }
-  getWasmCodeContracts(code_id: string, page?: PageRequest) {
+  getWasmCodeContracts(code_id: string) {
     // if(!page) page = new PageRequest()
     // const query = `?${page.toQueryString()}`
     return this.request(this.registry.cosmwasm_code_id_contracts, { code_id });
@@ -89,10 +86,12 @@ export class WasmRestClient extends BaseRestClient<WasmRequestRegistry> {
   getWasmContracts(address: string) {
     return this.request(this.registry.cosmwasm_contract_address, { address });
   }
-  getWasmContractsByCreator(creator_address: string, page?: PageRequest) {
+  getWasmContractsByCreator(creator_address: string) {
     // if(!page) page = new PageRequest()
     // const query = `?${page.toQueryString()}`
-    return this.request(this.registry.cosmwasm_wasm_contracts_creator, { creator_address });
+    return this.request(this.registry.cosmwasm_wasm_contracts_creator, {
+      creator_address,
+    });
   }
   getWasmContractHistory(address: string) {
     return this.request(this.registry.cosmwasm_contract_address_history, {
@@ -101,24 +100,33 @@ export class WasmRestClient extends BaseRestClient<WasmRequestRegistry> {
   }
   getWasmContractRawQuery(address: string, query: string) {
     const query_data = toBase64(new TextEncoder().encode(query));
-    return this.request(this.registry.cosmwasm_contract_address_raw_query_data, { address, query_data });
+    return this.request(
+      this.registry.cosmwasm_contract_address_raw_query_data,
+      { address, query_data }
+    );
   }
   getWasmContractSmartQuery(address: string, query: string) {
     const query_data = toBase64(new TextEncoder().encode(query));
-    return this.get(this.registry.cosmwasm_contract_address_smart_query_data, { address, query_data });
-  }
-  async getWasmContractQueries(address: string) {
-    const query_data = toBase64(new TextEncoder().encode('{"":""}'));
-    const { code, message } = await this.get(this.registry.cosmwasm_contract_address_smart_query_data, {
+    return this.get(this.registry.cosmwasm_contract_address_smart_query_data, {
       address,
       query_data,
     });
-    let re = /`(\w+)`/g;
-    let x = String(message).match(re);
+  }
+  async getWasmContractQueries(address: string) {
+    const query_data = toBase64(new TextEncoder().encode('{"":""}'));
+    const { code, message } = (await this.get(
+      this.registry.cosmwasm_contract_address_smart_query_data,
+      {
+        address,
+        query_data,
+      }
+    )) as { code?: number; message?: string };
+    const re = /`(\w+)`/g;
+    const x = String(message).match(re);
     return code === 2 && x ? x.map((e) => e.replaceAll('`', '')) : [];
   }
-  getWasmContractStates(address: string, pr: PageRequest) {
-    if (!pr) pr = new PageRequest();
+  getWasmContractStates(address: string, pr?: PageRequest) {
+    pr ??= new PageRequest();
     const query = `?${pr.toQueryString()}`;
     return this.request(
       this.registry.cosmwasm_contract_address_state,

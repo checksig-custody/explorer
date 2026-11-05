@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-const props = defineProps(['value']);
+defineProps<{ value: Record<string, unknown> }>();
 </script>
 <template>
   <div class="overflow-auto">{{ value['amount'] }} {{ value['denom'] }}</div>

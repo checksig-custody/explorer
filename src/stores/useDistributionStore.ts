@@ -1,15 +1,19 @@
 import { defineStore } from 'pinia';
 import { useBlockchain } from './useBlockchain';
 
+interface DistributionState {
+  params: {
+    community_tax: string;
+    base_proposer_reward: string;
+    bonus_proposer_reward: string;
+    withdraw_addr_enabled: boolean;
+  };
+}
+
 export const useDistributionStore = defineStore('distributionStore', {
-  state: () => {
+  state: (): DistributionState => {
     return {
-      params: {} as {
-        community_tax: string;
-        base_proposer_reward: string;
-        bonus_proposer_reward: string;
-        withdraw_addr_enabled: boolean;
-      },
+      params: {} as DistributionState['params'],
     };
   },
   getters: {
@@ -19,15 +23,17 @@ export const useDistributionStore = defineStore('distributionStore', {
   },
   actions: {
     initial() {
-      this.fetchParams();
+      void this.fetchParams();
     },
     async fetchParams() {
-      const response = await this.blockchain.rpc?.getDistributionParams();
+      const response = await this.blockchain
+        .rpcIfSet()
+        ?.getDistributionParams();
       if (response?.params) this.params = response.params;
       return this.params;
     },
     async fetchCommunityPool() {
-      return this.blockchain.rpc?.getDistributionCommunityPool();
+      return this.blockchain.rpcIfSet()?.getDistributionCommunityPool();
     },
   },
 });

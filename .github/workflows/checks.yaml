@@ -1,0 +1,65 @@
+name: Checks
+
+on:
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: yarn
+      # No private packages: the install needs no registry token.
+      - run: yarn install --frozen-lockfile
+      - run: yarn typecheck
+      - run: yarn lint
+      - run: yarn format:check
+      - run: yarn test
+      - run: yarn build-only
+
+  scripts-and-workflows:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # Pinned to the versions used locally; each download is checked by sha256.
+      - name: Install shellcheck, shfmt, actionlint and zizmor
+        run: |
+          set -euo pipefail
+          bin="$RUNNER_TEMP/bin"
+          mkdir -p "$bin"
+          cd "$RUNNER_TEMP"
+          curl -sSfL -o shfmt https://github.com/mvdan/sh/releases/download/v3.14.1/shfmt_v3.14.1_linux_amd64
+          curl -sSfL -o shellcheck.tar.xz https://github.com/koalaman/shellcheck/releases/download/v0.11.0/shellcheck-v0.11.0.linux.x86_64.tar.xz
+          curl -sSfL -o actionlint.tar.gz https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz
+          curl -sSfL -o zizmor.tar.gz https://github.com/zizmorcore/zizmor/releases/download/v1.29.0/zizmor-x86_64-unknown-linux-gnu.tar.gz
+          sha256sum -c - <<'SUMS'
+          76e77641faa025814b77f153b29796b8e6fa2fca03e0c76a691608b86c7ea7bf  shfmt
+          8c3be12b05d5c177a04c29e3c78ce89ac86f1595681cab149b65b97c4e227198  shellcheck.tar.xz
+          8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8  actionlint.tar.gz
+          dd96df044a6e8538d5f423790f453bdd03d49e5b2bcc38214acc41a2f1297839  zizmor.tar.gz
+          SUMS
+          install -m 0755 shfmt "$bin/shfmt"
+          tar -xJf shellcheck.tar.xz --strip-components=1 -C "$bin" shellcheck-v0.11.0/shellcheck
+          tar -xzf actionlint.tar.gz -C "$bin" actionlint
+          tar -xzf zizmor.tar.gz -C "$bin" zizmor
+          echo "$bin" >> "$GITHUB_PATH"
+      - name: shellcheck
+        run: shellcheck --severity=style scripts/*.sh
+      - name: shfmt
+        run: shfmt -d -i 2 -ci scripts/*.sh
+      - name: actionlint
+        run: actionlint
+      - name: zizmor
+        run: zizmor --offline --no-progress .github/workflows

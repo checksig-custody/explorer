@@ -2,14 +2,17 @@
 import ApexCharts from 'vue3-apexcharts';
 import { getMarketPriceChartConfig } from './apexChartConfig';
 import { useIndexModule } from '@/modules/[chain]/indexStore';
-import { computed, ref } from '@vue/reactivity';
+import { computed, ref } from 'vue';
 import { useBaseStore } from '@/stores';
 
 const store = useIndexModule();
 const baseStore = useBaseStore();
 const chartConfig = computed(() => {
   const theme = baseStore.theme;
-  const labels = store.marketData.prices.map((item: any) => item[0]);
+  // A missing price time stays undefined, as on master.
+  const labels = store.marketData.prices.map(
+    (item) => item[0] as unknown as number
+  );
   return getMarketPriceChartConfig(theme, labels);
 });
 const kind = ref('price');
@@ -19,8 +22,8 @@ const series = computed(() => {
       name: kind.value === 'price' ? 'Price' : 'Volume',
       data:
         kind.value === 'price'
-          ? store.marketData.prices.map((item: any) => item[1])
-          : store.marketData.total_volumes.map((item: any) => item[1]),
+          ? store.marketData.prices.map((item) => item[1])
+          : store.marketData.total_volumes.map((item) => item[1]),
     },
   ];
 });
@@ -47,5 +50,10 @@ function changeChart(type: string) {
       Volume
     </a>
   </div>
-  <ApexCharts type="area" height="230" :options="chartConfig" :series="series" />
+  <ApexCharts
+    type="area"
+    height="230"
+    :options="chartConfig"
+    :series="series"
+  />
 </template>

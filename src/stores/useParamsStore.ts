@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { useBlockchain } from './useBlockchain';
-import { percent, formatNumber, formatTokenAmount } from '@/libs/utils';
+import { maybe, percent, formatNumber, formatTokenAmount } from '@/libs/utils';
 export interface stakingItem {
   unbonding_time: string;
   max_validators: number;
@@ -11,8 +11,42 @@ export interface stakingItem {
   min_self_delegation: string;
 }
 
+export interface ParamItem {
+  subtitle: string;
+  value: unknown;
+}
+
+// Object.entries types the values of an interface as any.
+function paramItems(params: object): ParamItem[] {
+  return Object.entries(params).map(([key, value]: [string, unknown]) => ({
+    subtitle: key,
+    value,
+  }));
+}
+
+export interface ParamCard {
+  title: string;
+  items: ParamItem[];
+}
+
+interface ParamState {
+  latestTime: string;
+  chain: {
+    title: string;
+    class: string;
+    items: { subtitle: string; icon: string; color: string; value: string }[];
+  };
+  mint: ParamCard;
+  staking: ParamCard;
+  distribution: ParamCard;
+  slashing: ParamCard;
+  gov: ParamCard;
+  appVersion: ParamCard;
+  nodeVersion: ParamCard;
+}
+
 export const useParamStore = defineStore('paramstore', {
-  state: () => ({
+  state: (): ParamState => ({
     latestTime: '',
     chain: {
       title: '',
@@ -46,31 +80,31 @@ export const useParamStore = defineStore('paramstore', {
     },
     mint: {
       title: 'Mint Parameters',
-      items: [] as Array<any>,
+      items: [],
     },
     staking: {
       title: 'Staking Parameters',
-      items: [] as Array<any>,
+      items: [],
     },
     distribution: {
       title: 'Distribution Parameters',
-      items: [] as Array<any>,
+      items: [],
     },
     slashing: {
       title: 'Slashing Parameters',
-      items: [] as Array<any>,
+      items: [],
     },
     gov: {
       title: 'Governance Parameters',
-      items: [] as Array<any>,
+      items: [],
     },
     appVersion: {
       title: 'Application Version',
-      items: {},
+      items: [],
     },
     nodeVersion: {
       title: 'Node Information',
-      items: {},
+      items: [],
     },
   }),
   getters: {
@@ -80,20 +114,20 @@ export const useParamStore = defineStore('paramstore', {
   },
   actions: {
     initial() {
-      this.handleBaseBlockLatest();
+      void this.handleBaseBlockLatest();
       // this.handleMintParam()
-      this.handleStakingParams();
-      this.handleSlashingParams();
-      this.handleDistributionParams();
+      void this.handleStakingParams();
+      void this.handleSlashingParams();
+      void this.handleDistributionParams();
       this.handleGovernanceParams();
-      this.handleAbciInfo();
+      void this.handleAbciInfo();
     },
     async handleBaseBlockLatest() {
       try {
         const res = await this.getBaseTendermintBlockLatest();
-        const height = this.chain.items.findIndex((x) => x.subtitle === 'height');
+        const height = this.chain.items.find((x) => x.subtitle === 'height');
         this.chain.title = `Chain ID: ${res.block.header.chain_id}`;
-        this.chain.items[height].value = res.block.header.height;
+        if (height) height.value = res.block.header.height;
         // if (timeIn(res.block.header.time, 3, 'm')) {
         //   this.syncing = true
         // } else {
@@ -107,93 +141,109 @@ export const useParamStore = defineStore('paramstore', {
     },
     async handleStakingParams() {
       const res = await this.getStakingParams();
-      const bond_denom = res?.params.bond_denom;
-      this.staking.items = Object.entries(res.params)
-        .map(([key, value]) => ({ subtitle: key, value: value }))
-        .filter((item: any) => {
-          if (!['min_commission_rate', 'min_self_delegation'].includes(item.subtitle)) return item;
-        });
-      Promise.all([this.getStakingPool(), this.getBankTotal(bond_denom)]).then((resArr) => {
-        const pool = resArr[0]?.pool;
-        const amount = resArr[1]?.amount?.amount;
+      const bond_denom = res.params.bond_denom;
+      this.staking.items = paramItems(res.params).filter(
+        (item) =>
+          !['min_commission_rate', 'min_self_delegation'].includes(
+            item.subtitle
+          )
+      );
+      void Promise.all([
+        this.getStakingPool(),
+        this.getBankTotal(bond_denom),
+      ]).then(([poolRes, supplyRes]) => {
+        const pool = poolRes.pool;
+        const amount = supplyRes.amount?.amount;
         const assets = this.blockchain.current?.assets;
-        const bondedAndSupply = this.chain.items.findIndex((x) => x.subtitle === 'bonded_and_supply');
-        this.chain.items[bondedAndSupply].value = `${formatNumber(
-          formatTokenAmount(assets, pool.bonded_tokens, 2, bond_denom, false),
-          true,
-          0
-        )}/${formatNumber(formatTokenAmount(assets, amount, 2, bond_denom, false), true, 0)}`;
-        const bondedRatio = this.chain.items.findIndex((x) => x.subtitle === 'bonded_ratio');
-        this.chain.items[bondedRatio].value = `${percent(Number(pool.bonded_tokens) / Number(amount))}%`;
+        if (!assets) return;
+        const bondedAndSupply = this.chain.items.find(
+          (x) => x.subtitle === 'bonded_and_supply'
+        );
+        if (bondedAndSupply)
+          bondedAndSupply.value = `${String(
+            formatNumber(
+              Number(
+                formatTokenAmount(
+                  assets,
+                  pool.bonded_tokens,
+                  2,
+                  bond_denom,
+                  false
+                )
+              ),
+              true,
+              0
+            )
+          )}/${String(formatNumber(Number(formatTokenAmount(assets, amount, 2, bond_denom, false)), true, 0))}`;
+        const bondedRatio = this.chain.items.find(
+          (x) => x.subtitle === 'bonded_ratio'
+        );
+        if (bondedRatio)
+          bondedRatio.value = `${String(percent(Number(pool.bonded_tokens) / Number(amount)))}%`;
       });
     },
     async handleMintParam() {
       const excludes = this.blockchain.current?.excludes;
-      if (excludes && excludes.indexOf('mint') > -1) {
+      if (excludes?.includes('mint')) {
         return;
       }
       // this.getMintingInflation().then(res => {
       //     const chainIndex = this.chain.items.findIndex(x => x.subtitle === 'inflation')
       //     this.chain.items[chainIndex].value = `${percent(res)}%`
       // })
-      const res = await this.getMintParam();
+      await this.getMintParam();
     },
     async handleSlashingParams() {
       const res = await this.getSlashingParams();
-      this.slashing.items = Object.entries(res.params).map(([key, value]) => ({
-        subtitle: key,
-        value: value,
-      }));
+      this.slashing.items = paramItems(res.params);
     },
     async handleDistributionParams() {
       const res = await this.getDistributionParams();
-      this.distribution.items = Object.entries(res.params).map(([key, value]) => ({ subtitle: key, value: value }));
+      this.distribution.items = paramItems(res.params);
     },
-    async handleGovernanceParams() {
+    handleGovernanceParams() {
       const excludes = this.blockchain.current?.excludes;
-      if (excludes && excludes.indexOf('governance') > -1) {
+      if (excludes?.includes('governance')) {
         return;
       }
-      Promise.all([this.getGovParamsVoting(), this.getGovParamsDeposit(), this.getGovParamsTally()]).then((resArr) => {
+      void Promise.all([
+        this.getGovParamsVoting(),
+        this.getGovParamsDeposit(),
+        this.getGovParamsTally(),
+      ]).then(([voting, deposit, tally]) => {
         const govParams = {
-          ...resArr[0]?.voting_params,
-          ...resArr[1]?.deposit_params,
-          ...resArr[2]?.tally_params,
+          ...voting.voting_params,
+          ...deposit.deposit_params,
+          ...tally.tally_params,
         };
-        this.gov.items = Object.entries(govParams).map(([key, value]) => ({
-          subtitle: key,
-          value: value,
-        }));
+        this.gov.items = paramItems(govParams);
       });
     },
     async handleAbciInfo() {
       const res = await this.fetchAbciInfo();
 
-      localStorage.setItem(`sdk_version_${this.blockchain.chainName}`, res.application_version?.cosmos_sdk_version);
+      localStorage.setItem(
+        `sdk_version_${this.blockchain.chainName}`,
+        String(maybe(res.application_version)?.cosmos_sdk_version)
+      );
 
-      this.appVersion.items = Object.entries(res.application_version).map(([key, value]) => ({
-        subtitle: key,
-        value: value,
-      }));
-      this.nodeVersion.items = Object.entries(res.default_node_info).map(([key, value]) => ({
-        subtitle: key,
-        value: value,
-      }));
+      this.appVersion.items = paramItems(res.application_version);
+      this.nodeVersion.items = paramItems(res.default_node_info);
     },
     async getBaseTendermintBlockLatest() {
-      return await this.blockchain.rpc?.getBaseBlockLatest();
+      return await this.blockchain.rpc.getBaseBlockLatest();
     },
     async getMintParam() {
-      return await this.blockchain.rpc?.getMintParam();
+      return await this.blockchain.rpc.getMintParam();
     },
     async getStakingParams() {
-      return await this.blockchain.rpc?.getStakingParams();
+      return await this.blockchain.rpc.getStakingParams();
     },
     async getStakingPool() {
-      return await this.blockchain.rpc?.getStakingPool();
+      return await this.blockchain.rpc.getStakingPool();
     },
     async getBankTotal(denom: string) {
-      return await this.blockchain.rpc?.getBankSupplyByDenom(denom);
+      return await this.blockchain.rpc.getBankSupplyByDenom(denom);
       // if (compareVersions(this.config.sdk_version, '0.46.2') > 0) {
       //     return this.get(`/cosmos/bank/v1beta1/supply/by_denom?denom=${denom}`).then(data => commonProcess(data).amount)
       //   }
@@ -203,22 +253,22 @@ export const useParamStore = defineStore('paramstore', {
       //   return this.get(`/cosmos/bank/v1beta1/supply/${denom}`).then(data => commonProcess(data).amount)
     },
     async getSlashingParams() {
-      return await this.blockchain.rpc?.getSlashingParams();
+      return await this.blockchain.rpc.getSlashingParams();
     },
     async getDistributionParams() {
-      return await this.blockchain.rpc?.getDistributionParams();
+      return await this.blockchain.rpc.getDistributionParams();
     },
     async getGovParamsVoting() {
-      return await this.blockchain.rpc?.getGovParamsVoting();
+      return await this.blockchain.rpc.getGovParamsVoting();
     },
     async getGovParamsDeposit() {
-      return await this.blockchain.rpc?.getGovParamsDeposit();
+      return await this.blockchain.rpc.getGovParamsDeposit();
     },
     async getGovParamsTally() {
-      return await this.blockchain.rpc?.getGovParamsTally();
+      return await this.blockchain.rpc.getGovParamsTally();
     },
     async fetchAbciInfo() {
-      return this.blockchain.rpc?.getBaseNodeInfo();
+      return this.blockchain.rpc.getBaseNodeInfo();
     },
   },
 });

@@ -1,0 +1,10 @@
+{
+  // The tests use the Node project's options. ESLint finds this file for
+  // them, so they do not count against the default-project file limit.
+  "extends": "../tsconfig.config.json",
+  "compilerOptions": {
+    // The sources under test import types through the app's alias.
+    "paths": { "@/*": ["../src/*"] }
+  },
+  "include": ["./**/*.ts"]
+}

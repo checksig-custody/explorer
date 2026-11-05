@@ -1,6 +1,10 @@
 <script lang="ts" setup>
 import { Icon } from '@iconify/vue';
 import { computed, ref } from 'vue';
+import type {
+  RouteLocationNormalizedLoaded,
+  RouteLocationRaw,
+} from 'vue-router';
 
 // Components
 import newFooter from '@/layouts/components/NavFooter.vue';
@@ -25,9 +29,9 @@ import dayjs from 'dayjs';
 import AdBanner from '@/components/ad/AdBanner.vue';
 
 const dashboard = useDashboard();
-dashboard.initial();
+void dashboard.initial();
 const blockchain = useBlockchain();
-blockchain.randomSetupEndpoint();
+void blockchain.randomSetupEndpoint();
 const baseStore = useBaseStore();
 
 const current = ref(''); // the current chain
@@ -35,40 +39,50 @@ const temp = ref('');
 blockchain.$subscribe((m, s) => {
   if (current.value === s.chainName && temp.value != s.endpoint.address) {
     temp.value = s.endpoint.address;
-    blockchain.initial();
+    void blockchain.initial();
   }
   if (current.value != s.chainName) {
     current.value = s.chainName;
-    blockchain.randomSetupEndpoint();
+    void blockchain.randomSetupEndpoint();
   }
 });
 
 const sidebarShow = ref(false);
 const sidebarOpen = ref(true);
 
-const changeOpen = (index: Number) => {
+const changeOpen = (index: number) => {
   if (index === 0) {
     sidebarOpen.value = !sidebarOpen.value;
   }
 };
 const showDiscord = window.location.host.search('ping.pub') > -1;
 
-function isNavGroup(nav: VerticalNavItems | any): nav is NavGroup {
-  return (<NavGroup>nav).children !== undefined;
+type NavItem = VerticalNavItems[number];
+function isNavGroup(nav: NavItem): nav is NavGroup {
+  return 'children' in nav;
 }
-function isNavLink(nav: VerticalNavItems | any): nav is NavLink {
-  return (<NavLink>nav).to !== undefined;
+// A link that carries a route, as the menu builds them.
+type RoutedNavLink = NavLink & { to: RouteLocationRaw };
+function isNavLink(nav: NavItem): nav is RoutedNavLink {
+  return 'to' in nav;
 }
-function isNavTitle(nav: VerticalNavItems | any): nav is NavSectionTitle {
-  return (<NavSectionTitle>nav).heading !== undefined;
+function isNavTitle(nav: NavItem): nav is NavSectionTitle {
+  return 'heading' in nav;
 }
-function selected(route: any, nav: NavLink) {
-  const b =
-    route.path === nav.to?.path || (route.path.startsWith(nav.to?.path) && nav.title.indexOf('dashboard') === -1);
-  return b;
+function toPath(to: RouteLocationRaw): string | undefined {
+  return typeof to === 'object' && 'path' in to ? to.path : undefined;
+}
+function selected(route: RouteLocationNormalizedLoaded, nav: RoutedNavLink) {
+  const path = toPath(nav.to);
+  return (
+    route.path === path ||
+    (path !== undefined &&
+      route.path.startsWith(path) &&
+      !nav.title.includes('dashboard'))
+  );
 }
 const blocktime = computed(() => {
-  return dayjs(baseStore.latest?.block?.header?.time);
+  return dayjs(baseStore.latest.block?.header.time);
 });
 
 const behind = computed(() => {
@@ -79,7 +93,7 @@ const behind = computed(() => {
 dayjs();
 
 const show_ad = computed(() => {
-  return location.hostname.indexOf('ping.pub') > -1;
+  return location.hostname.includes('ping.pub');
 });
 </script>
 
@@ -92,8 +106,16 @@ const show_ad = computed(() => {
     >
       <div class="flex justify-between mt-1 pl-4 py-4 mb-1">
         <RouterLink to="/" class="flex items-center">
-          <img class="h-8 block dark:hidden" src="../../assets/logo-black.svg" alt="CheckSig" />
-          <img class="h-8 hidden dark:block" src="../../assets/logo-white.svg" alt="CheckSig" />
+          <img
+            class="h-8 block dark:hidden"
+            src="../../assets/logo-black.svg"
+            alt="CheckSig"
+          />
+          <img
+            class="h-8 hidden dark:block"
+            src="../../assets/logo-white.svg"
+            alt="CheckSig"
+          />
         </RouterLink>
         <div
           class="pr-4 cursor-pointer xl:!hidden"
@@ -102,7 +124,11 @@ const show_ad = computed(() => {
           <Icon icon="mdi-close" class="text-2xl" />
         </div>
       </div>
-      <div v-for="(item, index) of blockchain.computedChainMenu" :key="index" class="px-2">
+      <div
+        v-for="(item, index) of blockchain.computedChainMenu"
+        :key="index"
+        class="px-2"
+      >
         <div
           v-if="isNavGroup(item)"
           :tabindex="index"
@@ -113,7 +139,12 @@ const show_ad = computed(() => {
             'collapse-close': index === 0 && !sidebarOpen,
           }"
         >
-          <input v-if="index > 0" type="checkbox" class="cursor-pointer !h-10 block" @click="changeOpen(index)" />
+          <input
+            v-if="index > 0"
+            type="checkbox"
+            class="cursor-pointer !h-10 block"
+            @click="changeOpen(index)"
+          />
           <div
             class="collapse-title !py-0 px-4 flex items-center cursor-pointer hover:bg-gray-100 dark:hover:bg-[#373f59]"
           >
@@ -126,8 +157,14 @@ const show_ad = computed(() => {
                 'text-blue-500': item?.title !== 'Favorite',
               }"
             />
-            <img v-if="item?.icon?.image" :src="item?.icon?.image" class="w-6 h-6 rounded-full mr-3" />
-            <div class="text-base capitalize flex-1 text-gray-700 dark:text-gray-200 whitespace-nowrap">
+            <img
+              v-if="item?.icon?.image"
+              :src="item?.icon?.image"
+              class="w-6 h-6 rounded-full mr-3"
+            />
+            <div
+              class="text-base capitalize flex-1 text-gray-700 dark:text-gray-200 whitespace-nowrap"
+            >
               {{ item?.title }}
             </div>
             <div
@@ -139,22 +176,28 @@ const show_ad = computed(() => {
             </div>
           </div>
           <div class="collapse-content">
-            <div v-for="(el, key) of item?.children" class="menu bg-base-100 w-full !p-0">
+            <div
+              v-for="(el, key) of item.children"
+              :key="key"
+              class="menu bg-base-100 w-full !p-0"
+            >
               <RouterLink
                 v-if="isNavLink(el)"
-                @click="sidebarShow = false"
                 class="hover:bg-gray-100 dark:hover:bg-[#373f59] rounded cursor-pointer px-3 py-2 flex items-center"
                 :class="{
                   '!bg-primary': selected($route, el),
                 }"
                 :to="el.to"
+                @click="sidebarShow = false"
               >
                 <Icon
                   v-if="!el?.icon?.image"
                   icon="mdi:chevron-right"
                   class="mr-2 ml-3"
                   :class="{
-                    'text-white': $route.path === el?.to?.path && item?.title !== 'Favorite',
+                    'text-white':
+                      $route.path === toPath(el.to) &&
+                      item?.title !== 'Favorite',
                   }"
                 />
                 <img
@@ -176,16 +219,26 @@ const show_ad = computed(() => {
               </RouterLink>
             </div>
             <div
-              v-if="index === 0 && dashboard.networkType === NetworkType.Testnet"
+              v-if="
+                index === 0 && dashboard.networkType === NetworkType.Testnet
+              "
               class="menu bg-base-100 w-full !p-0"
             >
               <RouterLink
                 class="hover:bg-gray-100 dark:hover:bg-[#373f59] rounded cursor-pointer px-3 py-2 flex items-center"
                 :to="`/${blockchain.chainName}/faucet`"
               >
-                <Icon icon="mdi:chevron-right" class="mr-2 ml-3"></Icon>
-                <div class="text-base capitalize text-gray-500 dark:text-gray-300">Faucet</div>
-                <div class="badge badge-sm text-white border-none badge-error ml-auto">New</div>
+                <Icon icon="mdi:chevron-right" class="mr-2 ml-3" />
+                <div
+                  class="text-base capitalize text-gray-500 dark:text-gray-300"
+                >
+                  Faucet
+                </div>
+                <div
+                  class="badge badge-sm text-white border-none badge-error ml-auto"
+                >
+                  New
+                </div>
               </RouterLink>
             </div>
           </div>
@@ -193,9 +246,9 @@ const show_ad = computed(() => {
 
         <RouterLink
           v-if="isNavLink(item)"
-          :to="item?.to"
-          @click="sidebarShow = false"
+          :to="item.to"
           class="cursor-pointer rounded-lg px-4 flex items-center py-2 hover:bg-gray-100 dark:hover:bg-[#373f59]"
+          @click="sidebarShow = false"
         >
           <Icon
             v-if="item?.icon?.icon"
@@ -211,7 +264,9 @@ const show_ad = computed(() => {
             :src="item?.icon?.image"
             class="w-6 h-6 rounded-full mr-3 border border-blue-100"
           />
-          <div class="text-base capitalize flex-1 text-gray-700 dark:text-gray-200 whitespace-nowrap">
+          <div
+            class="text-base capitalize flex-1 text-gray-700 dark:text-gray-200 whitespace-nowrap"
+          >
             {{ item?.title }}
           </div>
           <div
@@ -236,7 +291,11 @@ const show_ad = computed(() => {
           class="py-2 px-4 flex items-center cursor-pointer rounded-lg hover:bg-gray-100 dark:hover:bg-[#373f59]"
         >
           <Icon icon="mdi:frequently-asked-questions" class="text-xl mr-2" />
-          <div class="text-base capitalize flex-1 text-gray-600 dark:text-gray-200">Wallet Helper</div>
+          <div
+            class="text-base capitalize flex-1 text-gray-600 dark:text-gray-200"
+          >
+            Wallet Helper
+          </div>
         </RouterLink>
         <div
           v-if="showDiscord"
@@ -245,14 +304,20 @@ const show_ad = computed(() => {
           {{ $t('module.sponsors') }}
         </div>
         <Sponsors v-if="showDiscord" />
-        <div class="px-4 text-sm pt-2 text-gray-400 pb-2 uppercase">{{ $t('module.links') }}</div>
+        <div class="px-4 text-sm pt-2 text-gray-400 pb-2 uppercase">
+          {{ $t('module.links') }}
+        </div>
         <a
           href="https://twitter.com/ping_pub"
           target="_blank"
           class="py-2 px-4 flex items-center cursor-pointer rounded-lg hover:bg-gray-100 dark:hover:bg-[#373f59]"
         >
           <Icon icon="mdi:twitter" class="text-xl mr-2" />
-          <div class="text-base capitalize flex-1 text-gray-600 dark:text-gray-200">Twitter</div>
+          <div
+            class="text-base capitalize flex-1 text-gray-600 dark:text-gray-200"
+          >
+            Twitter
+          </div>
         </a>
         <a
           v-if="showDiscord"
@@ -261,7 +326,11 @@ const show_ad = computed(() => {
           class="py-2 px-4 flex items-center rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-[#373f59]"
         >
           <Icon icon="mdi:discord" class="text-xl mr-2" />
-          <div class="text-base capitalize flex-1 text-gray-600 dark:text-gray-200">Discord</div>
+          <div
+            class="text-base capitalize flex-1 text-gray-600 dark:text-gray-200"
+          >
+            Discord
+          </div>
         </a>
         <a
           href="https://github.com/ping-pub/explorer/discussions"
@@ -269,7 +338,11 @@ const show_ad = computed(() => {
           class="py-2 px-4 flex items-center rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-[#373f59]"
         >
           <Icon icon="mdi:frequently-asked-questions" class="text-xl mr-2" />
-          <div class="text-base capitalize flex-1 text-gray-600 dark:text-gray-200">FAQ</div>
+          <div
+            class="text-base capitalize flex-1 text-gray-600 dark:text-gray-200"
+          >
+            FAQ
+          </div>
         </a>
       </div>
     </div>
@@ -287,7 +360,7 @@ const show_ad = computed(() => {
 
         <ChainProfile />
 
-        <div class="flex-1 w-0"></div>
+        <div class="flex-1 w-0" />
 
         <!-- <NavSearchBar />-->
         <NavBarI18n class="hidden md:!inline-block" />
@@ -311,7 +384,7 @@ const show_ad = computed(() => {
                 stroke-linejoin="round"
                 stroke-width="2"
                 d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              ></path>
+              />
             </svg>
             <span
               >{{ $t('pages.out_of_sync') }} {{ blocktime.format() }} ({{
@@ -322,6 +395,7 @@ const show_ad = computed(() => {
         </div>
         <RouterView v-slot="{ Component }">
           <Transition mode="out-in">
+            <!-- eslint-disable-next-line vue/require-toggle-inside-transition -- the wrapper is static; kept so the markup does not change -->
             <div>
               <AdBanner v-if="show_ad" />
               <Component :is="Component" />

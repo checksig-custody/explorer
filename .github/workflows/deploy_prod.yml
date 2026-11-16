@@ -20,6 +20,7 @@ jobs:
     environment: Production
     runs-on: ubuntu-latest
     permissions:
+      actions: read
       contents: read
       id-token: write # assume the explorer deploy role in AWS
     # Serialize deploys to the same bucket/distribution; never cancel an S3
@@ -28,6 +29,26 @@ jobs:
       group: deploy-prod-explorer
       cancel-in-progress: false
     steps:
+      - name: Announce the approval
+        # Says in #monitoring-releases who approved, once a reviewer did: this job only
+        # starts after the approval. It never fails the release.
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          TAG: ${{ github.event.release.tag_name || inputs.tag_name }}
+        run: |
+          [ -n "${SLACK_BOT_TOKEN}" ] || exit 0
+          approvers="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/approvals" \
+            --jq '[.[] | select(.state == "approved") | .user.login | select(test("^[A-Za-z0-9-]+$"))] | unique | join(", ")')" || exit 0
+          [ -n "${approvers}" ] || exit 0
+          label="$(printf '%s' "${TAG:-${GITHUB_REF_NAME}}" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g')"
+          run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          jq -n --arg text ":white_check_mark: *Deploy approved: <${run_url}|Production deployment of ${label}>* (${GITHUB_REPOSITORY})"$'\n'"Approved by ${approvers}." \
+            '{channel: "C0C9FHSEM27", text: $text, unfurl_links: false}' |
+            curl -sS --max-time 20 -X POST https://slack.com/api/chat.postMessage \
+              -H "Authorization: Bearer ${SLACK_BOT_TOKEN}" \
+              -H 'Content-Type: application/json; charset=utf-8' --data @- > /dev/null || true
       - name: Validate tag
         id: resolve
         env:
